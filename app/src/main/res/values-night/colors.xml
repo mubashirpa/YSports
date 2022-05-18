@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#D0BCFF</color>
+    <color name="onPrimary">#371E73</color>
+    <color name="primaryContainer">#4F378B</color>
+    <color name="onPrimaryContainer">#EADDFF</color>
+
+    <color name="secondary">#CCC2DC</color>
+    <color name="onSecondary">#332D41</color>
+    <color name="secondaryContainer">#4A4458</color>
+    <color name="onSecondaryContainer">#E8DEF8</color>
+
+    <color name="tertiary">#EFB8C8</color>
+    <color name="onTertiary">#492532</color>
+    <color name="tertiaryContainer">#633B48</color>
+    <color name="onTertiaryContainer">#FFD8E4</color>
+
+    <color name="error">#F2B8B5</color>
+    <color name="onError">#601410</color>
+    <color name="errorContainer">#8C1D18</color>
+    <color name="onErrorContainer">#F9DEDC</color>
+
+    <color name="background">#1C1B1F</color>
+    <color name="onBackground">#E6E1E5</color>
+    <color name="surface">#1C1B1F</color>
+    <color name="onSurface">#E6E1E5</color>
+    <color name="surfaceVariant">#49454F</color>
+    <color name="onSurfaceVariant">#CAC4D0</color>
+    <color name="outline">#938F99</color>
+
+    <color name="shadow">#000000</color>
+    <color name="surfaceTint">#D0BCFF</color>
+    <color name="inverseSurface">#E6E1E5</color>
+    <color name="inverseOnSurface">#313033</color>
+    <color name="inversePrimary">#6750A4</color>
+
+    <color name="onBackgroundSecondary">#D1CBD0</color>
+    <color name="onSurfaceSecondary">#D1CBD0</color>
+    <color name="onSurfaceVariantSecondary">#BDB7C3</color>
+
+    <!--
+    <color name="primary">#FFB3B6</color>
+    <color name="onPrimary">#5F131C</color>
+    <color name="primaryContainer">#7E2A30</color>
+    <color name="onPrimaryContainer">#FFDADB</color>
+
+    <color name="secondary">#E6BCBC</color>
+    <color name="onSecondary">#44292A</color>
+    <color name="secondaryContainer">#5D3F3F</color>
+    <color name="onSecondaryContainer">#FFDAD9</color>
+
+    <color name="tertiary">#EEBF78</color>
+    <color name="onTertiary">#442B00</color>
+    <color name="tertiaryContainer">#604003</color>
+    <color name="onTertiaryContainer">#FFDDAB</color>
+
+    <color name="error">#F2B8B5</color>
+    <color name="onError">#601410</color>
+    <color name="errorContainer">#8C1D18</color>
+    <color name="onErrorContainer">#F9DEDC</color>
+
+    <color name="background">#201A1A</color>
+    <color name="onBackground">#ECDFDF</color>
+    <color name="surface">#201A1A</color>
+    <color name="onSurface">#ECDFDF</color>
+    <color name="surfaceVariant">#534343</color>
+    <color name="onSurfaceVariant">#D7C2C1</color>
+    <color name="outline">#A08C8C</color>
+
+    <color name="onBackgroundSecondary">#DACCCC</color>
+    <color name="onSurfaceSecondary">#DACCCC</color>
+    <color name="onSurfaceVariantSecondary">#C8B3B2</color>
+    -->
+
+    <color name="navigation_bar">#2A2831</color>
+</resources>

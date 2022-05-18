@@ -1,0 +1,64 @@
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name">YSports</string>
+    <string name="default_notification_channel_id">default_channel</string>
+    <string name="default_notification_channel_name">Default</string>
+    <string name="default_notification_channel_description">Default notifications</string>
+
+    <!-- Exoplayer strings -->
+    <string name="track_selection_title">Select tracks</string>
+    <string name="unexpected_intent_action">Unexpected intent action: <xliff:g id="action">%1$s</xliff:g></string>
+    <string name="error_cleartext_not_permitted">Cleartext HTTP traffic not permitted. See https://exoplayer.dev/issues/cleartext-not-permitted</string>
+    <string name="error_generic">Playback failed</string>
+    <string name="error_drm_unsupported_before_api_18">DRM content not supported on API levels below 18</string>
+    <string name="error_drm_unsupported_scheme">This device does not support the required DRM scheme</string>
+    <string name="error_no_decoder">This device does not provide a decoder for <xliff:g id="mime_type">%1$s</xliff:g></string>
+    <string name="error_no_secure_decoder">This device does not provide a secure decoder for <xliff:g id="mime_type">%1$s</xliff:g></string>
+    <string name="error_querying_decoders">Unable to query device decoders</string>
+    <string name="error_instantiating_decoder">Unable to instantiate decoder <xliff:g id="decoder_name">%1$s</xliff:g></string>
+    <string name="error_unsupported_video">Media includes video tracks, but none are playable by this device</string>
+    <string name="error_unsupported_audio">Media includes audio tracks, but none are playable by this device</string>
+    <string name="storage_permission_denied">Permission to access storage was denied</string>
+    <string name="download_start_error">Failed to start download</string>
+    <string name="download_start_error_offline_license">Failed to obtain offline license</string>
+    <string name="download_live_unsupported">This demo app does not support downloading live content</string>
+
+    <!-- Error strings -->
+    <string name="error_default">An error occurred</string>
+    <string name="error_failed_to_load_content">We\'re unable to load content. Please try again</string>
+    <string name="error_fdb_on_cancelled">Failed to connect with database</string>
+    <string name="error_retrofit_response">No response found</string>
+    <string name="error_no_matches_today">No matches today</string>
+    <string name="error_no_matches">No matches found</string>
+    <string name="error_failed_load_news">Unable to fetch news</string>
+    <string name="error_activity_not_found">No activity found to handle intent</string>
+    <string name="error_initialize_youtube_player">Failed to initialize player</string>
+    <string name="error_empty_url">Empty URL</string>
+
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="search">Search</string>
+    <string name="network_stream">Network stream</string>
+    <string name="settings">Settings</string>
+    <string name="subtitles">Subtitles</string>
+    <string name="audio">Audio</string>
+    <string name="quality">Quality</string>
+    <string name="retry">Retry</string>
+    <string name="live">Live</string>
+    <string name="_00_00">00:00</string>
+    <string name="latest_news">Latest News</string>
+    <string name="today_matches">Today Matches</string>
+    <string name="leagues">Leagues</string>
+    <string name="view_all">View All</string>
+    <string name="ysports_caps">YSPORTS</string>
+    <string name="_0">0</string>
+    <string name="playback_speed">Playback speed</string>
+    <string name="url_live_score_widget">https://ysportsapp.blogspot.com/p/livescore-widget.html</string>
+    <string name="url_highlights_widget">https://ysportsapp.blogspot.com/p/video-widget.html</string>
+    <string name="title_home">Home</string>
+    <string name="title_fixtures">Fixtures</string>
+    <string name="title_more">More</string>
+    <string name="previous">Previous</string>
+    <string name="today">Today</string>
+    <string name="upcoming">Upcoming</string>
+    <string name="network_url">Network URL</string>
+</resources>

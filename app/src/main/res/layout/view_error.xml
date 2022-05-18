@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="@color/background"
+    android:clickable="true"
+    android:focusable="true">
+    <TextView
+        android:id="@+id/text_view_error"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/error_default"
+        android:gravity="center"
+        android:textSize="14sp"
+        android:textColor="@color/onSecondary" />
+    <Button
+        android:id="@+id/button_retry"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/retry"
+        android:textColor="@color/onPrimary"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_marginTop="15dp"/>
+</LinearLayout>

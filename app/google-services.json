@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "633994831435",
+    "firebase_url": "https://ysports-app-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "ysports-app",
+    "storage_bucket": "ysports-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:633994831435:android:ba11635a8f3e3b26500fce",
+        "android_client_info": {
+          "package_name": "ysports.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "633994831435-7cv1ud0cfensj290k5q430tesvm35e82.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCxSkI7b2-27pP46Nf584aKLKEDouFcQY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "633994831435-7cv1ud0cfensj290k5q430tesvm35e82.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
