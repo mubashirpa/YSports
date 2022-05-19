@@ -20,19 +20,20 @@
         <!-- Customize your theme here. -->
 
         <!-- Status bar. -->
-        <item name="android:statusBarColor">@color/primary</item>
-        <item name="statusBarBackground">@color/primary</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">?attr/isLightTheme</item>
         <!-- Navigation bar. -->
         <item name="android:navigationBarColor">@color/navigation_bar</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">?attr/isLightTheme</item>
 
-        <item name="android:windowBackground">@color/background</item>
         <item name="colorOnBackground">@color/onBackground</item>
         <item name="colorSurface">@color/surface</item>
         <item name="colorOnSurface">@color/onSurface</item>
         <item name="colorSurfaceVariant">@color/surfaceVariant</item>
         <item name="colorOnSurfaceVariant">@color/onSurfaceVariant</item>
         <item name="colorOutline">@color/outline</item>
+        <item name="android:windowBackground">@color/background</item>
+        <item name="popupMenuBackground">@drawable/custom_popup_background</item>
     </style>
 
     <style name="Theme.Main" parent="Theme.YSports">
@@ -54,11 +55,11 @@
         <item name="android:windowTranslucentNavigation">true</item>
     </style>
 
-    <style name="TrackSelectionDialogThemeOverlay" parent="ThemeOverlay.AppCompat.Dialog.Alert">
-        <item name="windowNoTitle">false</item>
-    </style>
-
     <style name="ThemeOverlay.App.BottomSheetDialog" parent="ThemeOverlay.Material3.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/ModalBottomSheetDialog</item>
+    </style>
+
+    <style name="TrackSelectionDialogThemeOverlay" parent="ThemeOverlay.AppCompat.Dialog.Alert">
+        <item name="windowNoTitle">false</item>
     </style>
 </resources>

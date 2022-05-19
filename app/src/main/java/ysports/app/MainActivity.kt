@@ -15,6 +15,7 @@ import android.view.View
 import android.webkit.URLUtil
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -43,8 +44,10 @@ class MainActivity : AppCompatActivity() {
     private val playerUtil = PlayerUtil()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+        // Handle the splash screen transition.
+        installSplashScreen()
 
+        super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -81,6 +84,10 @@ class MainActivity : AppCompatActivity() {
             when (menuItem.itemId) {
                 R.id.search -> {
                     // TODO("Handle search icon press")
+                    val intent = Intent(context, BrowserActivity::class.java).apply {
+                        putExtra("WEB_URL", "https://google.com")
+                    }
+                    startActivity(intent)
                     true
                 }
                 else -> false

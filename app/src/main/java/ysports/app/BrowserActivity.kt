@@ -30,6 +30,7 @@ import androidx.annotation.RestrictTo
 import androidx.core.content.ContextCompat
 import androidx.webkit.*
 import androidx.webkit.WebSettingsCompat.*
+import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.snackbar.Snackbar
 import ysports.app.databinding.ActivityBrowserBinding
 import ysports.app.util.AdBlocker
@@ -42,18 +43,43 @@ class BrowserActivity : AppCompatActivity() {
     private lateinit var WEB_URL: String
     private var safeBrowsingIsInitialized: Boolean = false
     private lateinit var webView: WebView
+    private lateinit var toolbar: MaterialToolbar
     private val TAG = "BrowserActivity"
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         binding = ActivityBrowserBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         context = this
+        toolbar = binding.materialToolbar
         webView = binding.webView
         AdBlocker.init(context)
         WEB_URL = intent.getStringExtra("WEB_URL") ?: "https://appassets.androidplatform.net/assets/web/error_404/index.html"
+
+        toolbar.subtitle = Uri.parse(WEB_URL).host
+
+        toolbar.setNavigationOnClickListener {
+            finish()
+        }
+
+        toolbar.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.share -> {
+                    true
+                }
+                R.id.copy -> {
+                    true
+                }
+                R.id.open -> {
+                    true
+                }
+                else -> false
+            }
+        }
+
         val assetLoader = WebViewAssetLoader.Builder()
             .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
             .addPathHandler("/res/", WebViewAssetLoader.ResourcesPathHandler(this))
@@ -229,11 +255,7 @@ class BrowserActivity : AppCompatActivity() {
         }
 
         override fun onReceivedTitle(view: WebView?, title: String?) {
-            /*
-            if (title.equals(webViewErrorPageUrl))
-                toolbar.title = resources.getString(R.string.app_name)
-            else toolbar.title = title
-             */
+            if (!title.isNullOrEmpty()) toolbar.title = title
         }
 
         override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {

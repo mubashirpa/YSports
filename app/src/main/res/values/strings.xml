@@ -61,4 +61,7 @@
     <string name="today">Today</string>
     <string name="upcoming">Upcoming</string>
     <string name="network_url">Network URL</string>
+    <string name="share">Share</string>
+    <string name="copy_link">Copy Link</string>
+    <string name="open_in_browser">Open in browser</string>
 </resources>
