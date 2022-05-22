@@ -8,6 +8,11 @@
         android:contentDescription="@string/app_name"
         app:showAsAction="ifRoom"/>
     <item
+        android:id="@+id/refresh"
+        android:title="@string/refresh"
+        android:contentDescription="@string/app_name"
+        app:showAsAction="never"/>
+    <item
         android:id="@+id/copy"
         android:title="@string/copy_link"
         android:contentDescription="@string/app_name"
