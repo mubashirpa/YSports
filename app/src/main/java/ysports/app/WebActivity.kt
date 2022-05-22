@@ -19,7 +19,10 @@ import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.webkit.*
 import android.webkit.WebView.RENDERER_PRIORITY_BOUND
-import android.widget.*
+import android.widget.Button
+import android.widget.FrameLayout
+import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.annotation.Nullable
@@ -30,7 +33,6 @@ import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.webkit.*
-import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import ysports.app.databinding.ActivityWebBinding
 import ysports.app.player.PlayerUtil
@@ -43,7 +45,6 @@ class WebActivity : AppCompatActivity() {
     private lateinit var binding: ActivityWebBinding
     private lateinit var context: Context
     private lateinit var webView: WebView
-    private lateinit var toolbar: MaterialToolbar
     private var WEB_URL: String = ""
     private lateinit var webViewProgressIndicator: CircularProgressIndicator
     private var webViewErrorOccurred: Boolean = false
@@ -61,8 +62,6 @@ class WebActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         context = this
-        toolbar = binding.materialToolbar
-        toolbar.title = resources.getString(R.string.app_name)
         webView = binding.webView
         webView.setBackgroundColor(Color.TRANSPARENT)
         AdBlocker.init(context)
@@ -71,10 +70,6 @@ class WebActivity : AppCompatActivity() {
         errorTextView = binding.errorView.textViewError
         retryButton = binding.errorView.buttonRetry
         WEB_URL = intent.getStringExtra("WEB_URL") ?: "https://appassets.androidplatform.net/assets/web/error_404/index.html"
-
-        toolbar.setNavigationOnClickListener {
-            finish()
-        }
 
         val assetLoader = WebViewAssetLoader.Builder()
             .setDomain("ysports.app")
@@ -259,6 +254,11 @@ class WebActivity : AppCompatActivity() {
     inner class WebAppInterface(private val context: Context) {
 
         @JavascriptInterface
+        fun exitActivity() {
+            finish()
+        }
+
+        @JavascriptInterface
         fun showToast(message: String?) {
             if (message != null) {
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -369,12 +369,6 @@ class WebActivity : AppCompatActivity() {
                 startActivity(intent)
             }
             return false
-        }
-
-        override fun onReceivedTitle(view: WebView?, title: String?) {
-            if (title != null) {
-                if (title.isEmpty() || URLUtil.isNetworkUrl(title)) toolbar.title = resources.getString(R.string.app_name) else toolbar.title = title
-            } else toolbar.title = resources.getString(R.string.app_name)
         }
 
         override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
