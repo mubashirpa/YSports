@@ -2,6 +2,8 @@ package ysports.app
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
@@ -11,7 +13,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Message
 import android.util.Log
@@ -27,6 +28,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.Nullable
 import androidx.annotation.RequiresApi
 import androidx.annotation.RestrictTo
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.webkit.*
 import androidx.webkit.WebSettingsCompat.*
@@ -34,6 +36,7 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.snackbar.Snackbar
 import ysports.app.databinding.ActivityBrowserBinding
 import ysports.app.util.AdBlocker
+import ysports.app.util.AppUtil
 
 @Suppress("PrivatePropertyName")
 class BrowserActivity : AppCompatActivity() {
@@ -68,12 +71,24 @@ class BrowserActivity : AppCompatActivity() {
         toolbar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.share -> {
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, webView.url ?: WEB_URL)
+                    }
+                    startActivity(Intent.createChooser(shareIntent, "Share Link"))
+                    true
+                }
+                R.id.refresh -> {
+                    webView.reload()
                     true
                 }
                 R.id.copy -> {
+                    (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("clipboard", webView.url ?: WEB_URL))
+                    Toast.makeText(context, "Link copied to clipboard", Toast.LENGTH_SHORT).show()
                     true
                 }
                 R.id.open -> {
+                    AppUtil(context).openCustomTabs(webView.url ?: WEB_URL)
                     true
                 }
                 else -> false
