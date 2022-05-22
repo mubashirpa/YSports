@@ -7,6 +7,14 @@
         <item name="postSplashScreenTheme">@style/Theme.Main</item>
     </style>
 
+    <!-- Browser Activity Toolbar Text Appearance -->
+    <style name="TextAppearance.App.TitleLarge" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:textSize">18sp</item>
+    </style>
+    <style name="TextAppearance.App.TitleMedium" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textSize">12sp</item>
+    </style>
+
     <style name="ModalBottomSheetDialog" parent="Widget.Material3.BottomSheet.Modal">
         <item name="android:backgroundTint">@android:color/transparent</item>
         <item name="android:elevation">0dp</item>
