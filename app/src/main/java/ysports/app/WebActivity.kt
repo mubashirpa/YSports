@@ -1,10 +1,11 @@
 package ysports.app
 
 import android.annotation.SuppressLint
-import android.annotation.TargetApi
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.graphics.Bitmap
@@ -27,6 +28,7 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.annotation.Nullable
 import androidx.annotation.RequiresApi
+import androidx.annotation.UiThread
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
@@ -38,6 +40,8 @@ import ysports.app.databinding.ActivityWebBinding
 import ysports.app.player.PlayerUtil
 import ysports.app.util.AdBlocker
 import ysports.app.util.YouTubePlay
+import java.net.URISyntaxException
+import java.net.URLDecoder
 
 @Suppress("PrivatePropertyName")
 class WebActivity : AppCompatActivity() {
@@ -49,6 +53,10 @@ class WebActivity : AppCompatActivity() {
     private lateinit var webViewProgressIndicator: CircularProgressIndicator
     private var webViewErrorOccurred: Boolean = false
     private val TAG: String = "WebActivity"
+    private val CHROME_SCHEME = "chrome:"
+    private val VIDEO_SCHEME = "video:"
+    private val INTENT_SCHEME = "intent:"
+    private val TORRENT_SCHEME = "magnet:"
     private lateinit var errorView: View
     private lateinit var errorTextView: TextView
     private lateinit var retryButton: Button
@@ -58,28 +66,26 @@ class WebActivity : AppCompatActivity() {
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         binding = ActivityWebBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         context = this
         webView = binding.webView
-        webView.setBackgroundColor(Color.TRANSPARENT)
-        AdBlocker.init(context)
         webViewProgressIndicator = binding.progressIndicatorWebView
         errorView = findViewById(R.id.error_view)
         errorTextView = binding.errorView.textViewError
         retryButton = binding.errorView.buttonRetry
         WEB_URL = intent.getStringExtra("WEB_URL") ?: "https://appassets.androidplatform.net/assets/web/error_404/index.html"
 
+        webView.setBackgroundColor(Color.TRANSPARENT)
+        AdBlocker.init(context)
+
         val assetLoader = WebViewAssetLoader.Builder()
             .setDomain("ysports.app")
             .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
             .addPathHandler("/res/", WebViewAssetLoader.ResourcesPathHandler(this))
             .build()
-
-        if (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0) {
-            WebView.setWebContentsDebuggingEnabled(false)
-        }
 
         if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
             when (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
@@ -89,7 +95,7 @@ class WebActivity : AppCompatActivity() {
                         WebSettingsCompat.FORCE_DARK_ON
                     )
                 }
-                else -> {
+                Configuration.UI_MODE_NIGHT_NO, Configuration.UI_MODE_NIGHT_UNDEFINED -> {
                     WebSettingsCompat.setForceDark(
                         webView.settings,
                         WebSettingsCompat.FORCE_DARK_OFF
@@ -102,6 +108,10 @@ class WebActivity : AppCompatActivity() {
                 webView.settings,
                 WebSettingsCompat.DARK_STRATEGY_WEB_THEME_DARKENING_ONLY
             )
+        }
+
+        if (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0) {
+            WebView.setWebContentsDebuggingEnabled(false)
         }
 
         // WebView settings
@@ -134,7 +144,7 @@ class WebActivity : AppCompatActivity() {
             setSupportMultipleWindows(true)
             setSupportZoom(false)
             useWideViewPort = true
-            userAgentString = "Mozilla/5.0 (Linux; Android " + Build.VERSION.RELEASE + "; " + Build.MODEL + ") AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.98 Mobile Safari/537.36"
+            userAgentString = "Mozilla/5.0 (Linux; Android " + Build.VERSION.RELEASE + "; " + Build.MODEL + ") AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.61 Mobile Safari/537.36"
         }
         CookieManager.getInstance().setAcceptCookie(true)
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true)
@@ -189,67 +199,6 @@ class WebActivity : AppCompatActivity() {
         webView.onResume()
     }
 
-    private fun View.showView() {
-        if (!this.isVisible) this.visibility = View.VISIBLE
-    }
-
-    private fun View.hideView() {
-        if (this.isVisible) this.visibility = View.GONE
-    }
-
-    private fun openCustomTabs(url: String) {
-        val colorInt: Int = ContextCompat.getColor(context, R.color.primary)
-        val defaultColors: CustomTabColorSchemeParams = CustomTabColorSchemeParams.Builder()
-            .setToolbarColor(colorInt)
-            .build()
-        val builder: CustomTabsIntent.Builder = CustomTabsIntent.Builder()
-        builder.setDefaultColorSchemeParams(defaultColors)
-        val customTabsIntent = builder.build()
-        customTabsIntent.launchUrl(context, Uri.parse(url))
-    }
-
-    private fun overrideUrlLoading(url: String?) : Boolean {
-        if (URLUtil.isNetworkUrl(url)) {
-            return false
-        } else {
-            when {
-                url!!.startsWith("chrome://") -> {
-                    val replacedURL: String = url.replace("chrome://", "")
-                    openCustomTabs(replacedURL)
-                }
-                url.startsWith("video://") -> {
-                    val replacedURL: String = url.replace("video://", "")
-                    if (replacedURL.startsWith("https://youtu.be/")) {
-                        val intent = Intent(context, YouTubePlayerActivity::class.java).apply {
-                            putExtra("VIDEO_URL", replacedURL)
-                        }
-                        startActivity(intent)
-                    } else {
-                        playerUtil.loadPlayer(context, Uri.parse(replacedURL), true)
-                    }
-                }
-                else -> {
-                    val handlerIntent = Intent(Intent.ACTION_VIEW)
-                    handlerIntent.data = Uri.parse(url)
-                    try {
-                        startActivity(handlerIntent)
-                    } catch (e: Exception) {
-                        Toast.makeText(context, getString(R.string.error_activity_not_found), Toast.LENGTH_LONG).show()
-                    }
-                }
-            }
-        }
-        return true
-    }
-
-    private fun receivedError() {
-        webView.evaluateJavascript("javascript:document.open();document.write('');document.close();", null)
-        webView.hideView()
-        webViewErrorOccurred = true
-        errorTextView.text = resources.getString(R.string.error_failed_to_load_content)
-        errorView.showView()
-    }
-
     @Suppress("unused")
     inner class WebAppInterface(private val context: Context) {
 
@@ -282,13 +231,13 @@ class WebActivity : AppCompatActivity() {
 
     inner class CustomWebViewClient(private val assetLoader: WebViewAssetLoader) : WebViewClientCompat() {
 
-        @RequiresApi(Build.VERSION_CODES.O)
+        @RequiresApi(26)
         override fun onRenderProcessGone(view: WebView?, detail: RenderProcessGoneDetail?): Boolean {
             if (detail != null && !detail.didCrash()) {
                 Log.e(TAG, "System killed the WebView rendering process to reclaim memory. Recreating...")
 
-                webView.also {
-                    it.destroy()
+                webView.also { web ->
+                    web.destroy()
                 }
                 return true
             }
@@ -299,27 +248,21 @@ class WebActivity : AppCompatActivity() {
 
         @Nullable
         override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
-            // return assetLoader.shouldInterceptRequest(request.url)
-            val loadedUrls: MutableMap<String, Boolean> = HashMap()
-            val resourceUrl = request.url.toString()
-            val ad: Boolean
-            if (!loadedUrls.containsKey(resourceUrl)) {
-                ad = AdBlocker.isAd(resourceUrl)
-                loadedUrls[resourceUrl] = ad
-            } else {
-                ad = loadedUrls[resourceUrl]!!
-            }
-            return if (ad) AdBlocker.createEmptyResource() else return assetLoader.shouldInterceptRequest(request.url)
+            return assetLoader.shouldInterceptRequest(request.url)
         }
 
-        @kotlin.Deprecated("shouldOverrideUrlLoading(WebView!, String!): Boolean is deprecated. Deprecated in Java")
+        @RequiresApi(23)
+        override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+            if (!WebViewFeature.isFeatureSupported(WebViewFeature.SHOULD_OVERRIDE_WITH_REDIRECTS)) return false
+            return overrideUrlLoading(request.url.toString())
+        }
+
+        @Deprecated("Deprecated in Java", ReplaceWith(
+            "return super.shouldOverrideUrlLoading(view, request)",
+            "androidx.webkit.WebViewClientCompat"
+        ))
         override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
             return overrideUrlLoading(url)
-        }
-
-        @TargetApi(Build.VERSION_CODES.M)
-        override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
-            return overrideUrlLoading(request.url.toString())
         }
 
         override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
@@ -332,21 +275,35 @@ class WebActivity : AppCompatActivity() {
             webViewProgressIndicator.hideView()
         }
 
-        @kotlin.Deprecated("onReceivedError(WebView!, Int, String!, String!): Unit is deprecated. Deprecated in Java")
-        override fun onReceivedError(view: WebView?, errorCode: Int, description: String?, failingUrl: String?) {
-            receivedError()
+        @RequiresApi(23)
+        @UiThread
+        override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceErrorCompat) {
+            if (!WebViewFeature.isFeatureSupported(WebViewFeature.RECEIVE_WEB_RESOURCE_ERROR)) return
+            if (request.isForMainFrame) {
+                onReceivedError()
+            }
         }
 
-        @TargetApi(Build.VERSION_CODES.M)
-        override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceErrorCompat) {
-            if (request.isForMainFrame) {
-                receivedError()
-            }
+        @Deprecated("Deprecated in Java", ReplaceWith(
+            "super.onReceivedError(view, request, error)",
+            "androidx.webkit.WebViewClientCompat"
+        ))
+        override fun onReceivedError(view: WebView?, errorCode: Int, description: String?, failingUrl: String?) {
+            onReceivedError()
         }
 
         @SuppressLint("WebViewClientOnReceivedSslError")
         override fun onReceivedSslError(view: WebView?, handler: SslErrorHandler?, error: SslError?) {
             handler?.proceed()
+        }
+
+        @UiThread
+        override fun onReceivedHttpError(view: WebView, request: WebResourceRequest, errorResponse: WebResourceResponse) {
+            if (WebViewFeature.isFeatureSupported(WebViewFeature.RECEIVE_HTTP_ERROR)) {
+                super.onReceivedHttpError(view, request, errorResponse)
+                Log.e(TAG, "WebView ReceivedHttpError")
+                Log.e(TAG, "${request.url}")
+            }
         }
     }
 
@@ -489,7 +446,7 @@ class WebActivity : AppCompatActivity() {
             }
         }
 
-        @RequiresApi(Build.VERSION_CODES.R)
+        @RequiresApi(30)
         private fun controlWindowInsets(hide: Boolean) {
             // WindowInsetsController can hide or show specified system bars.
             val insetsController = window.decorView.windowInsetsController ?: return
@@ -533,5 +490,99 @@ class WebActivity : AppCompatActivity() {
             }
             uploadCallback = null
         }
+    }
+
+    private fun View.showView() {
+        if (!this.isVisible) this.visibility = View.VISIBLE
+    }
+
+    private fun View.hideView() {
+        if (this.isVisible) this.visibility = View.GONE
+    }
+
+    private fun openCustomTabs(url: String) {
+        val colorInt: Int = ContextCompat.getColor(context, R.color.primary)
+        val defaultColors: CustomTabColorSchemeParams = CustomTabColorSchemeParams.Builder()
+            .setToolbarColor(colorInt)
+            .build()
+        val builder: CustomTabsIntent.Builder = CustomTabsIntent.Builder()
+        builder.setDefaultColorSchemeParams(defaultColors)
+        val customTabsIntent = builder.build()
+        customTabsIntent.launchUrl(context, Uri.parse(url))
+    }
+
+    private fun overrideUrlLoading(url: String?) : Boolean {
+        if (URLUtil.isNetworkUrl(url)) {
+            return false
+        } else {
+            when {
+                url?.startsWith(CHROME_SCHEME) == true -> {
+                    val replacedURL = URLDecoder.decode(url.substring(CHROME_SCHEME.length), "UTF-8")
+                    openCustomTabs(replacedURL)
+                }
+                url?.startsWith(VIDEO_SCHEME) == true -> {
+                    val replacedURL = URLDecoder.decode(url.substring(VIDEO_SCHEME.length), "UTF-8")
+                    if (replacedURL.startsWith("https://youtu.be/")) {
+                        val intent = Intent(context, YouTubePlayerActivity::class.java).apply {
+                            putExtra("VIDEO_URL", replacedURL)
+                        }
+                        startActivity(intent)
+                    } else {
+                        playerUtil.loadPlayer(context, Uri.parse(replacedURL), true)
+                    }
+                }
+                url?.startsWith(INTENT_SCHEME) == true -> {
+                    try {
+                        val handlerIntent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
+                        if (handlerIntent != null) {
+                            val packageManager = context.packageManager
+                            val info = packageManager.resolveActivity(handlerIntent, PackageManager.MATCH_DEFAULT_ONLY)
+                            if (info != null) {
+                                context.startActivity(handlerIntent)
+                            } else {
+                                val marketIntent = Intent(Intent.ACTION_VIEW)
+                                marketIntent.data = Uri.parse("market://details?id=" + handlerIntent.getPackage())
+                                try {
+                                    startActivity(marketIntent)
+                                } catch (notFoundException: ActivityNotFoundException) {
+                                    Toast.makeText(context, "Failed to load URL", Toast.LENGTH_LONG).show()
+                                }
+                            }
+                        }
+                    } catch (uriSyntaxException: URISyntaxException) {
+                        Toast.makeText(context, "Failed to load URL", Toast.LENGTH_LONG).show()
+                    }
+                }
+                url?.startsWith(TORRENT_SCHEME) == true -> {
+                    Toast.makeText(context, "Download a torrent client and Try again!", Toast.LENGTH_LONG).show()
+                }
+                else -> {
+                    try {
+                        val unknownURLIntent = Intent(Intent.ACTION_VIEW)
+                        unknownURLIntent.data = Uri.parse(url)
+                        startActivity(unknownURLIntent)
+                    } catch (e: Exception) {
+                        Toast.makeText(context, "Unsupported URL", Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        }
+        return true
+    }
+
+    private fun onReceivedError() {
+        webView.evaluateJavascript("javascript:document.open();document.write('');document.close();", null)
+        webView.hideView()
+        webViewErrorOccurred = true
+        errorTextView.text = resources.getString(R.string.error_failed_to_load_content)
+        errorView.showView()
+    }
+
+    private fun fetchJavaScript(url: String?) {
+        // JavaScript code to fetch() content from the same origin
+        val jsCode = "fetch('$url')" +
+                ".then(resp => resp.json())" +
+                ".then(data => console.log(data));"
+        webView.evaluateJavascript(jsCode, null)
     }
 }

@@ -2,19 +2,16 @@ package ysports.app
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.content.Intent
+import android.content.*
 import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.os.Build
-import android.os.Bundle
-import android.os.Message
+import android.net.http.SslError
+import android.os.*
 import android.util.Log
 import android.view.View
 import android.view.WindowInsets
@@ -28,15 +25,23 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.Nullable
 import androidx.annotation.RequiresApi
 import androidx.annotation.RestrictTo
+import androidx.annotation.UiThread
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.webkit.*
 import androidx.webkit.WebSettingsCompat.*
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.google.android.material.snackbar.Snackbar
 import ysports.app.databinding.ActivityBrowserBinding
+import ysports.app.player.PlayerUtil
 import ysports.app.util.AdBlocker
 import ysports.app.util.AppUtil
+import ysports.app.util.YouTubePlay
+import java.net.URISyntaxException
+
 
 @Suppress("PrivatePropertyName")
 class BrowserActivity : AppCompatActivity() {
@@ -46,8 +51,14 @@ class BrowserActivity : AppCompatActivity() {
     private lateinit var WEB_URL: String
     private var safeBrowsingIsInitialized: Boolean = false
     private lateinit var webView: WebView
+    private lateinit var progressBar: LinearProgressIndicator
     private lateinit var toolbar: MaterialToolbar
+    private var handler: Handler? = null
     private val TAG = "BrowserActivity"
+    private val INTENT_SCHEME = "intent:"
+    private val TORRENT_SCHEME = "magnet:"
+    private var errorDescription: String = "Unknown"
+    private var errorCode: Int = 0
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,10 +70,11 @@ class BrowserActivity : AppCompatActivity() {
         context = this
         toolbar = binding.materialToolbar
         webView = binding.webView
-        AdBlocker.init(context)
+        progressBar = binding.progressBar
         WEB_URL = intent.getStringExtra("WEB_URL") ?: "https://appassets.androidplatform.net/assets/web/error_404/index.html"
 
         toolbar.subtitle = Uri.parse(WEB_URL).host
+        AdBlocker.init(context)
 
         toolbar.setNavigationOnClickListener {
             finish()
@@ -79,6 +91,8 @@ class BrowserActivity : AppCompatActivity() {
                     true
                 }
                 R.id.refresh -> {
+                    binding.errorLayout.hideView()
+                    webView.showView()
                     webView.reload()
                     true
                 }
@@ -95,25 +109,40 @@ class BrowserActivity : AppCompatActivity() {
             }
         }
 
+        binding.reloadButton.setOnClickListener {
+            onReload()
+        }
+
+        binding.detailsButton.setOnClickListener {
+            MaterialAlertDialogBuilder(context)
+                .setTitle(webView.url)
+                .setMessage("Error: $errorDescription\n\nError code:$errorCode")
+                .setPositiveButton(resources.getString(R.string.cancel)) { _, _ -> }
+                .show()
+        }
+
+        // WebView Version API
+        val webViewPackageInfo = WebViewCompat.getCurrentWebViewPackage(context)
+        Log.d(TAG, "WebView version: ${webViewPackageInfo?.versionName}")
+
+        // Initialize safe browsing
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.START_SAFE_BROWSING)) {
+            WebViewCompat.startSafeBrowsing(this) { success ->
+                safeBrowsingIsInitialized = true
+                if (!success) {
+                    Log.e("MY_APP_TAG", "Unable to initialize Safe Browsing!")
+                }
+            }
+        }
+
+        // WebViewAssetLoader
+        // Default URL: https://appassets.androidplatform.net/assets/index.html
+        // Custom URL: https://ysports.app/website/data.json
         val assetLoader = WebViewAssetLoader.Builder()
+            .setDomain("ysports.app")
             .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
             .addPathHandler("/res/", WebViewAssetLoader.ResourcesPathHandler(this))
             .build()
-
-        // Setup debugging; See https://developers.google.com/web/tools/chrome-devtools/remote-debugging/webviews for reference
-        if (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0) {
-            WebView.setWebContentsDebuggingEnabled(false)
-        }
-
-        if (WebViewFeature.isFeatureSupported(WebViewFeature.START_SAFE_BROWSING)) {
-            WebViewCompat.startSafeBrowsing(this) { success ->
-                if (!success) {
-                    Log.e(TAG, "Unable to initialize Safe Browsing!")
-                    return@startSafeBrowsing
-                }
-                safeBrowsingIsInitialized = true
-            }
-        }
 
         // Supporting Dark Theme for WebView
         if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
@@ -121,7 +150,7 @@ class BrowserActivity : AppCompatActivity() {
                 Configuration.UI_MODE_NIGHT_YES -> {
                     setForceDark(webView.settings, FORCE_DARK_ON)
                 }
-                else -> {
+                Configuration.UI_MODE_NIGHT_NO, Configuration.UI_MODE_NIGHT_UNDEFINED -> {
                     setForceDark(webView.settings, FORCE_DARK_OFF)
                 }
             }
@@ -130,8 +159,17 @@ class BrowserActivity : AppCompatActivity() {
             setForceDarkStrategy(webView.settings, DARK_STRATEGY_WEB_THEME_DARKENING_ONLY)
         }
 
+        // Setup debugging; See https://developers.google.com/web/tools/chrome-devtools/remote-debugging/webviews for reference
+        if (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0) {
+            WebView.setWebContentsDebuggingEnabled(false)
+        }
+
         // WebView settings
         webView.settings.apply {
+
+            // 'setter for allowUniversalAccessFromFileURLs: Boolean' is deprecated. Deprecated in Java
+            allowUniversalAccessFromFileURLs = true
+
             allowContentAccess = true
             allowFileAccess = true
             blockNetworkImage = false
@@ -159,9 +197,14 @@ class BrowserActivity : AppCompatActivity() {
             setSupportMultipleWindows(true)
             setSupportZoom(true)
             useWideViewPort = true
-            userAgentString = "Mozilla/5.0 (Linux; Android " + Build.VERSION.RELEASE + "; " + Build.MODEL + ") AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Mobile Safari/537.36"
+            userAgentString = "Mozilla/5.0 (Linux; Android " + Build.VERSION.RELEASE + "; " + Build.MODEL + ") AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.61 Mobile Safari/537.36"
         }
+        CookieManager.getInstance().setAcceptCookie(true)
+        CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true)
         webView.isSoundEffectsEnabled = true
+        webView.isLongClickable = true
+        webView.requestFocusFromTouch()
+
         // Renderer Importance API
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             webView.setRendererPriorityPolicy(RENDERER_PRIORITY_BOUND, true)
@@ -178,6 +221,7 @@ class BrowserActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        handler?.removeCallbacksAndMessages(null)
         webView.destroy()
     }
 
@@ -191,11 +235,33 @@ class BrowserActivity : AppCompatActivity() {
         webView.onResume()
     }
 
+    @Suppress("unused")
     inner class WebAppInterface {
 
         @JavascriptInterface
-        fun showToast(toast: String) {
-            Toast.makeText(context, toast, Toast.LENGTH_SHORT).show()
+        fun exitActivity() {
+            finish()
+        }
+
+        @JavascriptInterface
+        fun showToast(message: String?) {
+            if (message != null) {
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        @JavascriptInterface
+        fun loadPlayer(url: String?) {
+            if (url != null) {
+                PlayerUtil().loadPlayer(context, Uri.parse(url), true)
+            }
+        }
+
+        @JavascriptInterface
+        fun loadPlayerYT(url: String?) {
+            if (url != null) {
+                YouTubePlay(context).playVideo(url)
+            }
         }
     }
 
@@ -204,22 +270,30 @@ class BrowserActivity : AppCompatActivity() {
         @RestrictTo(RestrictTo.Scope.LIBRARY)
         override fun onSafeBrowsingHit(view: WebView, request: WebResourceRequest, threatType: Int, callback: SafeBrowsingResponseCompat) {
             if (WebViewFeature.isFeatureSupported(WebViewFeature.SAFE_BROWSING_RESPONSE_BACK_TO_SAFETY)) {
-                callback.backToSafety(true)
-                Toast.makeText(view.context, "Unsafe web page blocked.", Toast.LENGTH_LONG).show()
-                // TODO("Block page only if user wants")
+                MaterialAlertDialogBuilder(context)
+                    .setTitle("Unsafe")
+                    .setMessage("Unsafe web page detected. Do you want to block it?")
+                    .setNegativeButton(resources.getString(R.string.continue_page)) { _, _ ->
+                        callback.backToSafety(false)
+                    }
+                    .setPositiveButton(resources.getString(R.string.block)) { _, _ ->
+                        callback.backToSafety(true)
+                        Toast.makeText(view.context, "Unsafe web page blocked.", Toast.LENGTH_LONG).show()
+                    }
+                    .show()
             }
         }
 
         // Termination Handling API
-        @RequiresApi(Build.VERSION_CODES.O)
+        @RequiresApi(26)
         override fun onRenderProcessGone(view: WebView?, detail: RenderProcessGoneDetail?): Boolean {
             if (detail != null && !detail.didCrash()) {
                 // Renderer was killed because the system ran out of memory.
                 // The app can recover gracefully by creating a new WebView instance in the foreground.
                 Log.e(TAG, "System killed the WebView rendering process to reclaim memory. Recreating...")
 
-                webView.also {
-                    it.destroy()
+                webView.also { web ->
+                    web.destroy()
                 }
                 return true // The app continues executing.
             }
@@ -229,9 +303,9 @@ class BrowserActivity : AppCompatActivity() {
             return false
         }
 
+        // API >= 21
         @Nullable
         override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
-            // return assetLoader.shouldInterceptRequest(request.url)
             val loadedUrls: MutableMap<String, Boolean> = HashMap()
             val resourceUrl = request.url.toString()
             val ad: Boolean
@@ -242,6 +316,59 @@ class BrowserActivity : AppCompatActivity() {
                 ad = loadedUrls[resourceUrl]!!
             }
             return if (ad) AdBlocker.createEmptyResource() else return assetLoader.shouldInterceptRequest(request.url)
+        }
+
+        @RequiresApi(23)
+        override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+            if (!WebViewFeature.isFeatureSupported(WebViewFeature.SHOULD_OVERRIDE_WITH_REDIRECTS)) return false
+            return overrideUrlLoading(request.url.toString())
+        }
+
+        @Deprecated("Deprecated in Java", ReplaceWith(
+            "return super.shouldOverrideUrlLoading(view, request)",
+            "androidx.webkit.WebViewClientCompat"
+        ))
+        override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
+            return overrideUrlLoading(url)
+        }
+
+        override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+            super.onPageStarted(view, url, favicon)
+            progressBar.showView()
+            errorDescription = "Unknown"
+            errorCode = 0
+        }
+
+        @RequiresApi(23)
+        @UiThread
+        override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceErrorCompat) {
+            if (!WebViewFeature.isFeatureSupported(WebViewFeature.RECEIVE_WEB_RESOURCE_ERROR)) return
+            if (request.isForMainFrame) {
+                if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_RESOURCE_ERROR_GET_DESCRIPTION)) errorDescription = error.description.toString()
+                if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_RESOURCE_ERROR_GET_CODE)) errorCode = error.errorCode
+                onReceivedError()
+            }
+        }
+
+        @Deprecated("Deprecated in Java", ReplaceWith(
+            "super.onReceivedError(view, request, error)",
+            "androidx.webkit.WebViewClientCompat"
+        ))
+        override fun onReceivedError(view: WebView?, code: Int, description: String?, failingUrl: String?) {
+            if (description != null) errorDescription = description
+            errorCode = code
+            onReceivedError()
+        }
+
+        override fun onReceivedSslError(view: WebView?, handler: SslErrorHandler?, error: SslError?) {
+            super.onReceivedSslError(view, handler, error)
+        }
+
+        @UiThread
+        override fun onReceivedHttpError(view: WebView, request: WebResourceRequest, errorResponse: WebResourceResponse) {
+            if (WebViewFeature.isFeatureSupported(WebViewFeature.RECEIVE_HTTP_ERROR)) {
+                super.onReceivedHttpError(view, request, errorResponse)
+            }
         }
     }
 
@@ -256,9 +383,8 @@ class BrowserActivity : AppCompatActivity() {
 
         override fun onProgressChanged(view: WebView?, newProgress: Int) {
             super.onProgressChanged(view, newProgress)
-            binding.progressBar.progress = newProgress
-            if (newProgress == 0) binding.progressBar.visibility = View.VISIBLE
-            if (newProgress == 100) binding.progressBar.visibility = View.GONE
+            progressBar.progress = newProgress
+            if (newProgress == 100) progressBar.hideView()
         }
 
         override fun onCreateWindow(view: WebView?, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message?): Boolean {
@@ -360,39 +486,47 @@ class BrowserActivity : AppCompatActivity() {
 
         private fun hideSystemUi() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                window.setDecorFitsSystemWindows(false)
-                val insetsController = window.insetsController
-                if (insetsController != null) {
-                    insetsController.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
-                    insetsController.systemBarsBehavior =
-                        WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-                }
+                controlWindowInsets(true)
             } else {
 
                 // Deprecated in Api level 30
-                window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                        // Set the content to appear under the system bars so that the
+                        // content doesn't resize when the system bars hide and show.
+                        or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                         or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                         or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        or View.SYSTEM_UI_FLAG_FULLSCREEN
-                        or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                        or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION)
+                        // Hide the nav bar and status bar
+                        or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        or View.SYSTEM_UI_FLAG_FULLSCREEN)
 
             }
         }
 
         private fun showSystemUi(defaultSystemUiVisibility: Int) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                window.setDecorFitsSystemWindows(true)
-                val insetsController = window.insetsController
-                if (insetsController != null) {
-                    insetsController.show(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
-                    insetsController.systemBarsBehavior = defaultSystemUiVisibility
-                }
+                controlWindowInsets(false)
             } else {
 
                 //Deprecated in Api level 30
                 window.decorView.systemUiVisibility = defaultSystemUiVisibility
 
+            }
+        }
+
+        @RequiresApi(30)
+        private fun controlWindowInsets(hide: Boolean) {
+            // WindowInsetsController can hide or show specified system bars.
+            val insetsController = window.decorView.windowInsetsController ?: return
+            // The behaviour of the immersive mode.
+            val behavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            // The type of system bars to hide or show.
+            val type = WindowInsets.Type.systemBars()
+            insetsController.systemBarsBehavior = behavior
+            if (hide) {
+                insetsController.hide(type)
+            } else {
+                insetsController.show(type)
             }
         }
 
@@ -420,5 +554,83 @@ class BrowserActivity : AppCompatActivity() {
             }
             uploadMessage = null
         }
+    }
+
+    private fun overrideUrlLoading(url: String?) : Boolean {
+        if (url.isNullOrEmpty()) return false
+        if (URLUtil.isNetworkUrl(url)) {
+            return false
+        } else {
+            when {
+                url.startsWith(INTENT_SCHEME) -> {
+                    try {
+                        val handlerIntent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
+                        if (handlerIntent != null) {
+                            val packageManager = context.packageManager
+                            val info = packageManager.resolveActivity(handlerIntent, PackageManager.MATCH_DEFAULT_ONLY)
+                            if (info != null) {
+                                context.startActivity(handlerIntent)
+                            } else {
+                                val marketIntent = Intent(Intent.ACTION_VIEW)
+                                marketIntent.data = Uri.parse("market://details?id=" + handlerIntent.getPackage())
+                                try {
+                                    startActivity(marketIntent)
+                                } catch (notFoundException: ActivityNotFoundException) {
+                                    Toast.makeText(context, "Failed to load URL", Toast.LENGTH_LONG).show()
+                                }
+                            }
+                        }
+                    } catch (uriSyntaxException: URISyntaxException) {
+                        Toast.makeText(context, "Failed to load URL", Toast.LENGTH_LONG).show()
+                    }
+                }
+                url.startsWith(TORRENT_SCHEME) -> {
+                    Toast.makeText(context, "Download a torrent client and Try again!", Toast.LENGTH_LONG).show()
+                }
+                else -> {
+                    try {
+                        val unknownURLIntent = Intent(Intent.ACTION_VIEW)
+                        unknownURLIntent.data = Uri.parse(url)
+                        startActivity(unknownURLIntent)
+                    } catch (e: Exception) {
+                        Toast.makeText(context, "Unsupported URL", Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        }
+        return true
+    }
+
+    private fun onReceivedError() {
+        webView.evaluateJavascript("javascript:document.open();document.write('');document.close();", null)
+        webView.hideView()
+        binding.errorLayout.showView()
+    }
+
+    private fun onReload() {
+        binding.errorLayout.hideView()
+        handler = Handler(Looper.getMainLooper())
+        handler!!.postDelayed({
+            if (!isDestroyed) {
+                webView.showView()
+                webView.reload()
+            }
+        }, 300)
+    }
+
+    private fun View.showView() {
+        if (!this.isVisible) this.visibility = View.VISIBLE
+    }
+
+    private fun View.hideView() {
+        if (this.isVisible) this.visibility = View.GONE
+    }
+
+    private fun fetchJavaScript(url: String?) {
+        // JavaScript code to fetch() content from the same origin
+        val jsCode = "fetch('$url')" +
+                ".then(resp => resp.json())" +
+                ".then(data => console.log(data));"
+        webView.evaluateJavascript(jsCode, null)
     }
 }
