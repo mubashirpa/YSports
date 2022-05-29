@@ -36,6 +36,8 @@
 
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
+    <string name="block">Block</string>
+    <string name="continue_page">Continue</string>
     <string name="search">Search</string>
     <string name="network_stream">Network stream</string>
     <string name="settings">Settings</string>
@@ -65,4 +67,8 @@
     <string name="refresh">Refresh</string>
     <string name="copy_link">Copy Link</string>
     <string name="open_in_browser">Open in browser</string>
+    <string name="reload">Reload</string>
+    <string name="details">Details</string>
+    <string name="browser_error_title">Check your internet connection</string>
+    <string name="browser_error_description">Check any cables and reboot any routers, modems or other network devices you may be using.</string>
 </resources>
