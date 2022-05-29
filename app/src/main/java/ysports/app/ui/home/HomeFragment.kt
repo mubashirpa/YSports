@@ -38,7 +38,6 @@ import ysports.app.util.RecyclerDecorationHorizontal
 import ysports.app.util.RecyclerTouchListener
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
 
 class HomeFragment : Fragment() {
@@ -142,9 +141,9 @@ class HomeFragment : Fragment() {
                     addItemDecoration(itemDecoration)
                     adapter = leaguesAdapter
                     addOnItemTouchListener(
-                        RecyclerTouchListener(context, newsRecyclerView, object : RecyclerTouchListener.ClickListener {
+                        RecyclerTouchListener(context, leaguesRecyclerView, object : RecyclerTouchListener.ClickListener {
                             override fun onClick(view: View, position: Int) {
-                                if (leaguesList[position].url.isNullOrEmpty()) {
+                                if (!leaguesList[position].url.isNullOrEmpty()) {
                                     val url: String = leaguesList[position].url!!
                                     when {
                                         url.startsWith("chrome://") -> {
@@ -211,7 +210,7 @@ class HomeFragment : Fragment() {
                     addItemDecoration(itemDecoration)
                     adapter = liveAdapter
                     addOnItemTouchListener(
-                        RecyclerTouchListener(context, newsRecyclerView, object : RecyclerTouchListener.ClickListener {
+                        RecyclerTouchListener(context, matchesRecyclerView, object : RecyclerTouchListener.ClickListener {
                             override fun onClick(view: View, position: Int) {
                                 if (!matchList[position].url.isNullOrEmpty()) {
                                     val url: String = matchList[position].url!!
