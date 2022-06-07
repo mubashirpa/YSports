@@ -311,6 +311,7 @@ class HomeFragment : Fragment() {
     ) {
         progressIndicator.hideView()
         recyclerView.hideView()
+        // TODO("Find error java.lang.IllegalStateException: Fragment HomeFragment{5989459} (f7feb053-188a-4421-b8c5-5a229f651bdd) not attached to a context")
         errorLayout.findViewById<TextView>(R.id.state_description).text = getString(error)
         retryButton.isVisible = showButton
         errorLayout.showView()
