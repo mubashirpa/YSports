@@ -1,5 +1,6 @@
 package ysports.app
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.*
@@ -27,6 +28,7 @@ import androidx.annotation.RequiresApi
 import androidx.annotation.RestrictTo
 import androidx.annotation.UiThread
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.webkit.*
@@ -41,7 +43,6 @@ import ysports.app.util.AdBlocker
 import ysports.app.util.AppUtil
 import ysports.app.util.YouTubePlay
 import java.net.URISyntaxException
-
 
 @Suppress("PrivatePropertyName")
 class BrowserActivity : AppCompatActivity() {
@@ -59,6 +60,11 @@ class BrowserActivity : AppCompatActivity() {
     private val TORRENT_SCHEME = "magnet:"
     private var errorDescription: String = "Unknown"
     private var errorCode: Int = 0
+    private var urlHost = "YSports"
+    private var LOCATION_PERMISSION_REQUEST_CODE = 101
+    private var CAMERA_PERMISSION_REQUEST_CODE = 102
+    private var MIC_PERMISSION_REQUEST_CODE = 103
+    private var permissionRequest: PermissionRequest? = null
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -130,7 +136,7 @@ class BrowserActivity : AppCompatActivity() {
             WebViewCompat.startSafeBrowsing(this) { success ->
                 safeBrowsingIsInitialized = true
                 if (!success) {
-                    Log.e("MY_APP_TAG", "Unable to initialize Safe Browsing!")
+                    Log.e(TAG, "Unable to initialize Safe Browsing!")
                 }
             }
         }
@@ -235,6 +241,24 @@ class BrowserActivity : AppCompatActivity() {
         webView.onResume()
     }
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE && grantResults.isNotEmpty()) {
+            if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
+                onPermissionRequestConfirmation(false, arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE))
+            } else {
+                onPermissionRequestConfirmation(true, arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE))
+            }
+        }
+        if (requestCode == MIC_PERMISSION_REQUEST_CODE && grantResults.isNotEmpty()) {
+            if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
+                onPermissionRequestConfirmation(false, arrayOf(""))
+            } else {
+                onPermissionRequestConfirmation(true, arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE))
+            }
+        }
+    }
+
     @Suppress("unused")
     inner class WebAppInterface {
 
@@ -337,6 +361,7 @@ class BrowserActivity : AppCompatActivity() {
             progressBar.showView()
             errorDescription = "Unknown"
             errorCode = 0
+            urlHost = Uri.parse(url).host.toString()
         }
 
         @RequiresApi(23)
@@ -379,7 +404,7 @@ class BrowserActivity : AppCompatActivity() {
         private var defaultOrientation = 0
         private var defaultSystemUiVisibility = 0
         private var customViewCallback: CustomViewCallback? = null
-        private var uploadMessage: ValueCallback<Array<Uri>>? = null
+        private var pathCallback: ValueCallback<Array<Uri>>? = null
 
         override fun onProgressChanged(view: WebView?, newProgress: Int) {
             super.onProgressChanged(view, newProgress)
@@ -389,14 +414,102 @@ class BrowserActivity : AppCompatActivity() {
 
         override fun onCreateWindow(view: WebView?, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message?): Boolean {
             if (!isUserGesture) {
+                // TODO("Add user confirmation")
                 Snackbar.make(binding.contextView, "Pop-up blocked", Snackbar.LENGTH_LONG).show()
                 return false
             }
-            return super.onCreateWindow(view, isDialog, isUserGesture, resultMsg)
+            val result: WebView.HitTestResult? = view?.hitTestResult
+            val data = result?.extra
+            if (!isDialog) {
+                val intent = Intent(context, BrowserActivity::class.java).apply {
+                    putExtra("WEB_URL", data)
+                }
+                startActivity(intent)
+            }
+            return true
         }
 
         override fun onReceivedTitle(view: WebView?, title: String?) {
             if (!title.isNullOrEmpty()) toolbar.title = title
+        }
+
+        override fun onPermissionRequest(request: PermissionRequest?) {
+            permissionRequest = request
+            if (request != null) {
+                val requestedResources = request.resources
+                for (reqResources in requestedResources) {
+                    Log.d(TAG, "Permission request: $reqResources")
+                    when (reqResources) {
+                        PermissionRequest.RESOURCE_VIDEO_CAPTURE -> {
+                            MaterialAlertDialogBuilder(context)
+                                .setMessage("$urlHost wants to use your camera")
+                                .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
+                                    onPermissionRequestConfirmation(false, arrayOf(""))
+                                }
+                                .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
+                                    if (isPermissionGranted(Manifest.permission.CAMERA)) {
+                                        onPermissionRequestConfirmation(true, arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE))
+                                    } else {
+                                        requestWebViewPermission(
+                                            Manifest.permission.CAMERA,
+                                            CAMERA_PERMISSION_REQUEST_CODE,
+                                            "YSports need camera permission for this site"
+                                        )
+                                    }
+                                }
+                                .show()
+                        }
+                        PermissionRequest.RESOURCE_AUDIO_CAPTURE -> {
+                            MaterialAlertDialogBuilder(context)
+                                .setMessage("$urlHost wants to use your microphone")
+                                .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
+                                    onPermissionRequestConfirmation(false, arrayOf(""))
+                                }
+                                .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
+                                    if (isPermissionGranted(Manifest.permission.RECORD_AUDIO)) {
+                                        onPermissionRequestConfirmation(true, arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE))
+                                    } else {
+                                        requestWebViewPermission(
+                                            Manifest.permission.RECORD_AUDIO,
+                                            MIC_PERMISSION_REQUEST_CODE,
+                                            "YSports need microphone permission for this site"
+                                        )
+                                    }
+                                }
+                                .show()
+                        }
+                        else -> {
+                            onPermissionRequestConfirmation(false, arrayOf(""))
+                        }
+                    }
+                }
+            }
+        }
+
+        override fun onPermissionRequestCanceled(request: PermissionRequest?) {
+            Log.d(TAG, "Permission request cancelled")
+            permissionRequest = null
+        }
+
+        override fun onGeolocationPermissionsShowPrompt(origin: String?, callback: GeolocationPermissions.Callback?) {
+            if (isPermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION)) {
+                MaterialAlertDialogBuilder(context)
+                    .setMessage("$urlHost wants to use your devices location")
+                    .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
+                        callback?.invoke(origin, false, false)
+                    }
+                    .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
+                        callback?.invoke(origin, true, false)
+                    }
+                    .show()
+            } else {
+                callback?.invoke(origin, false, false)
+                requestPermission(Manifest.permission.ACCESS_FINE_LOCATION, LOCATION_PERMISSION_REQUEST_CODE, "YSports need location permission for this site")
+            }
+        }
+
+        override fun onGeolocationPermissionsHidePrompt() {
+            Log.d(TAG, "Geolocation permission prompt hide")
         }
 
         override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
@@ -456,15 +569,17 @@ class BrowserActivity : AppCompatActivity() {
         }
 
         override fun onShowFileChooser(webView: WebView?, filePathCallback: ValueCallback<Array<Uri>>?, fileChooserParams: FileChooserParams?): Boolean {
-            val allowMultiple: Boolean = fileChooserParams!!.mode ==FileChooserParams.MODE_OPEN_MULTIPLE
-            if (uploadMessage != null) {
-                uploadMessage!!.onReceiveValue(null)
-                uploadMessage = null
+            if (fileChooserParams == null) return true
+            val allowMultiple: Boolean = fileChooserParams.mode == FileChooserParams.MODE_OPEN_MULTIPLE
+            if (pathCallback != null) {
+                pathCallback!!.onReceiveValue(null)
+                pathCallback = null
             }
-            uploadMessage = filePathCallback
-            val chooserIntent: Intent = fileChooserParams.createIntent()
-            chooserIntent.addCategory(Intent.CATEGORY_OPENABLE)
-            if (allowMultiple) chooserIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+            pathCallback = filePathCallback
+            val chooserIntent: Intent = fileChooserParams.createIntent().apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                if (allowMultiple) putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+            }
             activityResultLauncher.launch(chooserIntent)
             return true
         }
@@ -546,13 +661,13 @@ class BrowserActivity : AppCompatActivity() {
         }
 
         private val activityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+            if (pathCallback == null) return@registerForActivityResult
             if (result.resultCode == Activity.RESULT_OK) {
-                if (uploadMessage == null) return@registerForActivityResult
-                uploadMessage!!.onReceiveValue(FileChooserParams.parseResult(result.resultCode, result.data))
+                pathCallback!!.onReceiveValue(FileChooserParams.parseResult(result.resultCode, result.data))
             } else {
-                uploadMessage?.onReceiveValue(null)
+                pathCallback?.onReceiveValue(null)
             }
-            uploadMessage = null
+            pathCallback = null
         }
     }
 
@@ -584,16 +699,17 @@ class BrowserActivity : AppCompatActivity() {
                         Toast.makeText(context, "Failed to load URL", Toast.LENGTH_LONG).show()
                     }
                 }
-                url.startsWith(TORRENT_SCHEME) -> {
-                    Toast.makeText(context, "Download a torrent client and Try again!", Toast.LENGTH_LONG).show()
-                }
                 else -> {
                     try {
                         val unknownURLIntent = Intent(Intent.ACTION_VIEW)
                         unknownURLIntent.data = Uri.parse(url)
                         startActivity(unknownURLIntent)
                     } catch (e: Exception) {
-                        Toast.makeText(context, "Unsupported URL", Toast.LENGTH_LONG).show()
+                        if (url.startsWith(TORRENT_SCHEME)) {
+                            Toast.makeText(context, "Download a torrent client and Try again!", Toast.LENGTH_LONG).show()
+                        } else {
+                            Toast.makeText(context, "Unsupported URL", Toast.LENGTH_LONG).show()
+                        }
                     }
                 }
             }
@@ -632,5 +748,82 @@ class BrowserActivity : AppCompatActivity() {
                 ".then(resp => resp.json())" +
                 ".then(data => console.log(data));"
         webView.evaluateJavascript(jsCode, null)
+    }
+
+    private fun isPermissionGranted(permission: String) : Boolean {
+        return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+    }
+
+    @Suppress("SameParameterValue")
+    private fun requestPermission(permission: String, requestCode: Int, message: String?) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            when {
+                ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED -> {
+                    Log.d(TAG, "Permission already granted")
+                }
+                shouldShowRequestPermissionRationale(permission) -> {
+                    MaterialAlertDialogBuilder(context)
+                        .setTitle("Allow permission?")
+                        .setMessage(message)
+                        .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
+                        }
+                        .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
+                            requestPermissions(arrayOf(permission), requestCode)
+                        }
+                        .setCancelable(false)
+                        .show()
+                }
+                else -> {
+                    requestPermissions(arrayOf(permission), requestCode)
+                }
+            }
+        } else {
+            if (ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_DENIED) {
+                ActivityCompat.requestPermissions(this, arrayOf(permission), requestCode)
+            }
+        }
+    }
+
+    private fun requestWebViewPermission(permission: String, requestCode: Int, message: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            when {
+                ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED -> {
+                    Log.d(TAG, "Permission already granted")
+                }
+                shouldShowRequestPermissionRationale(permission) -> {
+                    MaterialAlertDialogBuilder(context)
+                        .setTitle("Allow permission?")
+                        .setMessage(message)
+                        .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
+                            onPermissionRequestConfirmation(false, arrayOf(""))
+                        }
+                        .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
+                            requestPermissions(arrayOf(permission), requestCode)
+                        }
+                        .setCancelable(false)
+                        .show()
+                }
+                else -> {
+                    requestPermissions(arrayOf(permission), requestCode)
+                }
+            }
+        } else {
+            if (ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_DENIED) {
+                ActivityCompat.requestPermissions(this, arrayOf(permission), requestCode)
+            }
+        }
+    }
+
+    private fun onPermissionRequestConfirmation(allowed: Boolean, resources: Array<String>) {
+        if (permissionRequest != null) {
+            if (allowed) {
+                permissionRequest!!.grant(resources)
+                Log.d(TAG, "Permission granted")
+            } else {
+                permissionRequest!!.deny()
+                Log.d(TAG, "Permission request denied")
+            }
+            permissionRequest = null
+        }
     }
 }
