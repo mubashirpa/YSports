@@ -325,7 +325,7 @@ class WebActivity : AppCompatActivity() {
                 }
                 startActivity(intent)
             }
-            return false
+            return true
         }
 
         override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
@@ -553,16 +553,17 @@ class WebActivity : AppCompatActivity() {
                         Toast.makeText(context, "Failed to load URL", Toast.LENGTH_LONG).show()
                     }
                 }
-                url?.startsWith(TORRENT_SCHEME) == true -> {
-                    Toast.makeText(context, "Download a torrent client and Try again!", Toast.LENGTH_LONG).show()
-                }
                 else -> {
                     try {
                         val unknownURLIntent = Intent(Intent.ACTION_VIEW)
                         unknownURLIntent.data = Uri.parse(url)
                         startActivity(unknownURLIntent)
                     } catch (e: Exception) {
-                        Toast.makeText(context, "Unsupported URL", Toast.LENGTH_LONG).show()
+                        if (url?.startsWith(TORRENT_SCHEME) == true) {
+                            Toast.makeText(context, "Download a torrent client and Try again!", Toast.LENGTH_LONG).show()
+                        } else {
+                            Toast.makeText(context, "Unsupported URL", Toast.LENGTH_LONG).show()
+                        }
                     }
                 }
             }
