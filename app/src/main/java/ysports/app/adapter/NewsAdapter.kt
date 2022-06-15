@@ -2,43 +2,44 @@ package ysports.app.adapter
 
 import android.content.Context
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import ysports.app.R
 import ysports.app.api.newsapi.org.Articles
+import ysports.app.databinding.ListItemNewsBannerBinding
+import ysports.app.databinding.ListItemNewsBinding
+import ysports.app.ui.news.NewsViewHolder
 
 class NewsAdapter(
     private val context: Context,
     private val arrayList: ArrayList<Articles>
-) : RecyclerView.Adapter<NewsAdapter.ViewHolder>() {
+) : RecyclerView.Adapter<NewsViewHolder>() {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(context).inflate(R.layout.list_item_home_latest_news, parent, false)
-        return ViewHolder(view)
-    }
-
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        Glide.with(context).load(arrayList[position].imageUrl ?: "").into(holder.backdrop)
-        holder.title.text = arrayList[position].title ?: ""
-        if (!arrayList[position].publishedTime.isNullOrEmpty()) {
-            var time = arrayList[position].publishedTime!!
-            if (time.contains("T")) time = time.replace("T", " ")
-            if (time.contains("Z")) time = time.replace("Z", "")
-            holder.time.text = time
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NewsViewHolder {
+        return when(viewType) {
+            R.layout.list_item_news_banner -> NewsViewHolder.NewsBannerViewHolder(
+                ListItemNewsBannerBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            )
+            R.layout.list_item_news -> NewsViewHolder.NewsItemsViewHolder(
+                ListItemNewsBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            )
+            else -> throw IllegalArgumentException("Invalid ViewType Provided")
         }
     }
 
-    override fun getItemCount(): Int {
-        return arrayList.size
+    override fun onBindViewHolder(holder: NewsViewHolder, position: Int) {
+        when(holder) {
+            is NewsViewHolder.NewsBannerViewHolder -> holder.bind(context, arrayList[position].imageUrl ?: "", arrayList[position].title ?: "", arrayList[position].publishedTime ?: "")
+            is NewsViewHolder.NewsItemsViewHolder -> holder.bind(context, arrayList[position].imageUrl ?: "", arrayList[position].title ?: "", arrayList[position].publishedTime ?: "")
+        }
     }
 
-    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val backdrop: ImageView = itemView.findViewById(R.id.backdrop)
-        val title: TextView = itemView.findViewById(R.id.title)
-        val time: TextView = itemView.findViewById(R.id.time)
+    override fun getItemCount() = arrayList.size
+
+    override fun getItemViewType(position: Int): Int {
+        return when(position) {
+            0 -> R.layout.list_item_news_banner
+            else -> R.layout.list_item_news
+        }
     }
 }
