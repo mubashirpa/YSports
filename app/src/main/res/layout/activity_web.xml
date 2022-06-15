@@ -18,7 +18,7 @@
             android:scrollbars="none"/>
         <include
             android:id="@+id/error_view"
-            layout="@layout/view_error"
+            layout="@layout/view_error_default"
             android:visibility="gone"/>
         <com.google.android.material.progressindicator.CircularProgressIndicator
             android:id="@+id/progress_indicator_web_view"
