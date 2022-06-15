@@ -24,6 +24,7 @@
 
     <!-- Error strings -->
     <string name="error_default">An error occurred</string>
+    <string name="error_empty_response">Empty response found</string>
     <string name="error_failed_to_load_content">We\'re unable to load content. Please try again</string>
     <string name="error_fdb_on_cancelled">Failed to connect with database</string>
     <string name="error_retrofit_response">No response found</string>
@@ -37,6 +38,7 @@
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
     <string name="block">Block</string>
+    <string name="proceed">Proceed</string>
     <string name="continue_page">Continue</string>
     <string name="search">Search</string>
     <string name="network_stream">Network stream</string>
@@ -56,8 +58,9 @@
     <string name="playback_speed">Playback speed</string>
     <string name="url_live_score_widget">https://ysportsapp.blogspot.com/p/livescore-widget.html</string>
     <string name="url_highlights_widget">https://ysportsapp.blogspot.com/p/video-widget.html</string>
-    <string name="title_home">Home</string>
-    <string name="title_fixtures">Fixtures</string>
+    <string name="title_matches">Matches</string>
+    <string name="title_leagues">Leagues</string>
+    <string name="title_news">News</string>
     <string name="title_more">More</string>
     <string name="previous">Previous</string>
     <string name="today">Today</string>
