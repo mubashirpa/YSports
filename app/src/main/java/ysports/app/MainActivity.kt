@@ -20,6 +20,7 @@ import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.GenericTypeIndicator
@@ -31,6 +32,7 @@ import ysports.app.player.PlayerUtil
 import ysports.app.ui.fixtures.FixturesFragment
 import ysports.app.ui.home.HomeFragment
 import ysports.app.ui.more.MoreFragment
+import ysports.app.ui.news.NewsFragment
 import ysports.app.util.AppUtil
 
 @Suppress("PrivatePropertyName")
@@ -58,9 +60,11 @@ class MainActivity : AppCompatActivity() {
 
         val homeFragment = HomeFragment()
         val fixturesFragment = FixturesFragment()
+        val newsFragment = NewsFragment()
         val moreFragment = MoreFragment()
-        bottomNavigation.selectedItemId = R.id.navigation_home
+        bottomNavigation.selectedItemId = R.id.navigation_matches
 
+        // Removes all the available fragments (in case of app restart)
         supportFragmentManager.fragments.let {
             if (it.isNotEmpty()) {
                 supportFragmentManager.beginTransaction().apply {
@@ -73,7 +77,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         supportFragmentManager.beginTransaction().apply {
-            add(R.id.frame_layout, homeFragment)
+            add(R.id.frame_layout, fixturesFragment)
         }.commit()
 
         toolbar.setNavigationOnClickListener {
@@ -99,10 +103,15 @@ class MainActivity : AppCompatActivity() {
                 R.id.network_stream -> {
                     val clipboardURL = getFromClipboard()
                     val inputLayout: View = layoutInflater.inflate(R.layout.view_input_view_dialog, null)
+                    val textInputLayout: TextInputLayout = inputLayout.findViewById(R.id.input_layout)
                     val textInputEditText: TextInputEditText = inputLayout.findViewById(R.id.input_text)
+                    textInputLayout.hint = resources.getString(R.string.network_url)
+                    textInputLayout.endIconMode = TextInputLayout.END_ICON_CLEAR_TEXT
+                    textInputEditText.maxLines = 3
                     if (clipboardURL != null && URLUtil.isValidUrl(clipboardURL)) textInputEditText.setText(clipboardURL)
                     MaterialAlertDialogBuilder(context)
                         .setTitle("Network Stream")
+                        .setMessage("Please enter a network URL:")
                         .setView(inputLayout)
                         .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
                             val url = textInputEditText.text.toString()
@@ -126,26 +135,30 @@ class MainActivity : AppCompatActivity() {
 
         bottomNavigation.setOnItemSelectedListener { item ->
             when(item.itemId) {
-                R.id.navigation_home -> {
+                R.id.navigation_matches -> {
+                    hideFragments()
                     supportFragmentManager.beginTransaction().apply {
-                        if (fixturesFragment.isAdded && fixturesFragment.isVisible) hide(fixturesFragment)
-                        if (moreFragment.isAdded && moreFragment.isVisible) hide(moreFragment)
-                        if (homeFragment.isAdded) show(homeFragment) else add(R.id.frame_layout, homeFragment)
-                    }.commit()
-                    true
-                }
-                R.id.navigation_fixtures -> {
-                    supportFragmentManager.beginTransaction().apply {
-                        if (homeFragment.isVisible) hide(homeFragment)
-                        if (moreFragment.isAdded && moreFragment.isVisible) hide(moreFragment)
                         if (fixturesFragment.isAdded) show(fixturesFragment) else add(R.id.frame_layout, fixturesFragment)
                     }.commit()
                     true
                 }
-                R.id.navigation_more -> {
+                R.id.navigation_leagues -> {
+                    hideFragments()
                     supportFragmentManager.beginTransaction().apply {
-                        if (homeFragment.isVisible) hide(homeFragment)
-                        if (fixturesFragment.isAdded && fixturesFragment.isVisible) hide(fixturesFragment)
+                        if (homeFragment.isAdded) show(homeFragment) else add(R.id.frame_layout, homeFragment)
+                    }.commit()
+                    true
+                }
+                R.id.navigation_news -> {
+                    hideFragments()
+                    supportFragmentManager.beginTransaction().apply {
+                        if (newsFragment.isAdded) show(newsFragment) else add(R.id.frame_layout, newsFragment)
+                    }.commit()
+                    true
+                }
+                R.id.navigation_more -> {
+                    hideFragments()
+                    supportFragmentManager.beginTransaction().apply {
                         if (moreFragment.isAdded) show(moreFragment) else add(R.id.frame_layout, moreFragment)
                     }.commit()
                     true
@@ -242,5 +255,18 @@ class MainActivity : AppCompatActivity() {
         return if (clipboardManager.primaryClip != null) {
             clipboardManager.primaryClip!!.getItemAt(0).coerceToText(context).toString()
         } else null
+    }
+
+    private fun hideFragments() {
+        supportFragmentManager.fragments.let {
+            if (it.isNotEmpty()) {
+                supportFragmentManager.beginTransaction().apply {
+                    for (fragment in it) {
+                        hide(fragment)
+                    }
+                    commit()
+                }
+            }
+        }
     }
 }
