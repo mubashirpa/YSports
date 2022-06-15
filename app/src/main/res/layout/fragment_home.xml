@@ -54,7 +54,7 @@
                 android:id="@+id/leagues_error_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                layout="@layout/view_error_state_home"
+                layout="@layout/view_error_default"
                 app:layout_constraintTop_toBottomOf="@+id/leagues_header_layout"
                 app:layout_constraintBottom_toBottomOf="@+id/leagues_layout"
                 android:visibility="gone"/>
@@ -103,7 +103,7 @@
                 android:id="@+id/matches_error_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                layout="@layout/view_error_state_home"
+                layout="@layout/view_error_default"
                 app:layout_constraintTop_toBottomOf="@+id/matches_header_layout"
                 app:layout_constraintBottom_toBottomOf="@+id/matches_layout"
                 android:visibility="gone"/>
@@ -138,7 +138,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                tools:listitem="@layout/list_item_home_latest_news"
+                tools:listitem="@layout/list_item_news"
                 app:layout_constraintTop_toBottomOf="@+id/news_header" />
             <TextView
                 android:id="@+id/news_state_description"

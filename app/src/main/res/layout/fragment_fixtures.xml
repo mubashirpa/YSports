@@ -65,7 +65,7 @@
                 android:id="@+id/error_layout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                layout="@layout/view_error_state_home"
+                layout="@layout/view_error_default"
                 android:visibility="gone"/>
             <com.google.android.material.progressindicator.CircularProgressIndicator
                 android:id="@+id/progress_bar"
