@@ -6,6 +6,8 @@
         <entry key="..\:/Users/mubas/.gradle/caches/transforms-3/8440439838ec8bdec05c22768cfd6587/transformed/material-1.6.0/res/layout/test_toolbar.xml" value="0.27447916666666666" />
         <entry key="..\:/Users/mubas/.gradle/caches/transforms-3/8440439838ec8bdec05c22768cfd6587/transformed/material-1.6.0/res/layout/test_toolbar_custom_background.xml" value="0.27447916666666666" />
         <entry key="..\:/Users/mubas/.gradle/caches/transforms-3/8440439838ec8bdec05c22768cfd6587/transformed/material-1.6.0/res/layout/test_toolbar_surface.xml" value="0.27447916666666666" />
+        <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/drawable/avd_anim.xml" value="0.1675" />
+        <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/drawable/background_corner_white_40dp.xml" value="0.1" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/drawable/custom_popup_background.xml" value="0.236" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/drawable/ic_baseline_arrow_back_24.xml" value="0.236" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/drawable/ic_baseline_arrow_back_ios_24.xml" value="0.236" />
@@ -13,6 +15,7 @@
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/drawable/ic_baseline_brightness_medium_24.xml" value="0.236" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/drawable/ic_baseline_close_24.xml" value="0.236" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/drawable/ic_baseline_download_24.xml" value="0.236" />
+        <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/drawable/ic_baseline_home_24.xml" value="0.1485" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/drawable/ic_baseline_menu_24.xml" value="0.13" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/drawable/ic_baseline_more_vert_24.xml" value="0.1625" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/drawable/ic_baseline_search_24.xml" value="0.236" />
@@ -20,13 +23,19 @@
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/drawable/ic_outline_dashboard_24.xml" value="0.236" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/activity_browser.xml" value="0.22530996152201796" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/activity_main.xml" value="0.27447916666666666" />
-        <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/activity_web.xml" value="0.27447916666666666" />
+        <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/activity_web.xml" value="0.1858108108108108" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/fragment_fixtures.xml" value="0.27447916666666666" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/fragment_home.xml" value="0.24592391304347827" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/fragment_more.xml" value="0.24592391304347827" />
+        <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/fragment_news.xml" value="0.23428815733219324" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/header_navigation_drawer.xml" value="0.1" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/list_item_fixture.xml" value="0.24592391304347827" />
+        <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/list_item_news.xml" value="0.22530996152201796" />
+        <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/list_item_news_banner.xml" value="0.2" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/view_error.xml" value="0.27447916666666666" />
+        <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/view_error_default.xml" value="0.22245673279864922" />
+        <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/view_error_state_home.xml" value="0.22530996152201796" />
+        <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/view_input_view_dialog.xml" value="0.25829145728643216" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/view_settings_player.xml" value="0.27025641025641023" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/menu/bottom_navigation_menu.xml" value="0.27447916666666666" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/menu/browser_activity.xml" value="0.1" />
