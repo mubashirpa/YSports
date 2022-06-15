@@ -74,7 +74,7 @@ class WebActivity : AppCompatActivity() {
         webView = binding.webView
         webViewProgressIndicator = binding.progressIndicatorWebView
         errorView = findViewById(R.id.error_view)
-        errorTextView = binding.errorView.textViewError
+        errorTextView = binding.errorView.stateDescription
         retryButton = binding.errorView.buttonRetry
         WEB_URL = intent.getStringExtra("WEB_URL") ?: "https://appassets.androidplatform.net/assets/web/error_404/index.html"
 
