@@ -10,6 +10,7 @@ import android.content.res.Configuration
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.location.LocationManager
 import android.net.Uri
 import android.net.http.SslError
 import android.os.*
@@ -37,6 +38,7 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.textfield.TextInputEditText
 import ysports.app.databinding.ActivityBrowserBinding
 import ysports.app.player.PlayerUtil
 import ysports.app.util.AdBlocker
@@ -49,11 +51,10 @@ class BrowserActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityBrowserBinding
     private lateinit var context: Context
-    private lateinit var WEB_URL: String
-    private var safeBrowsingIsInitialized: Boolean = false
     private lateinit var webView: WebView
     private lateinit var progressBar: LinearProgressIndicator
     private lateinit var toolbar: MaterialToolbar
+    private lateinit var WEB_URL: String
     private var handler: Handler? = null
     private val TAG = "BrowserActivity"
     private val INTENT_SCHEME = "intent:"
@@ -65,6 +66,12 @@ class BrowserActivity : AppCompatActivity() {
     private var CAMERA_PERMISSION_REQUEST_CODE = 102
     private var MIC_PERMISSION_REQUEST_CODE = 103
     private var permissionRequest: PermissionRequest? = null
+    private var geolocationCallback: GeolocationPermissions.Callback? = null
+    private var geolocationOrigin: String? = null
+    private var enableSafeBrowsing = false
+    private var enableAdBlocker = true
+    private var enablePopupBlocker = true
+    private var allowCookie = true
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,9 +84,8 @@ class BrowserActivity : AppCompatActivity() {
         toolbar = binding.materialToolbar
         webView = binding.webView
         progressBar = binding.progressBar
-        WEB_URL = intent.getStringExtra("WEB_URL") ?: "https://appassets.androidplatform.net/assets/web/error_404/index.html"
+        WEB_URL = intent.getStringExtra("WEB_URL") ?: "https://ysports.app/assets/web/error_404/index.html"
 
-        toolbar.subtitle = Uri.parse(WEB_URL).host
         AdBlocker.init(context)
 
         toolbar.setNavigationOnClickListener {
@@ -127,23 +133,84 @@ class BrowserActivity : AppCompatActivity() {
                 .show()
         }
 
+        webView.setOnLongClickListener {
+            val hitTestResult = webView.hitTestResult
+            if (hitTestResult.type == WebView.HitTestResult.SRC_ANCHOR_TYPE) {
+                val items = arrayOf("Open in Browser", "Copy URL", "Share link")
+                MaterialAlertDialogBuilder(context)
+                    .setTitle(hitTestResult.extra)
+                    .setItems(items) { _, position ->
+                        when (position) {
+                            0 -> AppUtil(context).openCustomTabs(hitTestResult.extra.toString())
+                            1 -> {
+                                (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("clipboard", hitTestResult.extra))
+                                Toast.makeText(context, "Link copied to clipboard", Toast.LENGTH_SHORT).show()
+                            }
+                            2 -> {
+                                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                    type = "text/plain"
+                                    putExtra(Intent.EXTRA_TEXT, hitTestResult.extra)
+                                }
+                                startActivity(Intent.createChooser(shareIntent, "Share Link"))
+                            }
+                        }
+                    }
+                    .show()
+            }
+            if (hitTestResult.type == WebView.HitTestResult.IMAGE_TYPE || hitTestResult.type == WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE) {
+                val items = arrayOf("Open in Browser", "Preview image", "Download image", "Copy URL", "Share link")
+                MaterialAlertDialogBuilder(context)
+                    .setTitle(hitTestResult.extra)
+                    .setItems(items) { _, position ->
+                        when (position) {
+                            0 -> AppUtil(context).openCustomTabs(hitTestResult.extra.toString())
+                            1 -> {
+                                val intent = Intent(context, BrowserActivity::class.java).apply {
+                                    putExtra("WEB_URL", hitTestResult.extra)
+                                }
+                                startActivity(intent)
+                            }
+                            2 -> {
+                                // TODO("Download image")
+                            }
+                            3 -> {
+                                (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("clipboard", hitTestResult.extra))
+                                Toast.makeText(context, "Link copied to clipboard", Toast.LENGTH_SHORT).show()
+                            }
+                            4 -> {
+                                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                    type = "text/plain"
+                                    putExtra(Intent.EXTRA_TEXT, hitTestResult.extra)
+                                }
+                                startActivity(Intent.createChooser(shareIntent, "Share Link"))
+                            }
+                        }
+                    }
+                    .show()
+            }
+            false
+        }
+
         // WebView Version API
         val webViewPackageInfo = WebViewCompat.getCurrentWebViewPackage(context)
         Log.d(TAG, "WebView version: ${webViewPackageInfo?.versionName}")
 
         // Initialize safe browsing
         if (WebViewFeature.isFeatureSupported(WebViewFeature.START_SAFE_BROWSING)) {
-            WebViewCompat.startSafeBrowsing(this) { success ->
-                safeBrowsingIsInitialized = true
-                if (!success) {
-                    Log.e(TAG, "Unable to initialize Safe Browsing!")
+            if (enableSafeBrowsing) {
+                WebViewCompat.startSafeBrowsing(this) { success ->
+                    if (success) {
+                        Log.e(TAG, "Initialized Safe Browsing")
+                    } else {
+                        Log.e(TAG, "Unable to initialize Safe Browsing!")
+                    }
                 }
             }
         }
 
         // WebViewAssetLoader
         // Default URL: https://appassets.androidplatform.net/assets/index.html
-        // Custom URL: https://ysports.app/website/data.json
+        // Custom URL: https://ysports.app/assets/index.html
         val assetLoader = WebViewAssetLoader.Builder()
             .setDomain("ysports.app")
             .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
@@ -205,8 +272,6 @@ class BrowserActivity : AppCompatActivity() {
             useWideViewPort = true
             userAgentString = "Mozilla/5.0 (Linux; Android " + Build.VERSION.RELEASE + "; " + Build.MODEL + ") AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.61 Mobile Safari/537.36"
         }
-        CookieManager.getInstance().setAcceptCookie(true)
-        CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true)
         webView.isSoundEffectsEnabled = true
         webView.isLongClickable = true
         webView.requestFocusFromTouch()
@@ -219,6 +284,13 @@ class BrowserActivity : AppCompatActivity() {
         webView.webViewClient = CustomWebViewClient(assetLoader)
         webView.webChromeClient = CustomWebChromeClient()
         webView.loadUrl(WEB_URL)
+
+        webView.setDownloadListener { url, _, _, _, _ ->
+            val downloadIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = Uri.parse(url)
+            }
+            startActivity(downloadIntent)
+        }
     }
 
     override fun onBackPressed() {
@@ -238,6 +310,10 @@ class BrowserActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        if (allowCookie) {
+            CookieManager.getInstance().setAcceptCookie(true)
+            CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true)
+        }
         webView.onResume()
     }
 
@@ -245,16 +321,37 @@ class BrowserActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == CAMERA_PERMISSION_REQUEST_CODE && grantResults.isNotEmpty()) {
             if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
-                onPermissionRequestConfirmation(false, arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE))
+                Log.e(TAG, "Camera permission denied")
+                onPermissionRequestConfirmation(false, arrayOf(""))
             } else {
                 onPermissionRequestConfirmation(true, arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE))
             }
         }
         if (requestCode == MIC_PERMISSION_REQUEST_CODE && grantResults.isNotEmpty()) {
             if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
+                Log.e(TAG, "Microphone permission denied")
                 onPermissionRequestConfirmation(false, arrayOf(""))
             } else {
                 onPermissionRequestConfirmation(true, arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE))
+            }
+        }
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE && grantResults.isNotEmpty()) {
+            if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
+                Log.e(TAG, "Location permission denied")
+                onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)
+            } else {
+                if (!isLocationServiceEnabled()) {
+                    onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)
+                    Toast.makeText(context, "Please enable location services in settings", Toast.LENGTH_LONG).show()
+                    val locationIntent = Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                    try {
+                        startActivity(locationIntent)
+                    } catch (e: Exception) {
+                        Log.e(TAG, e.message.toString())
+                    }
+                } else {
+                    onGeolocationPermissionConfirmation(geolocationOrigin, allowed = true, retain = false)
+                }
             }
         }
     }
@@ -304,6 +401,7 @@ class BrowserActivity : AppCompatActivity() {
                         callback.backToSafety(true)
                         Toast.makeText(view.context, "Unsafe web page blocked.", Toast.LENGTH_LONG).show()
                     }
+                    .setCancelable(false)
                     .show()
             }
         }
@@ -330,6 +428,7 @@ class BrowserActivity : AppCompatActivity() {
         // API >= 21
         @Nullable
         override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
+            if (!enableAdBlocker) return assetLoader.shouldInterceptRequest(request.url)
             val loadedUrls: MutableMap<String, Boolean> = HashMap()
             val resourceUrl = request.url.toString()
             val ad: Boolean
@@ -357,11 +456,13 @@ class BrowserActivity : AppCompatActivity() {
         }
 
         override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-            super.onPageStarted(view, url, favicon)
+            binding.errorLayout.hideView()
             progressBar.showView()
+            webView.showView()
             errorDescription = "Unknown"
             errorCode = 0
             urlHost = Uri.parse(url).host.toString()
+            toolbar.subtitle = urlHost
         }
 
         @RequiresApi(23)
@@ -385,8 +486,27 @@ class BrowserActivity : AppCompatActivity() {
             onReceivedError()
         }
 
+        @SuppressLint("WebViewClientOnReceivedSslError")
         override fun onReceivedSslError(view: WebView?, handler: SslErrorHandler?, error: SslError?) {
-            super.onReceivedSslError(view, handler, error)
+            var errorMessage = "Certificate error."
+            when (error?.primaryError) {
+                SslError.SSL_UNTRUSTED -> errorMessage = "The certificate authority is not trusted."
+                SslError.SSL_EXPIRED -> errorMessage = "The certificate has been expired."
+                SslError.SSL_IDMISMATCH -> errorMessage = "The certificate hostname mismatch."
+                SslError.SSL_NOTYETVALID -> errorMessage = "The certificate is not yet valid."
+                SslError.SSL_DATE_INVALID -> errorMessage = "The certificate date is invalid"
+            }
+            MaterialAlertDialogBuilder(context)
+                .setTitle("SSL Certificate Error")
+                .setMessage(errorMessage)
+                .setNegativeButton(resources.getString(R.string.cancel)) { _, _ ->
+                    handler?.cancel()
+                }
+                .setPositiveButton(resources.getString(R.string.proceed)) { _, _ ->
+                    handler?.proceed()
+                }
+                .setCancelable(false)
+                .show()
         }
 
         @UiThread
@@ -413,16 +533,15 @@ class BrowserActivity : AppCompatActivity() {
         }
 
         override fun onCreateWindow(view: WebView?, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message?): Boolean {
-            if (!isUserGesture) {
-                // TODO("Add user confirmation")
+            if (!isUserGesture && enablePopupBlocker) {
                 Snackbar.make(binding.contextView, "Pop-up blocked", Snackbar.LENGTH_LONG).show()
                 return false
             }
             val result: WebView.HitTestResult? = view?.hitTestResult
-            val data = result?.extra
+            val url = result?.extra
             if (!isDialog) {
                 val intent = Intent(context, BrowserActivity::class.java).apply {
-                    putExtra("WEB_URL", data)
+                    putExtra("WEB_URL", url)
                 }
                 startActivity(intent)
             }
@@ -433,7 +552,69 @@ class BrowserActivity : AppCompatActivity() {
             if (!title.isNullOrEmpty()) toolbar.title = title
         }
 
+        override fun onJsAlert(view: WebView?, url: String?, message: String?, result: JsResult?): Boolean {
+            val host = Uri.parse(webView.url).host
+            MaterialAlertDialogBuilder(context)
+                .setTitle("$host says")
+                .setMessage(message)
+                .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
+                    result?.confirm()
+                }
+                .setOnCancelListener {
+                    result?.cancel()
+                }
+                .show()
+            return true
+        }
+
+        override fun onJsConfirm(view: WebView?, url: String?, message: String?, result: JsResult?): Boolean {
+            val host = Uri.parse(webView.url).host
+            MaterialAlertDialogBuilder(context)
+                .setTitle("$host says")
+                .setMessage(message)
+                .setNegativeButton(resources.getString(R.string.cancel)) { _, _ ->
+                    result?.cancel()
+                }
+                .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
+                    result?.confirm()
+                }
+                .setOnCancelListener {
+                    result?.cancel()
+                }
+                .show()
+            return true
+        }
+
+        @SuppressLint("InflateParams")
+        override fun onJsPrompt(view: WebView?, url: String?, message: String?, defaultValue: String?, result: JsPromptResult?): Boolean {
+            val host = Uri.parse(webView.url).host
+            val inputLayout: View = layoutInflater.inflate(R.layout.view_input_view_dialog, null)
+            val textInputEditText: TextInputEditText = inputLayout.findViewById(R.id.input_text)
+            textInputEditText.maxLines = 1
+            textInputEditText.setText(defaultValue)
+            MaterialAlertDialogBuilder(context)
+                .setTitle("$host says")
+                .setMessage(message)
+                .setView(inputLayout)
+                .setNegativeButton(resources.getString(R.string.cancel)) { _, _ ->
+                    result?.cancel()
+                }
+                .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
+                    if (textInputEditText.text.isNullOrEmpty()) {
+                        result?.confirm()
+                    } else {
+                        result?.confirm(defaultValue)
+                    }
+                }
+                .setOnCancelListener {
+                    result?.cancel()
+                }
+                .show()
+            return true
+        }
+
         override fun onPermissionRequest(request: PermissionRequest?) {
+            permissionRequest = null
             permissionRequest = request
             if (request != null) {
                 val requestedResources = request.resources
@@ -457,6 +638,9 @@ class BrowserActivity : AppCompatActivity() {
                                         )
                                     }
                                 }
+                                .setOnCancelListener {
+                                    onPermissionRequestConfirmation(false, arrayOf(""))
+                                }
                                 .show()
                         }
                         PermissionRequest.RESOURCE_AUDIO_CAPTURE -> {
@@ -476,6 +660,9 @@ class BrowserActivity : AppCompatActivity() {
                                         )
                                     }
                                 }
+                                .setOnCancelListener {
+                                    onPermissionRequestConfirmation(false, arrayOf(""))
+                                }
                                 .show()
                         }
                         else -> {
@@ -492,24 +679,43 @@ class BrowserActivity : AppCompatActivity() {
         }
 
         override fun onGeolocationPermissionsShowPrompt(origin: String?, callback: GeolocationPermissions.Callback?) {
-            if (isPermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION)) {
-                MaterialAlertDialogBuilder(context)
-                    .setMessage("$urlHost wants to use your devices location")
-                    .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
-                        callback?.invoke(origin, false, false)
+            geolocationCallback = null
+            geolocationOrigin = null
+            geolocationCallback = callback
+            geolocationOrigin = origin
+            MaterialAlertDialogBuilder(context)
+                .setMessage("$urlHost wants to use your devices location")
+                .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
+                    onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)
+                }
+                .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
+                    if (isPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION) || isPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION)) {
+                        if (!isLocationServiceEnabled()) {
+                            onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)
+                            Toast.makeText(context, "Please enable location services in settings", Toast.LENGTH_LONG).show()
+                            val locationIntent = Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                            try {
+                                startActivity(locationIntent)
+                            } catch (e: Exception) {
+                                Log.e(TAG, e.message.toString())
+                            }
+                        } else {
+                            onGeolocationPermissionConfirmation(geolocationOrigin, allowed = true, retain = false)
+                        }
+                    } else {
+                        requestLocationPermission()
                     }
-                    .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
-                        callback?.invoke(origin, true, false)
-                    }
-                    .show()
-            } else {
-                callback?.invoke(origin, false, false)
-                requestPermission(Manifest.permission.ACCESS_FINE_LOCATION, LOCATION_PERMISSION_REQUEST_CODE, "YSports need location permission for this site")
-            }
+                }
+                .setOnCancelListener {
+                    onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)
+                }
+                .show()
         }
 
         override fun onGeolocationPermissionsHidePrompt() {
             Log.d(TAG, "Geolocation permission prompt hide")
+            geolocationCallback = null
+            geolocationOrigin = null
         }
 
         override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
@@ -569,18 +775,19 @@ class BrowserActivity : AppCompatActivity() {
         }
 
         override fun onShowFileChooser(webView: WebView?, filePathCallback: ValueCallback<Array<Uri>>?, fileChooserParams: FileChooserParams?): Boolean {
-            if (fileChooserParams == null) return true
-            val allowMultiple: Boolean = fileChooserParams.mode == FileChooserParams.MODE_OPEN_MULTIPLE
-            if (pathCallback != null) {
-                pathCallback!!.onReceiveValue(null)
-                pathCallback = null
+            if (fileChooserParams != null) {
+                val allowMultiple: Boolean = fileChooserParams.mode == FileChooserParams.MODE_OPEN_MULTIPLE
+                if (pathCallback != null) {
+                    pathCallback!!.onReceiveValue(null)
+                    pathCallback = null
+                }
+                pathCallback = filePathCallback
+                val chooserIntent: Intent = fileChooserParams.createIntent().apply {
+                    addCategory(Intent.CATEGORY_OPENABLE)
+                    if (allowMultiple) putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+                }
+                activityResultLauncher.launch(chooserIntent)
             }
-            pathCallback = filePathCallback
-            val chooserIntent: Intent = fileChooserParams.createIntent().apply {
-                addCategory(Intent.CATEGORY_OPENABLE)
-                if (allowMultiple) putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-            }
-            activityResultLauncher.launch(chooserIntent)
             return true
         }
 
@@ -661,13 +868,17 @@ class BrowserActivity : AppCompatActivity() {
         }
 
         private val activityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
-            if (pathCallback == null) return@registerForActivityResult
-            if (result.resultCode == Activity.RESULT_OK) {
-                pathCallback!!.onReceiveValue(FileChooserParams.parseResult(result.resultCode, result.data))
-            } else {
-                pathCallback?.onReceiveValue(null)
+            if (pathCallback != null) {
+                var results: Array<Uri>? = null
+                if (result.resultCode == Activity.RESULT_OK) {
+                    val dataString = result.data?.dataString
+                    if (dataString != null) {
+                        results = arrayOf(Uri.parse(dataString))
+                    }
+                }
+                pathCallback!!.onReceiveValue(results)
+                pathCallback = null
             }
-            pathCallback = null
         }
     }
 
@@ -754,40 +965,10 @@ class BrowserActivity : AppCompatActivity() {
         return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
     }
 
-    @Suppress("SameParameterValue")
-    private fun requestPermission(permission: String, requestCode: Int, message: String?) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            when {
-                ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED -> {
-                    Log.d(TAG, "Permission already granted")
-                }
-                shouldShowRequestPermissionRationale(permission) -> {
-                    MaterialAlertDialogBuilder(context)
-                        .setTitle("Allow permission?")
-                        .setMessage(message)
-                        .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
-                        }
-                        .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
-                            requestPermissions(arrayOf(permission), requestCode)
-                        }
-                        .setCancelable(false)
-                        .show()
-                }
-                else -> {
-                    requestPermissions(arrayOf(permission), requestCode)
-                }
-            }
-        } else {
-            if (ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_DENIED) {
-                ActivityCompat.requestPermissions(this, arrayOf(permission), requestCode)
-            }
-        }
-    }
-
     private fun requestWebViewPermission(permission: String, requestCode: Int, message: String) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             when {
-                ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED -> {
+                isPermissionGranted(permission) -> {
                     Log.d(TAG, "Permission already granted")
                 }
                 shouldShowRequestPermissionRationale(permission) -> {
@@ -808,7 +989,7 @@ class BrowserActivity : AppCompatActivity() {
                 }
             }
         } else {
-            if (ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_DENIED) {
+            if (!isPermissionGranted(permission)) {
                 ActivityCompat.requestPermissions(this, arrayOf(permission), requestCode)
             }
         }
@@ -821,9 +1002,57 @@ class BrowserActivity : AppCompatActivity() {
                 Log.d(TAG, "Permission granted")
             } else {
                 permissionRequest!!.deny()
-                Log.d(TAG, "Permission request denied")
+                Log.e(TAG, "Permission request denied")
             }
             permissionRequest = null
+        }
+    }
+
+    private fun isLocationServiceEnabled() : Boolean {
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+    }
+
+    private fun requestLocationPermission() {
+        val permissions = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            when {
+                isPermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION) -> {
+                    Log.d(TAG, "Permission already granted (Fine)")
+                }
+                isPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION) -> {
+                    Log.d(TAG, "Permission already granted")
+                }
+                shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) -> {
+                    MaterialAlertDialogBuilder(context)
+                        .setTitle("Allow permission?")
+                        .setMessage("YSports need location permission for this site")
+                        .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
+                        }
+                        .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
+                            requestPermissions(permissions, LOCATION_PERMISSION_REQUEST_CODE)
+                        }
+                        .setCancelable(false)
+                        .show()
+                }
+                else -> {
+                    requestPermissions(permissions, LOCATION_PERMISSION_REQUEST_CODE)
+                }
+            }
+        } else {
+            if (!isPermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION)
+                || !isPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION)) {
+                ActivityCompat.requestPermissions(this, permissions, LOCATION_PERMISSION_REQUEST_CODE)
+            }
+        }
+    }
+
+    @Suppress("SameParameterValue")
+    private fun onGeolocationPermissionConfirmation(origin: String?, allowed: Boolean, retain: Boolean) {
+        if (geolocationCallback != null) {
+            geolocationCallback?.invoke(origin, allowed, retain)
+            geolocationCallback = null
+            geolocationOrigin = null
         }
     }
 }
