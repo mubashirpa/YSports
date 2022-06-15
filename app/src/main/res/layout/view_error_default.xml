@@ -2,7 +2,7 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
     android:padding="16dp">
@@ -12,15 +12,12 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:maxLines="2"
-        android:text="@string/error_failed_to_load_content"
         android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2"
-        android:textColor="@color/onBackgroundSecondary"/>
+        android:textColor="@color/onBackground"/>
     <Button
         android:id="@+id/button_retry"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/retry"
-        android:textColor="@color/primary"
-        style="?android:attr/borderlessButtonStyle"
         android:layout_marginTop="16dp"/>
 </LinearLayout>
