@@ -614,6 +614,7 @@ class PlayerActivity : AppCompatActivity(), View.OnClickListener, StyledPlayerCo
         if (isInPictureInPictureMode) {
             playerView?.hideController()
             if (!player?.isPlaying!!) player?.play()
+            if (playerLocked) exoUnlock.hideView()
 
             broadcastReceiver = object : BroadcastReceiver() {
                 override fun onReceive(p0: Context?, p1: Intent?) {
@@ -631,7 +632,8 @@ class PlayerActivity : AppCompatActivity(), View.OnClickListener, StyledPlayerCo
         } else {
             unregisterReceiver(broadcastReceiver)
             broadcastReceiver = null
-            if (player != null && !player!!.isPlaying) playerView?.showController()
+            if (player != null && !player!!.isPlaying && !playerLocked) playerView?.showController()
+            if (playerLocked) exoUnlock.showView()
         }
         binding.appName.isVisible = !isInPictureInPictureMode
     }
@@ -778,8 +780,6 @@ class PlayerActivity : AppCompatActivity(), View.OnClickListener, StyledPlayerCo
         playerMenuBottomSheet.show(supportFragmentManager, PlayerMenuBottomSheet.TAG)
     }
 
-    /* Experimental */
-
     private fun lockPlayer() {
         if (playerView != null) {
             playerView!!.hideController()
@@ -797,6 +797,8 @@ class PlayerActivity : AppCompatActivity(), View.OnClickListener, StyledPlayerCo
             playerLocked = false
         }
     }
+
+    /* Experimental */
 
     @SuppressLint("ClickableViewAccessibility")
     private fun initializeSwipeControl() {
