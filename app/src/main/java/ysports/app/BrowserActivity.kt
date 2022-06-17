@@ -3,6 +3,7 @@ package ysports.app
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.DownloadManager
 import android.content.*
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
@@ -14,6 +15,7 @@ import android.location.LocationManager
 import android.net.Uri
 import android.net.http.SslError
 import android.os.*
+import android.text.format.Formatter
 import android.util.Log
 import android.view.View
 import android.view.WindowInsets
@@ -21,6 +23,7 @@ import android.view.WindowInsetsController
 import android.webkit.*
 import android.webkit.WebView.RENDERER_PRIORITY_BOUND
 import android.widget.FrameLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -43,6 +46,7 @@ import ysports.app.databinding.ActivityBrowserBinding
 import ysports.app.player.PlayerUtil
 import ysports.app.util.AdBlocker
 import ysports.app.util.AppUtil
+import ysports.app.util.NetworkUtil
 import ysports.app.util.YouTubePlay
 import java.net.URISyntaxException
 
@@ -72,6 +76,8 @@ class BrowserActivity : AppCompatActivity() {
     private var enableAdBlocker = true
     private var enablePopupBlocker = true
     private var allowCookie = true
+    private lateinit var downloadManager: DownloadManager
+    private var downloadReference: Long? = null
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,9 +90,14 @@ class BrowserActivity : AppCompatActivity() {
         toolbar = binding.materialToolbar
         webView = binding.webView
         progressBar = binding.progressBar
-        WEB_URL = intent.getStringExtra("WEB_URL") ?: "https://ysports.app/assets/web/error_404/index.html"
+        WEB_URL = intent.getStringExtra("WEB_URL") ?: resources.getString(R.string.url_404_error)
+        downloadManager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+        val filter = IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
 
+        registerReceiver(downloadReceiver, filter)
         AdBlocker.init(context)
+        urlHost = Uri.parse(WEB_URL).host.toString()
+        toolbar.subtitle = if (urlHost == "null") WEB_URL else urlHost
 
         toolbar.setNavigationOnClickListener {
             finish()
@@ -171,7 +182,7 @@ class BrowserActivity : AppCompatActivity() {
                                 startActivity(intent)
                             }
                             2 -> {
-                                // TODO("Download image")
+                                if (hitTestResult.extra != null) downloadReference = startDownload(hitTestResult.extra!!)
                             }
                             3 -> {
                                 (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("clipboard", hitTestResult.extra))
@@ -285,11 +296,44 @@ class BrowserActivity : AppCompatActivity() {
         webView.webChromeClient = CustomWebChromeClient()
         webView.loadUrl(WEB_URL)
 
-        webView.setDownloadListener { url, _, _, _, _ ->
-            val downloadIntent = Intent(Intent.ACTION_VIEW).apply {
-                data = Uri.parse(url)
+        webView.setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
+            val downloadDialogBuilder = MaterialAlertDialogBuilder(context)
+            val downloadLayout: View = layoutInflater.inflate(R.layout.view_browser_download_confirm, null)
+            val textFileName: TextView = downloadLayout.findViewById(R.id.fileName)
+            val textFileSize: TextView = downloadLayout.findViewById(R.id.fileSize)
+            val  fileName = URLUtil.guessFileName(url, contentDisposition, mimetype)
+            val  fileSize = Formatter.formatFileSize(context, contentLength)
+
+            textFileName.text = fileName
+            textFileSize.text = fileSize
+
+            if (mimetype.contains("video")) {
+                downloadDialogBuilder.setNeutralButton(resources.getString(R.string.play)) { _, _ ->
+                    PlayerUtil().loadPlayer(context, Uri.parse(url), true)
+                }
             }
-            startActivity(downloadIntent)
+            val wifiConnected = NetworkUtil().wifiConnected(context)
+            if (!wifiConnected) downloadDialogBuilder.setMessage("Using cellular data now, download will consume traffic")
+
+            downloadDialogBuilder
+                .setTitle(resources.getString(R.string.download))
+                .setView(downloadLayout)
+                .setNegativeButton(resources.getString(R.string.cancel)) { _, _ -> }
+                .setPositiveButton(resources.getString(R.string.download)) { _, _ ->
+                    /*
+                    val downloadIntent = Intent(Intent.ACTION_VIEW).apply {
+                        data = Uri.parse(url)
+                    }
+                    startActivity(downloadIntent)
+                    */
+                    downloadReference = if (textFileName.text.isNullOrEmpty()) {
+                        startDownload(url, userAgent, mimetype, fileName)
+                    } else {
+                        startDownload(url, userAgent, mimetype, textFileName.text.toString())
+                    }
+                }
+                .setCancelable(false)
+                .show()
         }
     }
 
@@ -301,6 +345,11 @@ class BrowserActivity : AppCompatActivity() {
         super.onDestroy()
         handler?.removeCallbacksAndMessages(null)
         webView.destroy()
+        try {
+            unregisterReceiver(downloadReceiver)
+        } catch (e: Exception) {
+            Log.e(TAG, e.message.toString())
+        }
     }
 
     override fun onPause() {
@@ -462,7 +511,7 @@ class BrowserActivity : AppCompatActivity() {
             errorDescription = "Unknown"
             errorCode = 0
             urlHost = Uri.parse(url).host.toString()
-            toolbar.subtitle = urlHost
+            toolbar.subtitle = if (urlHost == "null") WEB_URL else urlHost
         }
 
         @RequiresApi(23)
@@ -585,7 +634,6 @@ class BrowserActivity : AppCompatActivity() {
             return true
         }
 
-        @SuppressLint("InflateParams")
         override fun onJsPrompt(view: WebView?, url: String?, message: String?, defaultValue: String?, result: JsPromptResult?): Boolean {
             val host = Uri.parse(webView.url).host
             val inputLayout: View = layoutInflater.inflate(R.layout.view_input_view_dialog, null)
@@ -603,7 +651,7 @@ class BrowserActivity : AppCompatActivity() {
                     if (textInputEditText.text.isNullOrEmpty()) {
                         result?.confirm()
                     } else {
-                        result?.confirm(defaultValue)
+                        result?.confirm(textInputEditText.text.toString())
                     }
                 }
                 .setOnCancelListener {
@@ -936,6 +984,7 @@ class BrowserActivity : AppCompatActivity() {
 
     private fun onReload() {
         binding.errorLayout.hideView()
+        // Using timer to avoid multiple clicking on retry
         handler = Handler(Looper.getMainLooper())
         handler!!.postDelayed({
             if (!isDestroyed) {
@@ -953,6 +1002,7 @@ class BrowserActivity : AppCompatActivity() {
         if (this.isVisible) this.visibility = View.GONE
     }
 
+    @Suppress("unused")
     private fun fetchJavaScript(url: String?) {
         // JavaScript code to fetch() content from the same origin
         val jsCode = "fetch('$url')" +
@@ -1028,6 +1078,7 @@ class BrowserActivity : AppCompatActivity() {
                         .setTitle("Allow permission?")
                         .setMessage("YSports need location permission for this site")
                         .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
+                            onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)
                         }
                         .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
                             requestPermissions(permissions, LOCATION_PERMISSION_REQUEST_CODE)
@@ -1053,6 +1104,45 @@ class BrowserActivity : AppCompatActivity() {
             geolocationCallback?.invoke(origin, allowed, retain)
             geolocationCallback = null
             geolocationOrigin = null
+        }
+    }
+
+    private fun startDownload(url: String, userAgent: String, mimetype: String, fileName: String) : Long {
+        val downloadURI = Uri.parse(url)
+        val request: DownloadManager.Request = DownloadManager.Request(downloadURI)
+        request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
+        request.setAllowedOverRoaming(false)
+        request.setTitle(fileName)
+        request.setDescription(getString(R.string.app_name))
+        request.setMimeType(mimetype)
+        val cookies = CookieManager.getInstance().getCookie(url)
+        request.addRequestHeader("cookie", cookies)
+        request.addRequestHeader("User-Agent", userAgent)
+        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
+        Snackbar.make(binding.contextView, "Downloading file", Snackbar.LENGTH_LONG).show()
+        return downloadManager.enqueue(request)
+    }
+
+    private fun startDownload(url: String) : Long {
+        val downloadURI = Uri.parse(url)
+        val request: DownloadManager.Request = DownloadManager.Request(downloadURI)
+        request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI or DownloadManager.Request.NETWORK_MOBILE)
+        request.setAllowedOverRoaming(false)
+        request.setDescription(getString(R.string.app_name))
+        val cookies = CookieManager.getInstance().getCookie(url)
+        request.addRequestHeader("cookie", cookies)
+        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+        Snackbar.make(binding.contextView, "Downloading file", Snackbar.LENGTH_LONG).show()
+        return downloadManager.enqueue(request)
+    }
+
+    private val downloadReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent) {
+            val referenceId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
+            if (downloadReference == referenceId) {
+                Snackbar.make(binding.contextView, "Download complete", Snackbar.LENGTH_LONG).show()
+            }
         }
     }
 }
