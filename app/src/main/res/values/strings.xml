@@ -58,6 +58,7 @@
     <string name="playback_speed">Playback speed</string>
     <string name="url_live_score_widget">https://ysportsapp.blogspot.com/p/livescore-widget.html</string>
     <string name="url_highlights_widget">https://ysportsapp.blogspot.com/p/video-widget.html</string>
+    <string name="url_404_error">https://ysports.app/assets/web/error_404/index.html</string>
     <string name="title_matches">Matches</string>
     <string name="title_leagues">Leagues</string>
     <string name="title_news">News</string>
@@ -75,4 +76,6 @@
     <string name="browser_error_title">Check your internet connection</string>
     <string name="browser_error_description">Check any cables and reboot any routers, modems or other network devices you may be using.</string>
     <string name="allow">Allow</string>
+    <string name="download">Download</string>
+    <string name="play">Play</string>
 </resources>
