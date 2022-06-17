@@ -1,6 +1,7 @@
 package ysports.app
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -25,20 +26,21 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
-import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.Nullable
 import androidx.annotation.RequiresApi
 import androidx.annotation.UiThread
 import androidx.appcompat.app.AppCompatActivity
-import androidx.browser.customtabs.CustomTabColorSchemeParams
-import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.webkit.*
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.progressindicator.CircularProgressIndicator
+import com.google.android.material.textfield.TextInputEditText
 import ysports.app.databinding.ActivityWebBinding
 import ysports.app.player.PlayerUtil
 import ysports.app.util.AdBlocker
+import ysports.app.util.AppUtil
 import ysports.app.util.YouTubePlay
 import java.net.URISyntaxException
 import java.net.URLDecoder
@@ -51,7 +53,6 @@ class WebActivity : AppCompatActivity() {
     private lateinit var webView: WebView
     private var WEB_URL: String = ""
     private lateinit var webViewProgressIndicator: CircularProgressIndicator
-    private var webViewErrorOccurred: Boolean = false
     private val TAG: String = "WebActivity"
     private val CHROME_SCHEME = "chrome:"
     private val VIDEO_SCHEME = "video:"
@@ -76,10 +77,18 @@ class WebActivity : AppCompatActivity() {
         errorView = findViewById(R.id.error_view)
         errorTextView = binding.errorView.stateDescription
         retryButton = binding.errorView.buttonRetry
-        WEB_URL = intent.getStringExtra("WEB_URL") ?: "https://appassets.androidplatform.net/assets/web/error_404/index.html"
+        WEB_URL = intent.getStringExtra("WEB_URL") ?: resources.getString(R.string.url_404_error)
 
         webView.setBackgroundColor(Color.TRANSPARENT)
         AdBlocker.init(context)
+
+        webView.setOnLongClickListener {
+            true
+        }
+
+        retryButton.setOnClickListener {
+            onReload()
+        }
 
         val assetLoader = WebViewAssetLoader.Builder()
             .setDomain("ysports.app")
@@ -161,21 +170,8 @@ class WebActivity : AppCompatActivity() {
         webView.webChromeClient = CustomWebChromeClient()
         webView.loadUrl(WEB_URL)
 
-        webView.setOnLongClickListener {
-            true
-        }
-
-        retryButton.setOnClickListener {
-            errorView.hideView()
-            webViewProgressIndicator.showView()
-            // Using timer to avoid multiple clicking on retry
-            handler = Handler(Looper.getMainLooper())
-            handler!!.postDelayed({
-                if (!isDestroyed) {
-                    webView.showView()
-                    webView.reload()
-                }
-            }, 400)
+        webView.setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
+            // TODO("Define DownloadListener")
         }
     }
 
@@ -197,6 +193,11 @@ class WebActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         webView.onResume()
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        // TODO("Define onRequestPermissionsResult")
     }
 
     @Suppress("unused")
@@ -267,7 +268,9 @@ class WebActivity : AppCompatActivity() {
 
         override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
             super.onPageStarted(view, url, favicon)
+            errorView.hideView()
             webViewProgressIndicator.showView()
+            webView.showView()
         }
 
         override fun onPageFinished(view: WebView?, url: String?) {
@@ -301,8 +304,7 @@ class WebActivity : AppCompatActivity() {
         override fun onReceivedHttpError(view: WebView, request: WebResourceRequest, errorResponse: WebResourceResponse) {
             if (WebViewFeature.isFeatureSupported(WebViewFeature.RECEIVE_HTTP_ERROR)) {
                 super.onReceivedHttpError(view, request, errorResponse)
-                Log.e(TAG, "WebView ReceivedHttpError")
-                Log.e(TAG, "${request.url}")
+                Log.e(TAG, "WebView ReceivedHttpError: ${request.url}")
             }
         }
     }
@@ -314,7 +316,7 @@ class WebActivity : AppCompatActivity() {
         private var defaultOrientation = 0
         private var defaultSystemUiVisibility = 0
         private var customViewCallback: CustomViewCallback? = null
-        private var uploadCallback: ValueCallback<Array<Uri>>? = null
+        private var pathCallback: ValueCallback<Array<Uri>>? = null
 
         override fun onCreateWindow(view: WebView?, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message?): Boolean {
             val result: WebView.HitTestResult? = view?.hitTestResult
@@ -326,6 +328,77 @@ class WebActivity : AppCompatActivity() {
                 startActivity(intent)
             }
             return true
+        }
+
+        override fun onJsAlert(view: WebView?, url: String?, message: String?, result: JsResult?): Boolean {
+            MaterialAlertDialogBuilder(context)
+                .setMessage(message)
+                .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
+                    result?.confirm()
+                }
+                .setOnCancelListener {
+                    result?.cancel()
+                }
+                .show()
+            return true
+        }
+
+        override fun onJsConfirm(view: WebView?, url: String?, message: String?, result: JsResult?): Boolean {
+            MaterialAlertDialogBuilder(context)
+                .setMessage(message)
+                .setNegativeButton(resources.getString(R.string.cancel)) { _, _ ->
+                    result?.cancel()
+                }
+                .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
+                    result?.confirm()
+                }
+                .setOnCancelListener {
+                    result?.cancel()
+                }
+                .show()
+            return true
+        }
+
+        override fun onJsPrompt(view: WebView?, url: String?, message: String?, defaultValue: String?, result: JsPromptResult?): Boolean {
+            val inputLayout: View = layoutInflater.inflate(R.layout.view_input_view_dialog, null)
+            val textInputEditText: TextInputEditText = inputLayout.findViewById(R.id.input_text)
+            textInputEditText.maxLines = 1
+            textInputEditText.setText(defaultValue)
+            MaterialAlertDialogBuilder(context)
+                .setMessage(message)
+                .setView(inputLayout)
+                .setNegativeButton(resources.getString(R.string.cancel)) { _, _ ->
+                    result?.cancel()
+                }
+                .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
+                    if (textInputEditText.text.isNullOrEmpty()) {
+                        result?.confirm()
+                    } else {
+                        result?.confirm(textInputEditText.text.toString())
+                    }
+                }
+                .setOnCancelListener {
+                    result?.cancel()
+                }
+                .show()
+            return true
+        }
+
+        override fun onPermissionRequest(request: PermissionRequest?) {
+            super.onPermissionRequest(request)
+            // TODO("Define onPermissionRequest")
+        }
+
+        override fun onPermissionRequestCanceled(request: PermissionRequest?) {
+            // TODO("Define onPermissionRequestCanceled")
+        }
+
+        override fun onGeolocationPermissionsShowPrompt(origin: String?, callback: GeolocationPermissions.Callback?) {
+            // TODO("Define onGeolocationPermissionsShowPrompt")
+        }
+
+        override fun onGeolocationPermissionsHidePrompt() {
+            // TODO("Define onGeolocationPermissionsHidePrompt")
         }
 
         override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
@@ -384,19 +457,18 @@ class WebActivity : AppCompatActivity() {
         }
 
         override fun onShowFileChooser(webView: WebView?, filePathCallback: ValueCallback<Array<Uri>>?, fileChooserParams: FileChooserParams?): Boolean {
-            val allowMultiple: Boolean = fileChooserParams!!.mode ==FileChooserParams.MODE_OPEN_MULTIPLE
-            if (uploadCallback != null) {
-                uploadCallback!!.onReceiveValue(null)
-                uploadCallback = null
-            }
-            uploadCallback = filePathCallback
-            val chooserIntent: Intent = fileChooserParams.createIntent()
-            chooserIntent.addCategory(Intent.CATEGORY_OPENABLE)
-            if (allowMultiple) chooserIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-            try {
+            if (fileChooserParams != null) {
+                val allowMultiple: Boolean = fileChooserParams.mode == FileChooserParams.MODE_OPEN_MULTIPLE
+                if (pathCallback != null) {
+                    pathCallback!!.onReceiveValue(null)
+                    pathCallback = null
+                }
+                pathCallback = filePathCallback
+                val chooserIntent: Intent = fileChooserParams.createIntent().apply {
+                    addCategory(Intent.CATEGORY_OPENABLE)
+                    if (allowMultiple) putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+                }
                 activityResultLauncher.launch(chooserIntent)
-            } catch (e: Exception) {
-                Toast.makeText(context, getString(R.string.error_activity_not_found), Toast.LENGTH_LONG).show()
             }
             return true
         }
@@ -477,38 +549,19 @@ class WebActivity : AppCompatActivity() {
             } else 0
         }
 
-        private val activityResultLauncher = registerForActivityResult(StartActivityForResult()) { result: ActivityResult ->
-            when(result.resultCode) {
-                RESULT_OK -> {
-                    val intent = result.data
-                    if (uploadCallback == null) return@registerForActivityResult
-                    uploadCallback!!.onReceiveValue(FileChooserParams.parseResult(result.resultCode, intent))
+        private val activityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+            if (pathCallback != null) {
+                var results: Array<Uri>? = null
+                if (result.resultCode == Activity.RESULT_OK) {
+                    val dataString = result.data?.dataString
+                    if (dataString != null) {
+                        results = arrayOf(Uri.parse(dataString))
+                    }
                 }
-                else -> {
-                    uploadCallback!!.onReceiveValue(null)
-                }
+                pathCallback!!.onReceiveValue(results)
+                pathCallback = null
             }
-            uploadCallback = null
         }
-    }
-
-    private fun View.showView() {
-        if (!this.isVisible) this.visibility = View.VISIBLE
-    }
-
-    private fun View.hideView() {
-        if (this.isVisible) this.visibility = View.GONE
-    }
-
-    private fun openCustomTabs(url: String) {
-        val colorInt: Int = ContextCompat.getColor(context, R.color.primary)
-        val defaultColors: CustomTabColorSchemeParams = CustomTabColorSchemeParams.Builder()
-            .setToolbarColor(colorInt)
-            .build()
-        val builder: CustomTabsIntent.Builder = CustomTabsIntent.Builder()
-        builder.setDefaultColorSchemeParams(defaultColors)
-        val customTabsIntent = builder.build()
-        customTabsIntent.launchUrl(context, Uri.parse(url))
     }
 
     private fun overrideUrlLoading(url: String?) : Boolean {
@@ -518,7 +571,7 @@ class WebActivity : AppCompatActivity() {
             when {
                 url?.startsWith(CHROME_SCHEME) == true -> {
                     val replacedURL = URLDecoder.decode(url.substring(CHROME_SCHEME.length), "UTF-8")
-                    openCustomTabs(replacedURL)
+                    AppUtil(context).openCustomTabs(replacedURL)
                 }
                 url?.startsWith(VIDEO_SCHEME) == true -> {
                     val replacedURL = URLDecoder.decode(url.substring(VIDEO_SCHEME.length), "UTF-8")
@@ -574,16 +627,27 @@ class WebActivity : AppCompatActivity() {
     private fun onReceivedError() {
         webView.evaluateJavascript("javascript:document.open();document.write('');document.close();", null)
         webView.hideView()
-        webViewErrorOccurred = true
         errorTextView.text = resources.getString(R.string.error_failed_to_load_content)
         errorView.showView()
     }
 
-    private fun fetchJavaScript(url: String?) {
-        // JavaScript code to fetch() content from the same origin
-        val jsCode = "fetch('$url')" +
-                ".then(resp => resp.json())" +
-                ".then(data => console.log(data));"
-        webView.evaluateJavascript(jsCode, null)
+    private fun onReload() {
+        errorView.hideView()
+        webViewProgressIndicator.showView()
+        handler = Handler(Looper.getMainLooper())
+        handler!!.postDelayed({
+            if (!isDestroyed) {
+                webView.showView()
+                webView.reload()
+            }
+        }, 300)
+    }
+
+    private fun View.showView() {
+        if (!this.isVisible) this.visibility = View.VISIBLE
+    }
+
+    private fun View.hideView() {
+        if (this.isVisible) this.visibility = View.GONE
     }
 }
