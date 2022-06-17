@@ -15,23 +15,27 @@
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/drawable/ic_baseline_brightness_medium_24.xml" value="0.236" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/drawable/ic_baseline_close_24.xml" value="0.236" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/drawable/ic_baseline_download_24.xml" value="0.236" />
+        <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/drawable/ic_baseline_file_24.xml" value="0.1" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/drawable/ic_baseline_home_24.xml" value="0.1485" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/drawable/ic_baseline_menu_24.xml" value="0.13" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/drawable/ic_baseline_more_vert_24.xml" value="0.1625" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/drawable/ic_baseline_search_24.xml" value="0.236" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/drawable/ic_baseline_share_24.xml" value="0.13" />
+        <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/drawable/ic_baseline_video_library_24.xml" value="0.137" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/drawable/ic_outline_dashboard_24.xml" value="0.236" />
+        <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/drawable/ic_outline_home_24.xml" value="0.1325" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/activity_browser.xml" value="0.22530996152201796" />
-        <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/activity_main.xml" value="0.27447916666666666" />
+        <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/activity_main.xml" value="0.1" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/activity_web.xml" value="0.1858108108108108" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/fragment_fixtures.xml" value="0.27447916666666666" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/fragment_home.xml" value="0.24592391304347827" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/fragment_more.xml" value="0.24592391304347827" />
-        <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/fragment_news.xml" value="0.23428815733219324" />
+        <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/fragment_news.xml" value="0.22245673279864922" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/header_navigation_drawer.xml" value="0.1" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/list_item_fixture.xml" value="0.24592391304347827" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/list_item_news.xml" value="0.22530996152201796" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/list_item_news_banner.xml" value="0.2" />
+        <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/view_browser_download_confirm.xml" value="0.22245673279864922" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/view_error.xml" value="0.27447916666666666" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/view_error_default.xml" value="0.22245673279864922" />
         <entry key="..\:/Users/mubas/AndroidStudioProjects/YSports/app/src/main/res/layout/view_error_state_home.xml" value="0.22530996152201796" />
