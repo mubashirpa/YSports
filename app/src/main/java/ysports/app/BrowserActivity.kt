@@ -320,12 +320,6 @@ class BrowserActivity : AppCompatActivity() {
                 .setView(downloadLayout)
                 .setNegativeButton(resources.getString(R.string.cancel)) { _, _ -> }
                 .setPositiveButton(resources.getString(R.string.download)) { _, _ ->
-                    /*
-                    val downloadIntent = Intent(Intent.ACTION_VIEW).apply {
-                        data = Uri.parse(url)
-                    }
-                    startActivity(downloadIntent)
-                    */
                     downloadReference = if (textFileName.text.isNullOrEmpty()) {
                         startDownload(url, userAgent, mimetype, fileName)
                     } else {
@@ -389,18 +383,7 @@ class BrowserActivity : AppCompatActivity() {
                 Log.e(TAG, "Location permission denied")
                 onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)
             } else {
-                if (!isLocationServiceEnabled()) {
-                    onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)
-                    Toast.makeText(context, "Please enable location services in settings", Toast.LENGTH_LONG).show()
-                    val locationIntent = Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-                    try {
-                        startActivity(locationIntent)
-                    } catch (e: Exception) {
-                        Log.e(TAG, e.message.toString())
-                    }
-                } else {
-                    onGeolocationPermissionConfirmation(geolocationOrigin, allowed = true, retain = false)
-                }
+                fetchLocation()
             }
         }
     }
@@ -663,8 +646,8 @@ class BrowserActivity : AppCompatActivity() {
 
         override fun onPermissionRequest(request: PermissionRequest?) {
             permissionRequest = null
-            permissionRequest = request
             if (request != null) {
+                permissionRequest = request
                 val requestedResources = request.resources
                 for (reqResources in requestedResources) {
                     Log.d(TAG, "Permission request: $reqResources")
@@ -676,15 +659,12 @@ class BrowserActivity : AppCompatActivity() {
                                     onPermissionRequestConfirmation(false, arrayOf(""))
                                 }
                                 .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
-                                    if (isPermissionGranted(Manifest.permission.CAMERA)) {
-                                        onPermissionRequestConfirmation(true, arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE))
-                                    } else {
-                                        requestWebViewPermission(
-                                            Manifest.permission.CAMERA,
-                                            CAMERA_PERMISSION_REQUEST_CODE,
-                                            "YSports need camera permission for this site"
-                                        )
-                                    }
+                                    requestWebViewPermission(
+                                        Manifest.permission.CAMERA,
+                                        CAMERA_PERMISSION_REQUEST_CODE,
+                                        "YSports need camera permission for this site",
+                                        arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE)
+                                    )
                                 }
                                 .setOnCancelListener {
                                     onPermissionRequestConfirmation(false, arrayOf(""))
@@ -698,15 +678,12 @@ class BrowserActivity : AppCompatActivity() {
                                     onPermissionRequestConfirmation(false, arrayOf(""))
                                 }
                                 .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
-                                    if (isPermissionGranted(Manifest.permission.RECORD_AUDIO)) {
-                                        onPermissionRequestConfirmation(true, arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE))
-                                    } else {
-                                        requestWebViewPermission(
-                                            Manifest.permission.RECORD_AUDIO,
-                                            MIC_PERMISSION_REQUEST_CODE,
-                                            "YSports need microphone permission for this site"
-                                        )
-                                    }
+                                    requestWebViewPermission(
+                                        Manifest.permission.RECORD_AUDIO,
+                                        MIC_PERMISSION_REQUEST_CODE,
+                                        "YSports need microphone permission for this site",
+                                        arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE)
+                                    )
                                 }
                                 .setOnCancelListener {
                                     onPermissionRequestConfirmation(false, arrayOf(""))
@@ -737,22 +714,7 @@ class BrowserActivity : AppCompatActivity() {
                     onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)
                 }
                 .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
-                    if (isPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION) || isPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION)) {
-                        if (!isLocationServiceEnabled()) {
-                            onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)
-                            Toast.makeText(context, "Please enable location services in settings", Toast.LENGTH_LONG).show()
-                            val locationIntent = Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-                            try {
-                                startActivity(locationIntent)
-                            } catch (e: Exception) {
-                                Log.e(TAG, e.message.toString())
-                            }
-                        } else {
-                            onGeolocationPermissionConfirmation(geolocationOrigin, allowed = true, retain = false)
-                        }
-                    } else {
-                        requestLocationPermission()
-                    }
+                    requestLocationPermission()
                 }
                 .setOnCancelListener {
                     onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)
@@ -1015,11 +977,12 @@ class BrowserActivity : AppCompatActivity() {
         return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
     }
 
-    private fun requestWebViewPermission(permission: String, requestCode: Int, message: String) {
+    private fun requestWebViewPermission(permission: String, requestCode: Int, message: String, requestResources: Array<String>) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             when {
                 isPermissionGranted(permission) -> {
                     Log.d(TAG, "Permission already granted")
+                    onPermissionRequestConfirmation(true, requestResources)
                 }
                 shouldShowRequestPermissionRationale(permission) -> {
                     MaterialAlertDialogBuilder(context)
@@ -1039,7 +1002,9 @@ class BrowserActivity : AppCompatActivity() {
                 }
             }
         } else {
-            if (!isPermissionGranted(permission)) {
+            if (isPermissionGranted(permission)) {
+                onPermissionRequestConfirmation(true, requestResources)
+            } else {
                 ActivityCompat.requestPermissions(this, arrayOf(permission), requestCode)
             }
         }
@@ -1069,9 +1034,11 @@ class BrowserActivity : AppCompatActivity() {
             when {
                 isPermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION) -> {
                     Log.d(TAG, "Permission already granted (Fine)")
+                    fetchLocation()
                 }
                 isPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION) -> {
-                    Log.d(TAG, "Permission already granted")
+                    Log.d(TAG, "Permission already granted (Coarse")
+                    fetchLocation()
                 }
                 shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) -> {
                     MaterialAlertDialogBuilder(context)
@@ -1091,8 +1058,10 @@ class BrowserActivity : AppCompatActivity() {
                 }
             }
         } else {
-            if (!isPermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION)
-                || !isPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION)) {
+            if (isPermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION)
+                || isPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION)) {
+                fetchLocation()
+            } else {
                 ActivityCompat.requestPermissions(this, permissions, LOCATION_PERMISSION_REQUEST_CODE)
             }
         }
@@ -1104,6 +1073,21 @@ class BrowserActivity : AppCompatActivity() {
             geolocationCallback?.invoke(origin, allowed, retain)
             geolocationCallback = null
             geolocationOrigin = null
+        }
+    }
+
+    private fun fetchLocation() {
+        if (!isLocationServiceEnabled()) {
+            onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)
+            Toast.makeText(context, "Please enable location services in settings", Toast.LENGTH_LONG).show()
+            val locationIntent = Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+            try {
+                startActivity(locationIntent)
+            } catch (e: Exception) {
+                Log.e(TAG, e.message.toString())
+            }
+        } else {
+            onGeolocationPermissionConfirmation(geolocationOrigin, allowed = true, retain = false)
         }
     }
 
