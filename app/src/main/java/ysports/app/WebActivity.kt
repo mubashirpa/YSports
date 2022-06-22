@@ -1,5 +1,6 @@
 package ysports.app
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ActivityNotFoundException
@@ -12,6 +13,7 @@ import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.location.LocationManager
 import android.net.Uri
 import android.net.http.SslError
 import android.os.*
@@ -31,6 +33,7 @@ import androidx.annotation.Nullable
 import androidx.annotation.RequiresApi
 import androidx.annotation.UiThread
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.webkit.*
@@ -63,6 +66,12 @@ class WebActivity : AppCompatActivity() {
     private lateinit var retryButton: Button
     private var handler: Handler? = null
     private val playerUtil = PlayerUtil()
+    private var LOCATION_PERMISSION_REQUEST_CODE = 101
+    private var CAMERA_PERMISSION_REQUEST_CODE = 102
+    private var MIC_PERMISSION_REQUEST_CODE = 103
+    private var permissionRequest: PermissionRequest? = null
+    private var geolocationCallback: GeolocationPermissions.Callback? = null
+    private var geolocationOrigin: String? = null
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -170,8 +179,15 @@ class WebActivity : AppCompatActivity() {
         webView.webChromeClient = CustomWebChromeClient()
         webView.loadUrl(WEB_URL)
 
-        webView.setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
-            // TODO("Define DownloadListener")
+        webView.setDownloadListener { url, _, _, _, _ ->
+            val downloadIntent = Intent(Intent.ACTION_VIEW).apply {
+                data = Uri.parse(url)
+            }
+            try {
+                startActivity(downloadIntent)
+            } catch (e: Exception) {
+                Log.e(TAG, e.message.toString())
+            }
         }
     }
 
@@ -197,7 +213,30 @@ class WebActivity : AppCompatActivity() {
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        // TODO("Define onRequestPermissionsResult")
+        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE && grantResults.isNotEmpty()) {
+            if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
+                Log.e(TAG, "Camera permission denied")
+                onPermissionRequestConfirmation(false, arrayOf(""))
+            } else {
+                onPermissionRequestConfirmation(true, arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE))
+            }
+        }
+        if (requestCode == MIC_PERMISSION_REQUEST_CODE && grantResults.isNotEmpty()) {
+            if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
+                Log.e(TAG, "Microphone permission denied")
+                onPermissionRequestConfirmation(false, arrayOf(""))
+            } else {
+                onPermissionRequestConfirmation(true, arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE))
+            }
+        }
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE && grantResults.isNotEmpty()) {
+            if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
+                Log.e(TAG, "Location permission denied")
+                onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)
+            } else {
+                fetchLocation()
+            }
+        }
     }
 
     @Suppress("unused")
@@ -385,20 +424,54 @@ class WebActivity : AppCompatActivity() {
         }
 
         override fun onPermissionRequest(request: PermissionRequest?) {
-            super.onPermissionRequest(request)
-            // TODO("Define onPermissionRequest")
+            permissionRequest = null
+            if (request != null) {
+                permissionRequest = request
+                val requestedResources = request.resources
+                for (reqResources in requestedResources) {
+                    Log.d(TAG, "Permission request: $reqResources")
+                    when (reqResources) {
+                        PermissionRequest.RESOURCE_VIDEO_CAPTURE -> {
+                            requestWebViewPermission(
+                                Manifest.permission.CAMERA,
+                                CAMERA_PERMISSION_REQUEST_CODE,
+                                "YSports need camera permission to access camera",
+                                arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE)
+                            )
+                        }
+                        PermissionRequest.RESOURCE_AUDIO_CAPTURE -> {
+                            requestWebViewPermission(
+                                Manifest.permission.RECORD_AUDIO,
+                                MIC_PERMISSION_REQUEST_CODE,
+                                "YSports need microphone permission to access mic",
+                                arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE)
+                            )
+                        }
+                        else -> {
+                            onPermissionRequestConfirmation(false, arrayOf(""))
+                        }
+                    }
+                }
+            }
         }
 
         override fun onPermissionRequestCanceled(request: PermissionRequest?) {
-            // TODO("Define onPermissionRequestCanceled")
+            Log.d(TAG, "Permission request cancelled")
+            permissionRequest = null
         }
 
         override fun onGeolocationPermissionsShowPrompt(origin: String?, callback: GeolocationPermissions.Callback?) {
-            // TODO("Define onGeolocationPermissionsShowPrompt")
+            geolocationCallback = null
+            geolocationOrigin = null
+            geolocationCallback = callback
+            geolocationOrigin = origin
+            requestLocationPermission()
         }
 
         override fun onGeolocationPermissionsHidePrompt() {
-            // TODO("Define onGeolocationPermissionsHidePrompt")
+            Log.d(TAG, "Geolocation permission prompt hide")
+            geolocationCallback = null
+            geolocationOrigin = null
         }
 
         override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
@@ -649,5 +722,123 @@ class WebActivity : AppCompatActivity() {
 
     private fun View.hideView() {
         if (this.isVisible) this.visibility = View.GONE
+    }
+
+    private fun isPermissionGranted(permission: String) : Boolean {
+        return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun requestWebViewPermission(permission: String, requestCode: Int, message: String, requestResources: Array<String>) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            when {
+                isPermissionGranted(permission) -> {
+                    Log.d(TAG, "Permission already granted")
+                    onPermissionRequestConfirmation(true, requestResources)
+                }
+                shouldShowRequestPermissionRationale(permission) -> {
+                    MaterialAlertDialogBuilder(context)
+                        .setTitle("Allow permission?")
+                        .setMessage(message)
+                        .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
+                            onPermissionRequestConfirmation(false, arrayOf(""))
+                        }
+                        .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
+                            requestPermissions(arrayOf(permission), requestCode)
+                        }
+                        .setCancelable(false)
+                        .show()
+                }
+                else -> {
+                    requestPermissions(arrayOf(permission), requestCode)
+                }
+            }
+        } else {
+            if (isPermissionGranted(permission)) {
+                onPermissionRequestConfirmation(true, requestResources)
+            } else {
+                ActivityCompat.requestPermissions(this, arrayOf(permission), requestCode)
+            }
+        }
+    }
+
+    private fun onPermissionRequestConfirmation(allowed: Boolean, resources: Array<String>) {
+        if (permissionRequest != null) {
+            if (allowed) {
+                permissionRequest!!.grant(resources)
+                Log.d(TAG, "Permission granted")
+            } else {
+                permissionRequest!!.deny()
+                Log.e(TAG, "Permission request denied")
+            }
+            permissionRequest = null
+        }
+    }
+
+    private fun isLocationServiceEnabled() : Boolean {
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+    }
+
+    private fun requestLocationPermission() {
+        val permissions = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            when {
+                isPermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION) -> {
+                    Log.d(TAG, "Permission already granted (Fine)")
+                    fetchLocation()
+                }
+                isPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION) -> {
+                    Log.d(TAG, "Permission already granted (Coarse")
+                    fetchLocation()
+                }
+                shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) -> {
+                    MaterialAlertDialogBuilder(context)
+                        .setTitle("Allow permission?")
+                        .setMessage("YSports need location permission to access location")
+                        .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
+                            onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)
+                        }
+                        .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
+                            requestPermissions(permissions, LOCATION_PERMISSION_REQUEST_CODE)
+                        }
+                        .setCancelable(false)
+                        .show()
+                }
+                else -> {
+                    requestPermissions(permissions, LOCATION_PERMISSION_REQUEST_CODE)
+                }
+            }
+        } else {
+            if (isPermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION)
+                || isPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION)) {
+                fetchLocation()
+            } else {
+                ActivityCompat.requestPermissions(this, permissions, LOCATION_PERMISSION_REQUEST_CODE)
+            }
+        }
+    }
+
+    @Suppress("SameParameterValue")
+    private fun onGeolocationPermissionConfirmation(origin: String?, allowed: Boolean, retain: Boolean) {
+        if (geolocationCallback != null) {
+            geolocationCallback?.invoke(origin, allowed, retain)
+            geolocationCallback = null
+            geolocationOrigin = null
+        }
+    }
+
+    private fun fetchLocation() {
+        if (!isLocationServiceEnabled()) {
+            onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)
+            Toast.makeText(context, "Please enable location services in settings", Toast.LENGTH_LONG).show()
+            val locationIntent = Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+            try {
+                startActivity(locationIntent)
+            } catch (e: Exception) {
+                Log.e(TAG, e.message.toString())
+            }
+        } else {
+            onGeolocationPermissionConfirmation(geolocationOrigin, allowed = true, retain = false)
+        }
     }
 }
