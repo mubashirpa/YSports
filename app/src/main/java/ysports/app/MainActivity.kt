@@ -29,8 +29,8 @@ import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import ysports.app.databinding.ActivityMainBinding
 import ysports.app.player.PlayerUtil
-import ysports.app.ui.fixtures.FixturesFragment
-import ysports.app.ui.home.HomeFragment
+import ysports.app.ui.matches.MatchesFragment
+import ysports.app.ui.leagues.LeaguesFragment
 import ysports.app.ui.more.MoreFragment
 import ysports.app.ui.news.NewsFragment
 import ysports.app.util.AppUtil
@@ -58,8 +58,8 @@ class MainActivity : AppCompatActivity() {
         drawerLayout = binding.drawerLayout
         val bottomNavigation = binding.bottomNavigation
 
-        val homeFragment = HomeFragment()
-        val fixturesFragment = FixturesFragment()
+        val leaguesFragment = LeaguesFragment()
+        val matchesFragment = MatchesFragment()
         val newsFragment = NewsFragment()
         val moreFragment = MoreFragment()
         bottomNavigation.selectedItemId = R.id.navigation_matches
@@ -77,7 +77,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         supportFragmentManager.beginTransaction().apply {
-            add(R.id.frame_layout, fixturesFragment)
+            add(R.id.frame_layout, matchesFragment)
         }.commit()
 
         toolbar.setNavigationOnClickListener {
@@ -138,14 +138,14 @@ class MainActivity : AppCompatActivity() {
                 R.id.navigation_matches -> {
                     hideFragments()
                     supportFragmentManager.beginTransaction().apply {
-                        if (fixturesFragment.isAdded) show(fixturesFragment) else add(R.id.frame_layout, fixturesFragment)
+                        if (matchesFragment.isAdded) show(matchesFragment) else add(R.id.frame_layout, matchesFragment)
                     }.commit()
                     true
                 }
                 R.id.navigation_leagues -> {
                     hideFragments()
                     supportFragmentManager.beginTransaction().apply {
-                        if (homeFragment.isAdded) show(homeFragment) else add(R.id.frame_layout, homeFragment)
+                        if (leaguesFragment.isAdded) show(leaguesFragment) else add(R.id.frame_layout, leaguesFragment)
                     }.commit()
                     true
                 }
