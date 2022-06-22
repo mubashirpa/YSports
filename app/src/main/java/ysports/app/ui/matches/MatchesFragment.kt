@@ -1,4 +1,4 @@
-package ysports.app.ui.fixtures
+package ysports.app.ui.matches
 
 import android.content.Intent
 import android.os.Bundle
@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.material.progressindicator.CircularProgressIndicator
+import com.google.android.material.tabs.TabLayout
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -24,7 +25,7 @@ import ysports.app.api.JsonApi
 import ysports.app.api.fixture.FixtureResponse
 import ysports.app.api.fixture.Fixtures
 import ysports.app.api.fixture.Media
-import ysports.app.databinding.FragmentFixturesBinding
+import ysports.app.databinding.FragmentMatchesBinding
 import ysports.app.player.PlayerUtil
 import ysports.app.util.AppUtil
 import ysports.app.util.RecyclerDecorationVertical
@@ -34,9 +35,9 @@ import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
 
-class FixturesFragment : Fragment() {
+class MatchesFragment : Fragment() {
 
-    private var _binding: FragmentFixturesBinding? = null
+    private var _binding: FragmentMatchesBinding? = null
     private val binding get() = _binding!!
 
     private lateinit var fixtureRecyclerView: RecyclerView
@@ -50,13 +51,14 @@ class FixturesFragment : Fragment() {
     private var filteredList: List<Fixtures> = ArrayList()
     private val dateFormat = SimpleDateFormat("dd MM yyyy", Locale.getDefault())
     private val currentDate = Date()
+    private lateinit var tabLayout: TabLayout
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentFixturesBinding.inflate(inflater, container, false)
+        _binding = FragmentMatchesBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -68,6 +70,7 @@ class FixturesFragment : Fragment() {
         retryButton = binding.errorLayout.buttonRetry
         stateDescription = binding.errorLayout.stateDescription
         fixtureRecyclerView = binding.recyclerViewFixture
+        tabLayout = binding.tabLayout
         itemDecoration = RecyclerDecorationVertical(10)
 
         retryButton.setOnClickListener {
@@ -78,46 +81,21 @@ class FixturesFragment : Fragment() {
             }
         }
 
-        binding.chipGroup.setOnCheckedStateChangeListener { _, checkedIds ->
-            for (id in checkedIds) {
-                if (id == R.id.chip_previous) {
-                    if (fixtureList.isNotEmpty()) {
-                        filteredList = fixtureList.filter {
-                            !it.matchDate.isNullOrEmpty() && dateFormat.parse(it.matchDate)!! < currentDate
-                        }
-                        if (filteredList.isEmpty()) {
-                            errorOccurred(R.string.error_no_matches, false)
-                            return@setOnCheckedStateChangeListener
-                        }
-                        setRecyclerAdapter(filteredList as ArrayList<Fixtures>)
-                    }
-                }
-                if (id == R.id.chip_today) {
-                    if (fixtureList.isNotEmpty()) {
-                        filteredList = fixtureList.filter {
-                            !it.matchDate.isNullOrEmpty() && dateFormat.parse(it.matchDate)!! == currentDate
-                        }
-                        if (filteredList.isEmpty()) {
-                            errorOccurred(R.string.error_no_matches_today, false)
-                            return@setOnCheckedStateChangeListener
-                        }
-                        setRecyclerAdapter(filteredList as ArrayList<Fixtures>)
-                    }
-                }
-                if (id == R.id.chip_upcoming) {
-                    if (fixtureList.isNotEmpty()) {
-                        filteredList = fixtureList.filter {
-                            !it.matchDate.isNullOrEmpty() && dateFormat.parse(it.matchDate)!! > currentDate
-                        }
-                        if (filteredList.isEmpty()) {
-                            errorOccurred(R.string.error_no_matches, false)
-                            return@setOnCheckedStateChangeListener
-                        }
-                        setRecyclerAdapter(filteredList as ArrayList<Fixtures>)
-                    }
+        tabLayout.selectTab(tabLayout.getTabAt(1))
+
+        tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                if (tab != null) {
+                    filterRecyclerView(tab.position)
                 }
             }
-        }
+
+            override fun onTabUnselected(tab: TabLayout.Tab?) {
+            }
+
+            override fun onTabReselected(tab: TabLayout.Tab?) {
+            }
+        })
 
         fixtureRecyclerView.apply {
             itemAnimator = DefaultItemAnimator()
@@ -193,19 +171,11 @@ class FixturesFragment : Fragment() {
                     errorOccurred(R.string.error_no_matches, false)
                     return
                 }
-                binding.chipGroupContainer.showView()
-                filteredList = fixtureList.filter {
-                    !it.matchDate.isNullOrEmpty() && dateFormat.parse(it.matchDate)!! == currentDate
-                }
-                if (filteredList.isEmpty()) {
-                    errorOccurred(R.string.error_no_matches_today, false)
-                    return
-                }
-                setRecyclerAdapter(filteredList as ArrayList<Fixtures>)
+                filterRecyclerView(tabLayout.selectedTabPosition)
             }
 
             override fun onFailure(call: Call<FixtureResponse>, t: Throwable) {
-                if (!isDetached) {
+                if (isAdded) {
                     errorOccurred(R.string.error_failed_to_load_content, true)
                 }
             }
@@ -226,5 +196,46 @@ class FixturesFragment : Fragment() {
         stateDescription.text = getString(error)
         retryButton.isVisible = showButton
         errorLayout.showView()
+    }
+
+    private fun filterRecyclerView(position: Int) {
+        when (position) {
+            0 -> {
+                if (fixtureList.isNotEmpty()) {
+                    filteredList = fixtureList.filter {
+                        !it.matchDate.isNullOrEmpty() && dateFormat.parse(it.matchDate)!! < currentDate
+                    }
+                    if (filteredList.isEmpty()) {
+                        errorOccurred(R.string.error_no_matches, false)
+                        return
+                    }
+                    setRecyclerAdapter(filteredList as ArrayList<Fixtures>)
+                }
+            }
+            1 -> {
+                if (fixtureList.isNotEmpty()) {
+                    filteredList = fixtureList.filter {
+                        !it.matchDate.isNullOrEmpty() && dateFormat.parse(it.matchDate)!! == currentDate
+                    }
+                    if (filteredList.isEmpty()) {
+                        errorOccurred(R.string.error_no_matches_today, false)
+                        return
+                    }
+                    setRecyclerAdapter(filteredList as ArrayList<Fixtures>)
+                }
+            }
+            2 -> {
+                if (fixtureList.isNotEmpty()) {
+                    filteredList = fixtureList.filter {
+                        !it.matchDate.isNullOrEmpty() && dateFormat.parse(it.matchDate)!! > currentDate
+                    }
+                    if (filteredList.isEmpty()) {
+                        errorOccurred(R.string.error_no_matches, false)
+                        return
+                    }
+                    setRecyclerAdapter(filteredList as ArrayList<Fixtures>)
+                }
+            }
+        }
     }
 }
