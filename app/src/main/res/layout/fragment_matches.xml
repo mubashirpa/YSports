@@ -6,49 +6,28 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    tools:context=".ui.fixtures.FixturesFragment">
+    tools:context=".ui.matches.MatchesFragment">
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/chip_group_container"
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabLayout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginHorizontal="10dp"
-            android:layout_marginTop="10dp"
-            android:visibility="gone">
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/chip_group"
+            android:layout_height="wrap_content">
+            <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingHorizontal="8dp"
-                android:layout_gravity="center"
-                app:singleLine="true"
-                app:singleSelection="true"
-                app:selectionRequired="true"
-                app:checkedChip="@+id/chip_today">
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chip_previous"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/previous"
-                    style="@style/Widget.Material3.Chip.Suggestion.Elevated"/>
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chip_today"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/today"
-                    style="@style/Widget.Material3.Chip.Suggestion.Elevated"/>
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chip_upcoming"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/upcoming"
-                    style="@style/Widget.Material3.Chip.Suggestion.Elevated"/>
-            </com.google.android.material.chip.ChipGroup>
-        </com.google.android.material.card.MaterialCardView>
+                android:text="@string/previous"/>
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/today" />
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/upcoming"/>
+        </com.google.android.material.tabs.TabLayout>
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
