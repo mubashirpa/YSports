@@ -6,5 +6,6 @@ data class Articles(
     @SerializedName("title") val title: String?,
     @SerializedName("url") val url: String?,
     @SerializedName("urlToImage") val imageUrl: String?,
-    @SerializedName("publishedAt") val publishedTime: String?
+    @SerializedName("publishedAt") val publishedTime: String?,
+    @SerializedName("description") val description: String?
 )
