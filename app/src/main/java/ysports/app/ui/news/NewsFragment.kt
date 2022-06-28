@@ -2,6 +2,7 @@ package ysports.app.ui.news
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +11,8 @@ import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DefaultItemAnimator
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import retrofit2.Call
@@ -94,8 +97,20 @@ class NewsFragment : Fragment() {
                     return
                 }
                 val newsAdapter = NewsAdapter(requireContext(), newsList)
+
+                var recyclerLayoutManager = LinearLayoutManager(context)
+                if (isTablet()) {
+                    recyclerLayoutManager = GridLayoutManager(context, 2)
+                    recyclerLayoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+                        override fun getSpanSize(position: Int): Int {
+                            return if (position == 0) 2 else 1
+                        }
+                    }
+                }
+
                 recyclerView.apply {
                     itemAnimator = DefaultItemAnimator()
+                    layoutManager = recyclerLayoutManager
                     adapter = newsAdapter
                     addOnItemTouchListener(
                         RecyclerTouchListener(context, recyclerView, object : RecyclerTouchListener.ClickListener {
@@ -130,5 +145,11 @@ class NewsFragment : Fragment() {
         stateDescription.text = resources.getString(error)
         retryButton.isVisible = showButton
         errorView.showView()
+    }
+
+    private fun isTablet() : Boolean {
+        val widthDp = resources.displayMetrics.run { widthPixels / density }
+        Log.d("NewsFragment", widthDp.toString())
+        return widthDp >= 600
     }
 }
