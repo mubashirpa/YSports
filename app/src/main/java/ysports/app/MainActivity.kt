@@ -29,8 +29,8 @@ import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import ysports.app.databinding.ActivityMainBinding
 import ysports.app.player.PlayerUtil
-import ysports.app.ui.matches.MatchesFragment
 import ysports.app.ui.leagues.LeaguesFragment
+import ysports.app.ui.matches.MatchesFragment
 import ysports.app.ui.more.MoreFragment
 import ysports.app.ui.news.NewsFragment
 import ysports.app.util.AppUtil
@@ -62,7 +62,7 @@ class MainActivity : AppCompatActivity() {
         val matchesFragment = MatchesFragment()
         val newsFragment = NewsFragment()
         val moreFragment = MoreFragment()
-        bottomNavigation.selectedItemId = R.id.navigation_matches
+        bottomNavigation?.selectedItemId = R.id.navigation_matches
 
         // Removes all the available fragments (in case of app restart)
         supportFragmentManager.fragments.let {
@@ -133,7 +133,41 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
-        bottomNavigation.setOnItemSelectedListener { item ->
+        bottomNavigation?.setOnItemSelectedListener { item ->
+            when(item.itemId) {
+                R.id.navigation_matches -> {
+                    hideFragments()
+                    supportFragmentManager.beginTransaction().apply {
+                        if (matchesFragment.isAdded) show(matchesFragment) else add(R.id.frame_layout, matchesFragment)
+                    }.commit()
+                    true
+                }
+                R.id.navigation_leagues -> {
+                    hideFragments()
+                    supportFragmentManager.beginTransaction().apply {
+                        if (leaguesFragment.isAdded) show(leaguesFragment) else add(R.id.frame_layout, leaguesFragment)
+                    }.commit()
+                    true
+                }
+                R.id.navigation_news -> {
+                    hideFragments()
+                    supportFragmentManager.beginTransaction().apply {
+                        if (newsFragment.isAdded) show(newsFragment) else add(R.id.frame_layout, newsFragment)
+                    }.commit()
+                    true
+                }
+                R.id.navigation_more -> {
+                    hideFragments()
+                    supportFragmentManager.beginTransaction().apply {
+                        if (moreFragment.isAdded) show(moreFragment) else add(R.id.frame_layout, moreFragment)
+                    }.commit()
+                    true
+                }
+                else -> false
+            }
+        }
+
+        binding.navigationRail?.setOnItemSelectedListener { item ->
             when(item.itemId) {
                 R.id.navigation_matches -> {
                     hideFragments()
