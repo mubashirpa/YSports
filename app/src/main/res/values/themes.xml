@@ -30,6 +30,7 @@
         <item name="colorOutline">@color/outline</item>
         <item name="android:windowBackground">@color/background</item>
         <item name="popupMenuBackground">@drawable/custom_popup_background</item>
+        <item name="android:textSize">14sp</item>
     </style>
 
     <style name="Theme.Main" parent="Theme.YSports">
