@@ -1,4 +1,4 @@
-// Last updated on 11 May 2022
+// Last updated on 30 Jun 2022
 
 /*
  * Copyright (C) 2017 The Android Open Source Project
@@ -32,7 +32,6 @@ import com.google.android.exoplayer2.ui.DownloadNotificationHelper;
 import com.google.android.exoplayer2.util.NotificationUtil;
 import com.google.android.exoplayer2.util.Util;
 import java.util.List;
-
 import ysports.app.R;
 
 /** A service for downloading media. */

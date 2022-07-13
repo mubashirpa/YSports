@@ -1,4 +1,4 @@
-// Last updated on 09 Apr 2022
+// Last updated on 01 Jul 2022
 
 package ysports.app.player
 
@@ -6,10 +6,9 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import com.google.android.exoplayer2.*
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
+import com.google.android.exoplayer2.trackselection.TrackSelectionOverride
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableSet
 import ysports.app.PlayerActivity
 import ysports.app.R
 import ysports.app.api.fixture.Media
@@ -115,28 +114,27 @@ class PlayerUtil {
 
     fun selectAudioTrack(
         context: Context,
-        tracksInfo: TracksInfo?,
-        trackSelector: DefaultTrackSelector?
+        player: ExoPlayer?
     ) {
-        if (tracksInfo == null || trackSelector == null) return
-
-        val audioTrack = ArrayList<String>()
+        val tracks = player?.currentTracks ?: return
+        val audioTrackGroups = ArrayList<Tracks.Group>()
         val audioList = ArrayList<String>()
 
-        audioTrack.add("none")
         audioList.add("Disable")
 
-        for (groupInfo: TracksInfo.TrackGroupInfo in tracksInfo.trackGroupInfos) {
-            val trackType = groupInfo.trackType
-            //val trackInGroupIsSelected = groupInfo.isSelected
-            //val trackInGroupIsSupported = groupInfo.isSupported
-            val group = groupInfo.trackGroup
+        for (trackGroup in tracks.groups) {
+            // Group level information.
+            val trackType: Int = trackGroup.type
+            //val trackInGroupIsSelected = trackGroup.isSelected
+            //val trackInGroupIsSupported = trackGroup.isSupported
 
             if (trackType == C.TRACK_TYPE_AUDIO) {
-                for (i in 0 until group.length) {
-                    val isSupported = groupInfo.isTrackSupported(i)
-                    val isSelected = groupInfo.isTrackSelected(i)
-                    val trackFormat = group.getFormat(i)
+                audioTrackGroups.add(trackGroup)
+                for (i in 0 until trackGroup.length) {
+                    // Individual track information.
+                    val isSupported = trackGroup.isTrackSupported(i)
+                    val isSelected = trackGroup.isTrackSelected(i)
+                    val trackFormat = trackGroup.getTrackFormat(i)
 
                     if (isSelected) {
                         selectedAudioPosition = i + 1
@@ -146,7 +144,6 @@ class PlayerUtil {
                     label += if (!isSupported) " (Unsupported)" else ""
                     val list = Locale(trackFormat.language.toString()).displayLanguage + label
 
-                    audioTrack.add(trackFormat.language.toString())
                     if (list.contains("und") || list.contains("null")) audioList.add("Audio track #${i + 1}") else audioList.add(list)
                 }
             }
@@ -159,10 +156,9 @@ class PlayerUtil {
             .setPositiveButton(context.getString(R.string.ok)) { _, _ ->
                 selectedAudioPosition = selectedAudioChoice
                 if (selectedAudioPosition == 0) {
-                    trackSelector.setParameters(trackSelector.buildUponParameters()
-                        .setRendererDisabled(C.TRACK_TYPE_AUDIO, true))
+                    setAudioTrack(player, audioTrackGroups[0], true)
                 } else {
-                    setAudioTrack(trackSelector, audioTrack[selectedAudioPosition])
+                    setAudioTrack(player, audioTrackGroups[selectedAudioPosition - 1], false)
                 }
             }
             .setSingleChoiceItems(tempTracks, selectedAudioPosition) { _, position ->
@@ -172,40 +168,44 @@ class PlayerUtil {
     }
 
     private fun setAudioTrack(
-        trackSelector: DefaultTrackSelector?,
-        audioLanguage: String?
+        player: ExoPlayer?,
+        audioTrackGroup: Tracks.Group?,
+        audioDisabled: Boolean
     ) {
-        trackSelector?.setParameters(
-            trackSelector.buildUponParameters()
-                .setRendererDisabled(C.TRACK_TYPE_AUDIO, false)
-                .setPreferredAudioLanguage(audioLanguage)
-        )
+        player?.trackSelectionParameters = player?.trackSelectionParameters!!
+            .buildUpon()
+            .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, audioDisabled)
+            .setOverrideForType(
+                TrackSelectionOverride(
+                    audioTrackGroup?.mediaTrackGroup!!, 0
+                )
+            )
+            .build()
     }
 
     fun selectSubTrack(
         context: Context,
-        tracksInfo: TracksInfo?,
-        trackSelector: DefaultTrackSelector?
+        player: ExoPlayer?
     ) {
-        if (tracksInfo == null || trackSelector == null) return
-
-        val subtitles = ArrayList<String>()
+        val tracks = player?.currentTracks ?: return
+        val textTrackGroups = ArrayList<Tracks.Group>()
         val subtitlesList = ArrayList<String>()
 
-        subtitles.add("none")
         subtitlesList.add("Disable")
 
-        for (groupInfo: TracksInfo.TrackGroupInfo in tracksInfo.trackGroupInfos) {
-            val trackType = groupInfo.trackType
-            //val trackInGroupIsSelected = groupInfo.isSelected
-            //val trackInGroupIsSupported = groupInfo.isSupported
-            val group = groupInfo.trackGroup
+        for (trackGroup in tracks.groups) {
+            // Group level information.
+            val trackType: Int = trackGroup.type
+            //val trackInGroupIsSelected = trackGroup.isSelected
+            //val trackInGroupIsSupported = trackGroup.isSupported
 
             if (trackType == C.TRACK_TYPE_TEXT) {
-                for (i in 0 until group.length) {
-                    val isSupported = groupInfo.isTrackSupported(i)
-                    val isSelected = groupInfo.isTrackSelected(i)
-                    val trackFormat: Format = group.getFormat(i)
+                textTrackGroups.add(trackGroup)
+                for (i in 0 until trackGroup.length) {
+                    // Individual track information.
+                    val isSupported = trackGroup.isTrackSupported(i)
+                    val isSelected = trackGroup.isTrackSelected(i)
+                    val trackFormat = trackGroup.getTrackFormat(i)
 
                     if (isSelected) {
                         selectedSubPosition = i + 1
@@ -214,7 +214,6 @@ class PlayerUtil {
                     var label = if (trackFormat.label != null) " - ${trackFormat.label}" else ""
                     label += if (!isSupported) " (Unsupported)" else ""
 
-                    subtitles.add(trackFormat.language.toString())
                     subtitlesList.add(Locale(trackFormat.language.toString()).displayLanguage + label)
                 }
             }
@@ -227,10 +226,9 @@ class PlayerUtil {
             .setPositiveButton(context.getString(R.string.ok)) { _, _ ->
                 selectedSubPosition = selectedSubChoice
                 if (selectedSubPosition == 0) {
-                    trackSelector.setParameters(trackSelector.buildUponParameters()
-                        .setRendererDisabled(C.TRACK_TYPE_VIDEO, true))
+                    setSubTrack(player, textTrackGroups[0], true)
                 } else {
-                    setSubTrack(trackSelector, subtitles[selectedSubPosition])
+                    setSubTrack(player, textTrackGroups[selectedSubPosition - 1], false)
                 }
             }
             .setSingleChoiceItems(tempTracks, selectedSubPosition) { _, position ->
@@ -240,43 +238,46 @@ class PlayerUtil {
     }
 
     private fun setSubTrack(
-        trackSelector: DefaultTrackSelector?,
-        subLanguage: String
+        player: ExoPlayer?,
+        textTrackGroup: Tracks.Group?,
+        textDisabled: Boolean
     ) {
-        trackSelector?.setParameters(trackSelector.buildUponParameters()
-            .setRendererDisabled(C.TRACK_TYPE_VIDEO, false)
-            .setPreferredTextLanguage(subLanguage))
+        player?.trackSelectionParameters = player?.trackSelectionParameters!!
+            .buildUpon()
+            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, textDisabled)
+            .setOverrideForType(
+                TrackSelectionOverride(
+                    textTrackGroup?.mediaTrackGroup!!, 0
+                )
+            )
+            .build()
     }
 
     fun selectVideoTrack(
         context: Context,
-        tracksInfo: TracksInfo?,
-        trackSelector: DefaultTrackSelector?
+        player: ExoPlayer?
     ) {
-        if (tracksInfo == null || trackSelector == null) return
+        val tracks = player?.currentTracks ?: return
 
-        val videoWidth = ArrayList<Int>()
-        val videoHeight = ArrayList<Int>()
+        var group: Tracks.Group? = null
         val videoList = ArrayList<String>()
 
-        videoWidth.add(0)
-        videoHeight.add(0)
         videoList.add("Disable")
-        videoWidth.add(0)
-        videoHeight.add(0)
         videoList.add("Auto")
 
-        for (groupInfo: TracksInfo.TrackGroupInfo in tracksInfo.trackGroupInfos) {
-            val trackType = groupInfo.trackType
-            //val trackInGroupIsSelected = groupInfo.isSelected
-            //val trackInGroupIsSupported = groupInfo.isSupported
-            val group = groupInfo.trackGroup
+        for (trackGroup in tracks.groups) {
+            // Group level information.
+            val trackType: Int = trackGroup.type
+            //val trackInGroupIsSelected = trackGroup.isSelected
+            //val trackInGroupIsSupported = trackGroup.isSupported
 
             if (trackType == C.TRACK_TYPE_VIDEO) {
-                for (i in 0 until group.length) {
-                    val isSupported = groupInfo.isTrackSupported(i)
-                    val isSelected = groupInfo.isTrackSelected(i)
-                    val trackFormat: Format = group.getFormat(i)
+                group = trackGroup
+                for (i in 0 until trackGroup.length) {
+                    // Individual track information.
+                    val isSupported = trackGroup.isTrackSupported(i)
+                    val isSelected = trackGroup.isTrackSelected(i)
+                    val trackFormat = trackGroup.getTrackFormat(i)
 
                     if (isSelected) {
                         selectedVideoPosition = i + 2
@@ -294,8 +295,6 @@ class PlayerUtil {
                     val height = trackFormat.height
                     val list = if (isSupported) "${width}x$height $bitrate" else "${width}x$height $bitrate (Unsupported)"
 
-                    videoWidth.add(width)
-                    videoHeight.add(height)
                     videoList.add(list)
                 }
             }
@@ -308,21 +307,7 @@ class PlayerUtil {
             .setPositiveButton(context.getString(R.string.ok)) { _, _ ->
                 selectedVideoPosition = selectedVideoChoice
                 isVideoTrackAuto = false
-                when (selectedVideoPosition) {
-                    0 -> {
-                        trackSelector.setParameters(trackSelector.buildUponParameters()
-                            .setDisabledTrackTypes(ImmutableSet.of(C.TRACK_TYPE_VIDEO)))
-                    }
-                    1 -> {
-                        isVideoTrackAuto = true
-                        trackSelector.setParameters(trackSelector.buildUponParameters()
-                            .setDisabledTrackTypes(ImmutableSet.of())
-                            .setMaxVideoSizeSd())
-                    }
-                    else -> {
-                        setVideoTrack(trackSelector, videoWidth[selectedVideoPosition], videoHeight[selectedVideoPosition])
-                    }
-                }
+                setVideoTrack(player, group, selectedVideoPosition)
             }
             .setSingleChoiceItems(tempTracks, selectedVideoPosition) { _, position ->
                 selectedVideoChoice = position
@@ -331,13 +316,37 @@ class PlayerUtil {
     }
 
     private fun setVideoTrack(
-        trackSelector: DefaultTrackSelector?,
-        width: Int,
-        height: Int
+        player: ExoPlayer?,
+        videoTrackGroup: Tracks.Group?,
+        trackIndex: Int
     ) {
-        trackSelector?.setParameters(trackSelector.buildUponParameters()
-            .setDisabledTrackTypes(ImmutableSet.of())
-            .setMaxVideoSize(width, height))
+        when (selectedVideoPosition) {
+            0 -> {
+                player?.trackSelectionParameters = player?.trackSelectionParameters!!
+                    .buildUpon()
+                    .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, true)
+                    .build()
+            }
+            1 -> {
+                isVideoTrackAuto = true
+                player?.trackSelectionParameters = player?.trackSelectionParameters!!
+                    .buildUpon()
+                    .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, false)
+                    .setMaxVideoSizeSd()
+                    .build()
+            }
+            else -> {
+                player?.trackSelectionParameters = player?.trackSelectionParameters!!
+                    .buildUpon()
+                    .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, false)
+                    .setOverrideForType(
+                        TrackSelectionOverride(
+                            videoTrackGroup?.mediaTrackGroup!!, trackIndex - 2
+                        )
+                    )
+                    .build()
+            }
+        }
     }
 
     fun setPlaybackSpeed(
