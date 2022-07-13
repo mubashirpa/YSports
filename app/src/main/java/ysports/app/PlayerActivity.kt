@@ -1,39 +1,44 @@
-// Last updated on 11 May 2022
-// Latest commit on Feb 16
+// Last updated on 01 Jul 2022
+// Latest commit on May 23
 
+/*
+ * Copyright (C) 2016 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package ysports.app
 
-import android.annotation.SuppressLint
-import android.app.*
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.content.res.Configuration
-import android.content.res.Resources
-import android.graphics.Rect
-import android.graphics.drawable.Icon
-import android.media.AudioManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.util.Pair
-import android.util.Rational
-import android.view.*
-import android.widget.ImageButton
+import android.view.KeyEvent
+import android.view.View
+import android.view.View.OnClickListener
 import android.widget.TextView
 import android.widget.Toast
-import androidx.annotation.NonNull
 import androidx.annotation.Nullable
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.*
-import com.google.android.exoplayer2.*
+import com.google.android.exoplayer2.C
+import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.PlaybackException
+import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.Tracks
 import com.google.android.exoplayer2.audio.AudioAttributes
+import com.google.android.exoplayer2.drm.DefaultDrmSessionManagerProvider
 import com.google.android.exoplayer2.drm.FrameworkMediaDrm
-import com.google.android.exoplayer2.ext.ffmpeg.FfmpegLibrary
 import com.google.android.exoplayer2.ext.ima.ImaAdsLoader
 import com.google.android.exoplayer2.ext.ima.ImaServerSideAdInsertionMediaSource
 import com.google.android.exoplayer2.mediacodec.MediaCodecRenderer.DecoderInitializationException
@@ -42,32 +47,47 @@ import com.google.android.exoplayer2.offline.DownloadRequest
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.ads.AdsLoader
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector.ParametersBuilder
-import com.google.android.exoplayer2.ui.AspectRatioFrameLayout
-import com.google.android.exoplayer2.ui.StyledPlayerControlView
+import com.google.android.exoplayer2.trackselection.TrackSelectionParameters
 import com.google.android.exoplayer2.ui.StyledPlayerView
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.util.DebugTextViewHelper
 import com.google.android.exoplayer2.util.ErrorMessageProvider
 import com.google.android.exoplayer2.util.EventLogger
 import com.google.android.exoplayer2.util.Util
+import java.util.ArrayList
+import java.util.Collections
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull
+import android.annotation.SuppressLint
+import android.app.*
+import android.content.*
+import android.content.res.Configuration
+import android.content.res.Resources
+import android.graphics.Rect
+import android.graphics.drawable.Icon
+import android.media.AudioManager
+import android.net.Uri
+import android.util.Rational
+import android.view.*
+import android.widget.ImageButton
+import androidx.annotation.NonNull
+import androidx.annotation.RequiresApi
+import androidx.core.view.*
+import com.google.android.exoplayer2.*
+import com.google.android.exoplayer2.ui.AspectRatioFrameLayout
 import ysports.app.databinding.ActivityPlayerBinding
 import ysports.app.fragments.PlayerMenuBottomSheet
 import ysports.app.player.*
 import ysports.app.player.IntentUtil.PREFER_EXTENSION_DECODERS_EXTRA
-import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
 
 @Suppress("PrivatePropertyName")
-class PlayerActivity : AppCompatActivity(), View.OnClickListener, StyledPlayerControlView.VisibilityListener,
+class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.ControllerVisibilityListener,
     GestureDetector.OnGestureListener {
 
     // Saved instance state keys.
 
-    private val KEY_TRACK_SELECTION_PARAMETERS: String = "track_selection_parameters"
+    private val KEY_TRACK_SELECTION_PARAMETERS = "track_selection_parameters"
     private val KEY_SERVER_SIDE_ADS_LOADER_STATE = "server_side_ads_loader_state"
     private val KEY_ITEM_INDEX = "item_index"
     private val KEY_POSITION = "position"
@@ -81,25 +101,28 @@ class PlayerActivity : AppCompatActivity(), View.OnClickListener, StyledPlayerCo
     private var selectTracksButton: ImageButton? = null
     private var dataSourceFactory: DataSource.Factory? = null
     private var mediaItems: List<MediaItem>? = null
-    private var trackSelector: DefaultTrackSelector? = null
-    private var trackSelectionParameters: DefaultTrackSelector.Parameters? = null
+    private var trackSelectionParameters: TrackSelectionParameters? = null
     private var debugViewHelper: DebugTextViewHelper? = null
-    private var lastSeenTracksInfo: TracksInfo? = null
+    private var lastSeenTracks: Tracks? = null
     private var startAutoPlay = false
     private var startItemIndex = 0
     private var startPosition: Long = 0
 
     // For ad playback only.
 
-    @Nullable private var clientSideAdsLoader: AdsLoader? = null
-    @Nullable private var serverSideAdsLoader: ImaServerSideAdInsertionMediaSource.AdsLoader? = null
+    private var clientSideAdsLoader: AdsLoader? = null
+
+    // TODO: Annotate this and serverSideAdsLoaderState below with @OptIn when it can be applied to
+    // fields (needs http://r.android.com/2004032 to be released into a version of
+    // androidx.annotation:annotation-experimental).
+    private var serverSideAdsLoader: ImaServerSideAdInsertionMediaSource.AdsLoader? = null
+
     private var serverSideAdsLoaderState: @MonotonicNonNull ImaServerSideAdInsertionMediaSource.AdsLoader.State? = null
 
     /* END */
 
     private lateinit var binding: ActivityPlayerBinding
     private lateinit var context: Context
-    private val TAG: String = "PlayerActivity"
 
     private lateinit var exoDuration: TextView
     private lateinit var navigationButton: ImageButton
@@ -127,11 +150,11 @@ class PlayerActivity : AppCompatActivity(), View.OnClickListener, StyledPlayerCo
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         context = this
         dataSourceFactory = DemoUtil.getDataSourceFactory(context)
-        setContentView(binding.root)
 
+        setContentView()
         debugTextView = binding.debugTextView
         selectTracksButton = findViewById(R.id.exo_settings)
-        selectTracksButton!!.setOnClickListener(this)
+        selectTracksButton?.setOnClickListener(this)
 
         exoDuration = findViewById(com.google.android.exoplayer2.ui.R.id.exo_duration)
         navigationButton = findViewById(R.id.exo_navigation)
@@ -151,25 +174,18 @@ class PlayerActivity : AppCompatActivity(), View.OnClickListener, StyledPlayerCo
         exoUnlock.setOnClickListener(this)
 
         playerView = binding.playerView
-        playerView!!.setControllerVisibilityListener(this)
-        playerView!!.setErrorMessageProvider(PlayerErrorMessageProvider())
-        playerView!!.requestFocus()
+        playerView?.setControllerVisibilityListener(this)
+        playerView?.setErrorMessageProvider(PlayerErrorMessageProvider())
+        playerView?.requestFocus()
 
         if (savedInstanceState != null) {
-            // Restore as DefaultTrackSelector.Parameters in case ExoPlayer specific parameters were set.
-            trackSelectionParameters = DefaultTrackSelector.Parameters.CREATOR.fromBundle(
-                savedInstanceState.getBundle(KEY_TRACK_SELECTION_PARAMETERS)!!)
+            trackSelectionParameters = TrackSelectionParameters.fromBundle(savedInstanceState.getBundle(KEY_TRACK_SELECTION_PARAMETERS)!!)
             startAutoPlay = savedInstanceState.getBoolean(KEY_AUTO_PLAY)
             startItemIndex = savedInstanceState.getInt(KEY_ITEM_INDEX)
             startPosition = savedInstanceState.getLong(KEY_POSITION)
-            val adsLoaderStateBundle = savedInstanceState.getBundle(KEY_SERVER_SIDE_ADS_LOADER_STATE)
-            if (adsLoaderStateBundle != null) {
-                serverSideAdsLoaderState =
-                    ImaServerSideAdInsertionMediaSource.AdsLoader.State.CREATOR.fromBundle(
-                        adsLoaderStateBundle)
-            }
+            restoreServerSideAdsLoaderState(savedInstanceState)
         } else {
-            trackSelectionParameters = ParametersBuilder( /* context= */context).build()
+            trackSelectionParameters = TrackSelectionParameters.Builder( /* context= */this).build()
             clearStartPosition()
         }
 
@@ -241,6 +257,8 @@ class PlayerActivity : AppCompatActivity(), View.OnClickListener, StyledPlayerCo
         releaseClientSideAdsLoader()
     }
 
+    /* END */
+
     override fun onBackPressed() {
         if (playerLocked) showToast("Player is locked") else {
             super.onBackPressed()
@@ -274,13 +292,11 @@ class PlayerActivity : AppCompatActivity(), View.OnClickListener, StyledPlayerCo
         super.onSaveInstanceState(outState)
         updateTrackSelectorParameters()
         updateStartPosition()
-        outState.putBundle(KEY_TRACK_SELECTION_PARAMETERS, trackSelectionParameters!!.toBundle())
+        outState.putBundle(KEY_TRACK_SELECTION_PARAMETERS, trackSelectionParameters?.toBundle())
         outState.putBoolean(KEY_AUTO_PLAY, startAutoPlay)
         outState.putInt(KEY_ITEM_INDEX, startItemIndex)
         outState.putLong(KEY_POSITION, startPosition)
-        if (serverSideAdsLoaderState != null) {
-            outState.putBundle(KEY_SERVER_SIDE_ADS_LOADER_STATE, serverSideAdsLoaderState!!.toBundle())
-        }
+        saveServerSideAdsLoaderState(outState)
     }
 
     // Activity input
@@ -312,15 +328,20 @@ class PlayerActivity : AppCompatActivity(), View.OnClickListener, StyledPlayerCo
 
     // StyledPlayerControlView.VisibilityListener implementation
 
-    override fun onVisibilityChange(visibility: Int) {
+    override fun onVisibilityChanged(visibility: Int) {
         //debugRootView.setVisibility(visibility);
         if (visibility == View.VISIBLE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode) playerView?.hideController()
     }
 
     // Internal methods
-    // setContentView is already set
 
-    /** @return Whether initialization was successful. */
+    private fun setContentView() {
+        setContentView(binding.root)
+    }
+
+    /**
+     * @return Whether initialization was successful.
+     */
     private fun initializePlayer(): Boolean {
         if (player == null) {
             val intent = intent
@@ -330,59 +351,63 @@ class PlayerActivity : AppCompatActivity(), View.OnClickListener, StyledPlayerCo
                 return false
             }
 
-            Log.d(TAG, "FfmpegLibrary:${FfmpegLibrary.isAvailable()}")
-
-            val preferExtensionDecoders = intent.getBooleanExtra(PREFER_EXTENSION_DECODERS_EXTRA, false)
-            val renderersFactory = DemoUtil.buildRenderersFactory(context, preferExtensionDecoders)
-
-            trackSelector = DefaultTrackSelector(context)
-            lastSeenTracksInfo = TracksInfo.EMPTY
-            player = ExoPlayer.Builder(context)
-                .setRenderersFactory(renderersFactory)
+            lastSeenTracks = Tracks.EMPTY
+            val playerBuilder = ExoPlayer.Builder( /* context= */this)
                 .setMediaSourceFactory(createMediaSourceFactory())
-                .setTrackSelector(trackSelector!!)
-                .build()
-            player!!.trackSelectionParameters = trackSelectionParameters!!
-            player!!.addListener(PlayerEventListener())
-            player!!.addAnalyticsListener(EventLogger(trackSelector))
-
-
-            val audioAttributes = AudioAttributes.Builder()
-                .setUsage(C.USAGE_MEDIA)
-                .setContentType(C.CONTENT_TYPE_MOVIE)
-                .build()
-
-            player!!.setAudioAttributes(audioAttributes, true)
-            player!!.playWhenReady = startAutoPlay
-            playerView!!.player = player
-            serverSideAdsLoader?.setPlayer(player!!)
+            setRenderersFactory(
+                playerBuilder, intent.getBooleanExtra(PREFER_EXTENSION_DECODERS_EXTRA, false))
+            player = playerBuilder.build()
+            player?.trackSelectionParameters = trackSelectionParameters!!
+            player?.addListener(PlayerEventListener())
+            player?.addAnalyticsListener(EventLogger())
+            player?.setAudioAttributes(AudioAttributes.DEFAULT,  /* handleAudioFocus= */true)
+            player?.playWhenReady = startAutoPlay
+            playerView?.player = player
+            configurePlayerWithServerSideAdsLoader()
             debugViewHelper = DebugTextViewHelper(player!!, debugTextView!!)
-            debugViewHelper!!.start()
+            debugViewHelper?.start()
         }
         val haveStartPosition = startItemIndex != C.INDEX_UNSET
         if (haveStartPosition) {
             player!!.seekTo(startItemIndex, startPosition)
         }
-        player!!.setMediaItems(mediaItems!!,  /* resetPosition= */!haveStartPosition)
-        player!!.prepare()
+        player?.setMediaItems(mediaItems!!,  /* resetPosition= */ !haveStartPosition)
+        player?.prepare()
         updateButtonVisibility()
         return true
     }
 
     private fun createMediaSourceFactory(): MediaSource.Factory {
+        val drmSessionManagerProvider = DefaultDrmSessionManagerProvider()
+        drmSessionManagerProvider.setDrmHttpDataSourceFactory(
+            DemoUtil.getHttpDataSourceFactory( /* context= */this))
         val serverSideAdLoaderBuilder =
-            ImaServerSideAdInsertionMediaSource.AdsLoader.Builder( /* context= */context, playerView!!)
+            ImaServerSideAdInsertionMediaSource.AdsLoader.Builder( /* context= */this, playerView!!)
         if (serverSideAdsLoaderState != null) {
             serverSideAdLoaderBuilder.setAdsLoaderState(serverSideAdsLoaderState!!)
         }
         serverSideAdsLoader = serverSideAdLoaderBuilder.build()
         val imaServerSideAdInsertionMediaSourceFactory =
             ImaServerSideAdInsertionMediaSource.Factory(
-                serverSideAdsLoader!!, DefaultMediaSourceFactory(dataSourceFactory!!))
-        return DefaultMediaSourceFactory(dataSourceFactory!!)
-            .setAdsLoaderProvider(this::getClientSideAdsLoader)
-            .setAdViewProvider(playerView)
+                serverSideAdsLoader!!,
+                DefaultMediaSourceFactory(/* context= */ this).setDataSourceFactory(dataSourceFactory!!))
+        return DefaultMediaSourceFactory(/* context= */ this)
+            .setDataSourceFactory(dataSourceFactory!!)
+            .setDrmSessionManagerProvider(drmSessionManagerProvider)
+            .setLocalAdInsertionComponents(
+                this::getClientSideAdsLoader, /* adViewProvider= */ playerView!!)
             .setServerSideAdInsertionMediaSourceFactory(imaServerSideAdInsertionMediaSourceFactory)
+    }
+
+    private fun setRenderersFactory(
+        playerBuilder: ExoPlayer.Builder, preferExtensionDecoders: Boolean) {
+        val renderersFactory =
+            DemoUtil.buildRenderersFactory( /* context= */this, preferExtensionDecoders)
+        playerBuilder.setRenderersFactory(renderersFactory)
+    }
+
+    private fun configurePlayerWithServerSideAdsLoader() {
+        serverSideAdsLoader?.setPlayer(player!!)
     }
 
     private fun createMediaItems(intent: Intent): List<MediaItem> {
@@ -393,10 +418,11 @@ class PlayerActivity : AppCompatActivity(), View.OnClickListener, StyledPlayerCo
             finish()
             return Collections.emptyList()
         }
-
-        val mediaItems = createMediaItems(intent, DemoUtil.getDownloadTracker( /* context= */this))
+        val mediaItems: List<MediaItem> =
+            createMediaItems(intent, DemoUtil.getDownloadTracker( /* context= */this))
         for (i in mediaItems.indices) {
             val mediaItem = mediaItems[i]
+
             if (!Util.checkCleartextTrafficPermitted(mediaItem)) {
                 showToast(R.string.error_cleartext_not_permitted)
                 finish()
@@ -406,8 +432,8 @@ class PlayerActivity : AppCompatActivity(), View.OnClickListener, StyledPlayerCo
                 // The player will be reinitialized if the permission is granted.
                 return Collections.emptyList()
             }
-            val drmConfiguration: MediaItem.DrmConfiguration? =
-                mediaItem.localConfiguration!!.drmConfiguration
+
+            val drmConfiguration: MediaItem.DrmConfiguration? = mediaItem.localConfiguration?.drmConfiguration
             if (drmConfiguration != null) {
                 if (!FrameworkMediaDrm.isCryptoSchemeSupported(drmConfiguration.scheme)) {
                     showToast(R.string.error_drm_unsupported_scheme)
@@ -419,50 +445,65 @@ class PlayerActivity : AppCompatActivity(), View.OnClickListener, StyledPlayerCo
         return mediaItems
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    private fun getClientSideAdsLoader(adsConfiguration: MediaItem.AdsConfiguration): AdsLoader? {
+    private fun getClientSideAdsLoader(adsConfiguration: MediaItem.AdsConfiguration): AdsLoader {
         // The ads loader is reused for multiple playbacks, so that ad playback can resume.
         if (clientSideAdsLoader == null) {
-            clientSideAdsLoader = ImaAdsLoader.Builder( /* context= */context).build()
+            clientSideAdsLoader = ImaAdsLoader.Builder( /* context= */this).build()
         }
-        clientSideAdsLoader!!.setPlayer(player)
-        return clientSideAdsLoader
+        clientSideAdsLoader?.setPlayer(player)
+        return clientSideAdsLoader!!
     }
 
     private fun releasePlayer() {
         if (player != null) {
             updateTrackSelectorParameters()
             updateStartPosition()
-            serverSideAdsLoaderState = serverSideAdsLoader!!.release()
-            serverSideAdsLoader = null
-            debugViewHelper!!.stop()
+            releaseServerSideAdsLoader()
+            debugViewHelper?.stop()
             debugViewHelper = null
-            player!!.release()
+            player?.release()
             player = null
             playerView?.player = null
             mediaItems = Collections.emptyList()
         }
         if (clientSideAdsLoader != null) {
-            clientSideAdsLoader!!.setPlayer(null)
+            clientSideAdsLoader?.setPlayer(null)
         } else {
-            playerView!!.adViewGroup.removeAllViews()
+            playerView?.adViewGroup?.removeAllViews()
         }
+    }
+
+    private fun releaseServerSideAdsLoader() {
+        serverSideAdsLoaderState = serverSideAdsLoader?.release()
+        serverSideAdsLoader = null
     }
 
     private fun releaseClientSideAdsLoader() {
         if (clientSideAdsLoader != null) {
-            clientSideAdsLoader!!.release()
+            clientSideAdsLoader?.release()
             clientSideAdsLoader = null
-            playerView!!.adViewGroup.removeAllViews()
+            playerView?.adViewGroup?.removeAllViews()
+        }
+    }
+
+    private fun saveServerSideAdsLoaderState(outState: Bundle) {
+        if (serverSideAdsLoaderState != null) {
+            outState.putBundle(KEY_SERVER_SIDE_ADS_LOADER_STATE, serverSideAdsLoaderState?.toBundle())
+        }
+    }
+
+    private fun restoreServerSideAdsLoaderState(savedInstanceState: Bundle) {
+        val adsLoaderStateBundle = savedInstanceState.getBundle(KEY_SERVER_SIDE_ADS_LOADER_STATE)
+        if (adsLoaderStateBundle != null) {
+            serverSideAdsLoaderState =
+                ImaServerSideAdInsertionMediaSource.AdsLoader.State.CREATOR.fromBundle(
+                    adsLoaderStateBundle)
         }
     }
 
     private fun updateTrackSelectorParameters() {
         if (player != null) {
-            // Until the app is fully migrated to TrackSelectionParameters, rely on ExoPlayer to use
-            // DefaultTrackSelector by default.
-            trackSelectionParameters =
-                player!!.trackSelectionParameters as DefaultTrackSelector.Parameters
+            trackSelectionParameters = player?.trackSelectionParameters
         }
     }
 
@@ -483,8 +524,7 @@ class PlayerActivity : AppCompatActivity(), View.OnClickListener, StyledPlayerCo
     // User controls
 
     private fun updateButtonVisibility() {
-        selectTracksButton!!.isVisible =
-            player != null && TrackSelectionDialog.willHaveContent(trackSelector!!)
+        selectTracksButton?.isVisible = player != null && TrackSelectionDialog.willHaveContent(player)
     }
 
     private fun showControls() {
@@ -518,23 +558,23 @@ class PlayerActivity : AppCompatActivity(), View.OnClickListener, StyledPlayerCo
             }
         }
 
-        override fun onTracksInfoChanged(tracksInfo: TracksInfo) {
+        override fun onTracksChanged(tracks: Tracks) {
             updateButtonVisibility()
-            if (tracksInfo === lastSeenTracksInfo) {
+            if (tracks == lastSeenTracks) {
                 return
             }
-            if (!tracksInfo.isTypeSupportedOrEmpty(
-                    C.TRACK_TYPE_VIDEO, /* allowExceedsCapabilities= */ true)) {
+            if (tracks.containsType(C.TRACK_TYPE_VIDEO)
+                && !tracks.isTypeSupported(C.TRACK_TYPE_VIDEO,  /* allowExceedsCapabilities= */true)) {
                 showToast(R.string.error_unsupported_video)
             }
-            if (!tracksInfo.isTypeSupportedOrEmpty(
-                    C.TRACK_TYPE_AUDIO, /* allowExceedsCapabilities= */ true)) {
+            if (tracks.containsType(C.TRACK_TYPE_AUDIO)
+                && !tracks.isTypeSupported(C.TRACK_TYPE_AUDIO,  /* allowExceedsCapabilities= */true)) {
                 showToast(R.string.error_unsupported_audio)
             }
-            lastSeenTracksInfo = tracksInfo
+            lastSeenTracks = tracks
         }
 
-        /* Extra */
+        /* END */
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             if (isPlaying) {
@@ -557,54 +597,51 @@ class PlayerActivity : AppCompatActivity(), View.OnClickListener, StyledPlayerCo
     private inner class PlayerErrorMessageProvider : ErrorMessageProvider<PlaybackException> {
 
         override fun getErrorMessage(e: PlaybackException): Pair<Int, String> {
-            var errorString: String? = getString(R.string.error_generic)
+            var errorString: String = getString(R.string.error_generic)
             val cause = e.cause
             if (cause is DecoderInitializationException) {
                 // Special case for decoder initialization failures.
-                errorString = if (cause.codecInfo == null) {
-                    when {
-                        cause.cause is DecoderQueryException -> {
-                            getString(R.string.error_querying_decoders)
-                        }
-                        cause.secureDecoderRequired -> {
-                            getString(R.string.error_no_secure_decoder, cause.mimeType)
-                        }
-                        else -> {
-                            getString(R.string.error_no_decoder, cause.mimeType)
-                        }
+                if (cause.codecInfo == null) {
+                    errorString = if (cause.cause is DecoderQueryException) {
+                        getString(R.string.error_querying_decoders)
+                    } else if (cause.secureDecoderRequired) {
+                        getString(R.string.error_no_secure_decoder, cause.mimeType)
+                    } else {
+                        getString(R.string.error_no_decoder, cause.mimeType)
                     }
                 } else {
-                    getString(R.string.error_instantiating_decoder, cause.codecInfo!!.name)
+                    errorString = getString(R.string.error_instantiating_decoder, cause.codecInfo!!.name)
                 }
             }
             return Pair.create(0, errorString)
         }
     }
 
-    private fun createMediaItems(intent: Intent, downloadTracker: DownloadTracker): List<MediaItem> {
+    private fun createMediaItems(intent: Intent, downloadTracker: DownloadTracker) : List<MediaItem> {
         val mediaItems: MutableList<MediaItem> = ArrayList()
         for (item in IntentUtil.createMediaItemsFromIntent(intent)) {
-            val downloadRequest: DownloadRequest? = downloadTracker.getDownloadRequest(item.localConfiguration!!.uri)
-            if (downloadRequest != null) {
-                val builder = item.buildUpon()
-                builder
-                    .setMediaId(downloadRequest.id)
-                    .setUri(downloadRequest.uri)
-                    .setCustomCacheKey(downloadRequest.customCacheKey)
-                    .setMimeType(downloadRequest.mimeType)
-                    .setStreamKeys(downloadRequest.streamKeys)
-                val drmConfiguration: MediaItem.DrmConfiguration? = item.localConfiguration!!.drmConfiguration
-                if (drmConfiguration != null) {
-                    builder.setDrmConfiguration(
-                        drmConfiguration.buildUpon().setKeySetId(downloadRequest.keySetId).build()
-                    )
-                }
-                mediaItems.add(builder.build())
-            } else {
-                mediaItems.add(item)
-            }
+            mediaItems.add(maybeSetDownloadProperties(item, downloadTracker.getDownloadRequest(item.localConfiguration?.uri)))
         }
         return mediaItems
+    }
+
+    private fun maybeSetDownloadProperties(item: MediaItem, @Nullable downloadRequest: DownloadRequest?) : MediaItem {
+        if (downloadRequest == null) {
+            return item
+        }
+        val builder = item.buildUpon()
+        builder
+            .setMediaId(downloadRequest.id)
+            .setUri(downloadRequest.uri)
+            .setCustomCacheKey(downloadRequest.customCacheKey)
+            .setMimeType(downloadRequest.mimeType)
+            .setStreamKeys(downloadRequest.streamKeys)
+        @Nullable val drmConfiguration: MediaItem.DrmConfiguration? = item.localConfiguration?.drmConfiguration
+        if (drmConfiguration != null) {
+            builder.setDrmConfiguration(
+                drmConfiguration.buildUpon().setKeySetId(downloadRequest.keySetId).build())
+        }
+        return builder.build()
     }
 
     /* End */
@@ -750,30 +787,29 @@ class PlayerActivity : AppCompatActivity(), View.OnClickListener, StyledPlayerCo
 
     private fun openSettings() {
         val playerMenuBottomSheet = PlayerMenuBottomSheet()
-        playerMenuBottomSheet.videoTrackClickListener = View.OnClickListener {
+        playerMenuBottomSheet.videoTrackClickListener = OnClickListener {
             playerMenuBottomSheet.dismiss()
-            playerUtil.selectVideoTrack(context, lastSeenTracksInfo!!, trackSelector)
+            playerUtil.selectVideoTrack(context, player)
         }
-        playerMenuBottomSheet.audioTrackClickListener = View.OnClickListener {
+        playerMenuBottomSheet.audioTrackClickListener = OnClickListener {
             playerMenuBottomSheet.dismiss()
-            playerUtil.selectAudioTrack(context, lastSeenTracksInfo, trackSelector)
+            playerUtil.selectAudioTrack(context, player)
         }
-        playerMenuBottomSheet.subTrackClickListener = View.OnClickListener {
+        playerMenuBottomSheet.subTrackClickListener = OnClickListener {
             playerMenuBottomSheet.dismiss()
-            playerUtil.selectSubTrack(context, lastSeenTracksInfo, trackSelector)
+            playerUtil.selectSubTrack(context, player)
         }
-        playerMenuBottomSheet.settingsClickListener = View.OnClickListener {
+        playerMenuBottomSheet.settingsClickListener = OnClickListener {
             playerMenuBottomSheet.dismiss()
-            if (!isShowingTrackSelectionDialog && TrackSelectionDialog.willHaveContent(trackSelector!!)) {
+            if (!isShowingTrackSelectionDialog && TrackSelectionDialog.willHaveContent(player)) {
                 isShowingTrackSelectionDialog = true
-                val trackSelectionDialog = TrackSelectionDialog.createForTrackSelector(trackSelector!!) {
-                    // onDismissListener
+                val trackSelectionDialog = TrackSelectionDialog.createForPlayer(player) /* onDismissListener= */ {
                     isShowingTrackSelectionDialog = false
                 }
-                trackSelectionDialog.show(supportFragmentManager, null)
+                trackSelectionDialog.show(supportFragmentManager,  /* tag= */null)
             }
         }
-        playerMenuBottomSheet.playbackSpeedClickListener = View.OnClickListener {
+        playerMenuBottomSheet.playbackSpeedClickListener = OnClickListener {
             playerMenuBottomSheet.dismiss()
             playerUtil.setPlaybackSpeed(context, player)
         }
