@@ -267,6 +267,13 @@ class WebActivity : AppCompatActivity() {
                 YouTubePlay(context).playVideo(url)
             }
         }
+
+        @JavascriptInterface
+        fun changeStatusBarColor(light: Boolean, red: Int, green: Int, blue: Int) {
+            runOnUiThread {
+                setStatusBarColor(light, red, green, blue)
+            }
+        }
     }
 
     inner class CustomWebViewClient(private val assetLoader: WebViewAssetLoader) : WebViewClientCompat() {
@@ -839,6 +846,37 @@ class WebActivity : AppCompatActivity() {
             }
         } else {
             onGeolocationPermissionConfirmation(geolocationOrigin, allowed = true, retain = false)
+        }
+    }
+
+    private fun setStatusBarColor(light: Boolean, red: Int, green: Int, blue: Int) {
+        window.apply {
+            statusBarColor = Color.rgb(red, green, blue)
+            if (light) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    val controller = window.insetsController
+                    controller?.setSystemBarsAppearance(
+                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
+                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                    )
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
+                    //Deprecated in Api level 30
+                    addFlags(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
+                }
+            } else {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    val controller = window.insetsController
+                    controller?.setSystemBarsAppearance(
+                        0,
+                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                    )
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
+                    //Deprecated in Api level 30
+                    clearFlags(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
+                }
+            }
         }
     }
 }
