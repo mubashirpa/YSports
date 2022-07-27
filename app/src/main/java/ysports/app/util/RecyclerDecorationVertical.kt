@@ -6,8 +6,14 @@ import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 
 class RecyclerDecorationVertical(
+    private var top: Int,
+    private var bottom: Int,
+    private var left: Int,
+    private var right: Int,
     private var verticalSpacing: Int
 ) : RecyclerView.ItemDecoration() {
+
+    private val displayDensity = Resources.getSystem().displayMetrics.density
 
     override fun getItemOffsets(
         outRect: Rect,
@@ -15,14 +21,14 @@ class RecyclerDecorationVertical(
         parent: RecyclerView,
         state: RecyclerView.State
     ) {
-        val total: Int = state.itemCount
         val position: Int = parent.getChildAdapterPosition(view)
-        outRect.bottom = intToDp(verticalSpacing)
-        if (position == total - 1) outRect.bottom = 0
+        if (position == 0) outRect.top = dpToPx(displayDensity, top)
+        outRect.bottom = dpToPx(displayDensity, verticalSpacing)
+        outRect.left = dpToPx(displayDensity, left)
+        outRect.right = dpToPx(displayDensity, right)
     }
 
-    private fun intToDp(int: Int): Int {
-        val density: Float = Resources.getSystem().displayMetrics.density
-        return ((int * density) + 0.5f).toInt()
+    private fun dpToPx(density: Float, dps: Int): Int {
+        return (dps * density + 0.5f).toInt()
     }
 }
