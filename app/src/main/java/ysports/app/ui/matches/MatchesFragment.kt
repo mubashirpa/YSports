@@ -71,7 +71,7 @@ class MatchesFragment : Fragment() {
         stateDescription = binding.errorLayout.stateDescription
         fixtureRecyclerView = binding.recyclerViewFixture
         tabLayout = binding.tabLayout
-        itemDecoration = RecyclerDecorationVertical(10)
+        itemDecoration = RecyclerDecorationVertical(10, 10, 10, 10, 10)
 
         retryButton.setOnClickListener {
             errorLayout.hideView()
