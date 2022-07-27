@@ -1,4 +1,4 @@
-// Last updated on 01 Jul 2022
+// Last updated on 27 Jul 2022
 // Latest commit on May 23
 
 /*
@@ -18,24 +18,34 @@
  */
 package ysports.app
 
+import android.annotation.SuppressLint
+import android.app.*
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.content.res.Configuration
+import android.content.res.Resources
+import android.graphics.Rect
+import android.graphics.drawable.Icon
+import android.media.AudioManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Pair
-import android.view.KeyEvent
-import android.view.View
+import android.util.Rational
+import android.view.*
 import android.view.View.OnClickListener
+import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.NonNull
 import androidx.annotation.Nullable
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.PlaybackException
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.Tracks
+import androidx.core.view.*
+import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.drm.DefaultDrmSessionManagerProvider
 import com.google.android.exoplayer2.drm.FrameworkMediaDrm
@@ -48,36 +58,21 @@ import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.ads.AdsLoader
 import com.google.android.exoplayer2.trackselection.TrackSelectionParameters
+import com.google.android.exoplayer2.ui.AspectRatioFrameLayout
+import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.google.android.exoplayer2.ui.StyledPlayerView
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.util.DebugTextViewHelper
 import com.google.android.exoplayer2.util.ErrorMessageProvider
 import com.google.android.exoplayer2.util.EventLogger
 import com.google.android.exoplayer2.util.Util
-import java.util.ArrayList
-import java.util.Collections
+import com.google.android.material.chip.Chip
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull
-import android.annotation.SuppressLint
-import android.app.*
-import android.content.*
-import android.content.res.Configuration
-import android.content.res.Resources
-import android.graphics.Rect
-import android.graphics.drawable.Icon
-import android.media.AudioManager
-import android.net.Uri
-import android.util.Rational
-import android.view.*
-import android.widget.ImageButton
-import androidx.annotation.NonNull
-import androidx.annotation.RequiresApi
-import androidx.core.view.*
-import com.google.android.exoplayer2.*
-import com.google.android.exoplayer2.ui.AspectRatioFrameLayout
 import ysports.app.databinding.ActivityPlayerBinding
 import ysports.app.fragments.PlayerMenuBottomSheet
 import ysports.app.player.*
 import ysports.app.player.IntentUtil.PREFER_EXTENSION_DECODERS_EXTRA
+import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -128,7 +123,9 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
     private lateinit var navigationButton: ImageButton
     private lateinit var exoPIP: ImageButton
     private lateinit var changeAspectRatioButton: ImageButton
-    private lateinit var liveIndicator: TextView
+    private lateinit var exoRewind: ImageButton
+    private lateinit var exoFastForward: ImageButton
+    private lateinit var liveIndicator: Chip
     private lateinit var gestureDetectorCompat: GestureDetectorCompat
     private var minSwipeY: Float = 0f
     private var brightness: Int = 0
@@ -142,6 +139,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
     private lateinit var exoLock: ImageButton
     private lateinit var exoUnlock: ImageButton
     private var playerLocked = false
+    private var playerNotificationManager: PlayerNotificationManager? = null
 
     // Activity lifecycle.
 
@@ -160,6 +158,8 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         navigationButton = findViewById(R.id.exo_navigation)
         exoPIP = findViewById(R.id.exo_pip)
         changeAspectRatioButton = findViewById(R.id.exo_change_aspect_ratio)
+        exoRewind = findViewById(R.id.exo_rew)
+        exoFastForward = findViewById(R.id.exo_ffwd)
         liveIndicator = findViewById(R.id.exo_live_indicator)
         navigationButton.setOnClickListener(this)
         exoPIP.setOnClickListener(this)
@@ -172,6 +172,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         exoUnlock = findViewById(R.id.exo_unlock)
         exoLock.setOnClickListener(this)
         exoUnlock.setOnClickListener(this)
+        playerNotificationManager = initializeNotification()
 
         playerView = binding.playerView
         playerView?.setControllerVisibilityListener(this)
@@ -199,6 +200,10 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
                     updatePictureInPictureParams()
                 }
             }
+        }
+
+        playerView?.setOnClickListener {
+            if (playerLocked) exoUnlock.showView()
         }
     }
 
@@ -260,7 +265,10 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
     /* END */
 
     override fun onBackPressed() {
-        if (playerLocked) showToast("Player is locked") else {
+        if (playerLocked) {
+            showToast("Player is locked")
+            exoUnlock.showView()
+        } else {
             super.onBackPressed()
             finish()
         }
@@ -320,7 +328,12 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
                     playerView!!.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
                 }
             }
-            liveIndicator -> player?.seekToDefaultPosition()
+            liveIndicator -> {
+                if (player?.isCurrentMediaItemLive!! && player?.isCurrentMediaItemDynamic!!) {
+                    player?.seekToDefaultPosition()
+                    liveIndicator.text = resources.getString(R.string.live_caps)
+                }
+            }
             exoLock -> lockPlayer()
             exoUnlock -> unlockPlayer()
         }
@@ -354,6 +367,8 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
             lastSeenTracks = Tracks.EMPTY
             val playerBuilder = ExoPlayer.Builder( /* context= */this)
                 .setMediaSourceFactory(createMediaSourceFactory())
+                .setSeekBackIncrementMs(10000)
+                .setSeekForwardIncrementMs(10000)
             setRenderersFactory(
                 playerBuilder, intent.getBooleanExtra(PREFER_EXTENSION_DECODERS_EXTRA, false))
             player = playerBuilder.build()
@@ -373,6 +388,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         }
         player?.setMediaItems(mediaItems!!,  /* resetPosition= */ !haveStartPosition)
         player?.prepare()
+        playerNotificationManager?.setPlayer(player)
         updateButtonVisibility()
         return true
     }
@@ -445,6 +461,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         return mediaItems
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun getClientSideAdsLoader(adsConfiguration: MediaItem.AdsConfiguration): AdsLoader {
         // The ads loader is reused for multiple playbacks, so that ad playback can resume.
         if (clientSideAdsLoader == null) {
@@ -471,6 +488,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         } else {
             playerView?.adViewGroup?.removeAllViews()
         }
+        playerNotificationManager?.setPlayer(null)
     }
 
     private fun releaseServerSideAdsLoader() {
@@ -585,10 +603,18 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         }
 
         override fun onTimelineChanged(timeline: Timeline, reason: Int) {
-            if (player != null && player!!.isCurrentMediaItemLive && player!!.isCurrentMediaItemDynamic) {
+            if (player == null) return
+            if (player!!.isCurrentMediaItemLive && player!!.isCurrentMediaItemDynamic) {
                 liveIndicator.showView()
+                exoRewind.hideView()
+                exoFastForward.hideView()
+                if (player?.currentLiveOffset!! >= 10000) {
+                    liveIndicator.text = resources.getString(R.string.go_live_caps)
+                }
             } else {
                 liveIndicator.hideView()
+                exoRewind.showView()
+                exoFastForward.showView()
             }
             exoDuration.isVisible = !player?.isCurrentMediaItemDynamic!!
         }
@@ -601,8 +627,8 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
             val cause = e.cause
             if (cause is DecoderInitializationException) {
                 // Special case for decoder initialization failures.
-                if (cause.codecInfo == null) {
-                    errorString = if (cause.cause is DecoderQueryException) {
+                errorString = if (cause.codecInfo == null) {
+                    if (cause.cause is DecoderQueryException) {
                         getString(R.string.error_querying_decoders)
                     } else if (cause.secureDecoderRequired) {
                         getString(R.string.error_no_secure_decoder, cause.mimeType)
@@ -610,7 +636,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
                         getString(R.string.error_no_decoder, cause.mimeType)
                     }
                 } else {
-                    errorString = getString(R.string.error_instantiating_decoder, cause.codecInfo!!.name)
+                    getString(R.string.error_instantiating_decoder, cause.codecInfo!!.name)
                 }
             }
             return Pair.create(0, errorString)
@@ -836,26 +862,6 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
 
     /* Experimental */
 
-    @SuppressLint("ClickableViewAccessibility")
-    private fun initializeSwipeControl() {
-        playerView?.setOnTouchListener { view, motionEvent ->
-            //playerView.isDoubleTapEnabled = false
-            //playerView.isDoubleTapEnabled = true
-            gestureDetectorCompat.onTouchEvent(motionEvent)
-            if(motionEvent.action == MotionEvent.ACTION_UP) {
-                binding.brightnessIcon.hideView()
-                binding.volumeIcon.hideView()
-                //for immersive mode
-                WindowCompat.setDecorFitsSystemWindows(window, false)
-                WindowInsetsControllerCompat(window, view).let { controller ->
-                    controller.hide(WindowInsetsCompat.Type.systemBars())
-                    controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-                }
-            }
-            return@setOnTouchListener false
-        }
-    }
-
     override fun onDown(p0: MotionEvent?): Boolean {
         minSwipeY = 0f
         return false
@@ -866,6 +872,8 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
     override fun onSingleTapUp(p0: MotionEvent?): Boolean = false
 
     override fun onScroll(event1: MotionEvent?, event2: MotionEvent?, distanceX: Float, distanceY: Float): Boolean {
+        if (playerLocked) return false
+
         minSwipeY += distanceY
 
         val screenWidth = Resources.getSystem().displayMetrics.widthPixels
@@ -879,25 +887,37 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
             if(abs(distanceX) < abs(distanceY) && abs(minSwipeY) > 50){
                 if(event1.x < screenWidth/2){
                     //brightness
-                    binding.brightnessIcon.showView()
-                    binding.volumeIcon.hideView()
+                    binding.brightnessControl.showView()
+                    binding.volumeControl.hideView()
                     val increase = distanceY > 0
                     val newValue = if(increase) brightness + 1 else brightness - 1
                     if(newValue in 0..30) brightness = newValue
-                    binding.brightnessIcon.text = brightness.toString()
                     setScreenBrightness(brightness)
                 }
                 else {
                     //volume
-                    binding.brightnessIcon.hideView()
-                    binding.volumeIcon.showView()
+                    val volumeIconSrc: Int
+                    binding.brightnessControl.hideView()
+                    binding.volumeControl.showView()
                     val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
                     volume = currentVolume
                     val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
                     val increase = distanceY > 0
-                    val newValue = if(increase) volume + 1 else volume - 1
+                    val newValue: Int
+                    if(increase) {
+                        newValue = volume + 1
+                        volumeIconSrc = R.drawable.ic_baseline_volume_up_24
+                    } else {
+                        newValue = volume - 1
+                        volumeIconSrc = if (newValue > 0) {
+                            R.drawable.ic_baseline_volume_down_24
+                        } else {
+                            R.drawable.ic_baseline_volume_mute_24
+                        }
+                    }
                     if(newValue in 0..maxVolume) volume = newValue
-                    binding.volumeIcon.text = volume.toString()
+                    binding.volumeIcon.setImageResource(volumeIconSrc)
+                    binding.volumeProgress.progress = (volume * 100) / maxVolume
                     audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0)
                 }
                 minSwipeY = 0f
@@ -910,10 +930,66 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
 
     override fun onFling(p0: MotionEvent?, p1: MotionEvent?, p2: Float, p3: Float): Boolean = false
 
+    @SuppressLint("ClickableViewAccessibility")
+    private fun initializeSwipeControl() {
+        playerView?.setOnTouchListener { _, motionEvent ->
+            if (playerLocked) return@setOnTouchListener false
+
+            gestureDetectorCompat.onTouchEvent(motionEvent)
+            if(motionEvent.action == MotionEvent.ACTION_UP) {
+                binding.brightnessControl.hideView()
+                binding.volumeControl.hideView()
+            }
+            return@setOnTouchListener false
+        }
+    }
+
     private fun setScreenBrightness(value: Int) {
-        val d = 1.0f/30
-        val lp = this.window.attributes
-        lp.screenBrightness = d * value
-        this.window.attributes = lp
+        val brightnessIconSrc: Int
+        val brightnessConstant = 1.0f/30
+        val layoutParams = this.window.attributes
+        layoutParams.screenBrightness = brightnessConstant * value
+        val brightnessPercentage = (value * 100) / 30
+        brightnessIconSrc = when (brightnessPercentage) {
+            0 -> {
+                R.drawable.ic_baseline_brightness_low_24
+            }
+            100 -> {
+                R.drawable.ic_baseline_brightness_high_24
+            }
+            else -> {
+                R.drawable.ic_baseline_brightness_medium_24
+            }
+        }
+        binding.brightnessIcon.setImageResource(brightnessIconSrc)
+        binding.brightnessProgress.progress = brightnessPercentage
+        this.window.attributes = layoutParams
+    }
+
+    private fun initializeNotification(): PlayerNotificationManager {
+        val channelId = createNotificationChannel()
+        val notificationId = 101
+        val mediaDescriptionAdapter = DescriptionAdapter()
+
+        return PlayerNotificationManager
+            .Builder(context, notificationId, channelId)
+            .setMediaDescriptionAdapter(mediaDescriptionAdapter)
+            .build()
+    }
+
+    private fun createNotificationChannel() : String {
+        val channelId: String = getString(R.string.player_notification_channel_id)
+        val channelName: CharSequence = getString(R.string.player_notification_channel_name)
+        val channelDescription = getString(R.string.player_notification_channel_description)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH)
+            channel.description = channelDescription
+            channel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+            channel.setShowBadge(false)
+            notificationManager.createNotificationChannel(channel)
+        }
+        return channelId
     }
 }
