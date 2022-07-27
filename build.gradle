@@ -15,5 +15,5 @@ task clean(type: Delete) {
 ext {
     retrofitVersion = '2.9.0'
     okhttpLoggingInterceptorVersion = '5.0.0-alpha.9'
-    exoplayerVersion = '2.18.0'
+    exoplayerVersion = '2.18.1'
 }
