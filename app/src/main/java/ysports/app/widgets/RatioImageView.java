@@ -1,4 +1,4 @@
-package ysports.app.util;
+package ysports.app.widgets;
 
 import android.content.Context;
 import android.util.AttributeSet;
