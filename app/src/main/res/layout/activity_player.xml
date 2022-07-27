@@ -6,13 +6,69 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".PlayerActivity">
+
     <com.google.android.exoplayer2.ui.StyledPlayerView
         android:id="@+id/player_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:controller_layout_id="@layout/view_player_control"
         app:animation_enabled="false"
-        app:show_buffering="always" />
+        app:show_buffering="always"/>
+
+    <LinearLayout
+        android:id="@+id/brightness_control"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_gravity="end"
+        android:paddingVertical="16dp"
+        android:paddingHorizontal="10dp"
+        android:visibility="gone">
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/brightness_progress"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            app:trackCornerRadius="8dp"
+            app:trackThickness="8dp"
+            app:trackColor="@android:color/darker_gray"
+            app:indicatorColor="@color/white"/>
+        <ImageView
+            android:id="@+id/brightness_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_baseline_brightness_medium_24"
+            android:contentDescription="@string/app_name"
+            android:layout_marginStart="10dp"
+            app:tint="@color/white" />
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/volume_control"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_gravity="end"
+        android:paddingVertical="16dp"
+        android:paddingHorizontal="10dp"
+        android:visibility="gone">
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/volume_progress"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            app:trackCornerRadius="8dp"
+            app:trackThickness="8dp"
+            app:trackColor="@android:color/darker_gray"
+            app:indicatorColor="@color/white"/>
+        <ImageView
+            android:id="@+id/volume_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_baseline_volume_up_24"
+            android:contentDescription="@string/app_name"
+            android:layout_marginStart="10dp"
+            app:tint="@color/white" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/app_name"
@@ -20,54 +76,31 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center|end"
         android:layout_marginEnd="50dp"
-        android:alpha="0.5"
+        android:alpha="0.8"
         android:text="@string/ysports_caps"
         android:textColor="@color/watermark"
-        android:textSize="12sp" />
+        android:textSize="12sp"
+        android:clickable="false"
+        android:focusable="false" />
     <TextView
         android:id="@+id/debug_text_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="4dp"
-        android:textSize="10sp"
-        android:visibility="gone"
-        tools:ignore="SmallSp" />
+        android:textSize="12sp"
+        android:visibility="gone" />
 
-    <ImageButton
+    <ysports.app.widgets.PlayerUnlockButton
         android:id="@+id/exo_unlock"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="8dp"
-        android:layout_margin="8dp"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_margin="16dp"
         android:src="@drawable/ic_baseline_lock_24"
+        android:background="@drawable/bg_ripple_circle"
         android:contentDescription="@string/app_name"
         android:layout_gravity="bottom"
         android:visibility="gone"
         app:tint="@color/white"
         style="@style/ExoMediaButton" />
 
-    <Button
-        android:id="@+id/brightness_icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="@string/_0"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:visibility="gone"
-        app:icon="@drawable/ic_baseline_brightness_medium_24"
-        app:drawableTint="@color/white"
-        style="@style/Widget.Material3.Button.Icon"/>
-    <Button
-        android:id="@+id/volume_icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="@string/_0"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:visibility="gone"
-        app:icon="@drawable/ic_baseline_volume_up_24"
-        app:drawableTint="@color/white"
-        style="@style/Widget.Material3.Button.Icon"/>
 </FrameLayout>
