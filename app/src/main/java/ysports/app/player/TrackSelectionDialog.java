@@ -26,6 +26,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDialog;
 import androidx.fragment.app.DialogFragment;
@@ -226,6 +228,7 @@ public final class TrackSelectionDialog extends DialogFragment {
         return trackView == null ? Collections.emptyMap() : trackView.overrides;
     }
 
+    @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         // We need to own the view to let tab layout work correctly on all API levels. We can't use
@@ -238,7 +241,7 @@ public final class TrackSelectionDialog extends DialogFragment {
     }
 
     @Override
-    public void onDismiss(DialogInterface dialog) {
+    public void onDismiss(@NonNull DialogInterface dialog) {
         super.onDismiss(dialog);
         onDismissListener.onDismiss(dialog);
     }
@@ -282,6 +285,7 @@ public final class TrackSelectionDialog extends DialogFragment {
             super(fragmentManager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
         }
 
+        @NonNull
         @Override
         public Fragment getItem(int position) {
             return tabFragments.get(tabTrackTypes.get(position));
