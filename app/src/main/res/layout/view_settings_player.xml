@@ -11,7 +11,7 @@
         android:orientation="vertical"
         android:layout_margin="10dp"
         android:paddingVertical="3dp"
-        android:background="@drawable/background_modal_bottomsheet"
+        android:background="@drawable/bg_modal_bottomsheet"
         android:elevation="3dp">
         <LinearLayout
             android:id="@+id/quality"
@@ -101,7 +101,7 @@
             android:gravity="center"
             android:background="?attr/selectableItemBackground"
             android:minHeight="?attr/minTouchTargetSize"
-            android:visibility="visible">
+            android:visibility="gone">
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
