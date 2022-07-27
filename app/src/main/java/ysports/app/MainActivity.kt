@@ -10,8 +10,10 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.text.InputType
 import android.util.Log
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import android.webkit.URLUtil
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -101,32 +103,7 @@ class MainActivity : AppCompatActivity() {
         binding.navigationView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.network_stream -> {
-                    val clipboardURL = getFromClipboard()
-                    val inputLayout: View = layoutInflater.inflate(R.layout.view_input_view_dialog, null)
-                    val textInputLayout: TextInputLayout = inputLayout.findViewById(R.id.input_layout)
-                    val textInputEditText: TextInputEditText = inputLayout.findViewById(R.id.input_text)
-                    textInputLayout.hint = resources.getString(R.string.network_url)
-                    textInputLayout.endIconMode = TextInputLayout.END_ICON_CLEAR_TEXT
-                    textInputEditText.maxLines = 3
-                    if (clipboardURL != null && URLUtil.isValidUrl(clipboardURL)) textInputEditText.setText(clipboardURL)
-                    MaterialAlertDialogBuilder(context)
-                        .setTitle("Network Stream")
-                        .setMessage("Please enter a network URL:")
-                        .setView(inputLayout)
-                        .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
-                            val url = textInputEditText.text.toString()
-                            if (url.isEmpty() || url.isBlank()) {
-                                Toast.makeText(context, "Empty URL", Toast.LENGTH_LONG).show()
-                                return@setPositiveButton
-                            }
-                            if (!URLUtil.isValidUrl(url)) {
-                                Toast.makeText(context, "Invalid URL", Toast.LENGTH_LONG).show()
-                                return@setPositiveButton
-                            }
-                            playerUtil.loadPlayer(context, Uri.parse(url), true)
-                        }
-                        .setNegativeButton(resources.getString(R.string.cancel)) { _, _ -> }
-                        .show()
+                    networkStream()
                 }
             }
             drawerLayout.close()
@@ -254,9 +231,8 @@ class MainActivity : AppCompatActivity() {
         val channelName: CharSequence = getString(R.string.default_notification_channel_name)
         val channelDescription = getString(R.string.default_notification_channel_description)
 
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT)
             channel.description = channelDescription
             channel.enableLights(true)
@@ -302,5 +278,49 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun networkStream() {
+        val materialAlertDialogBuilder = MaterialAlertDialogBuilder(context)
+        val clipboardURL = getFromClipboard()
+        val inputLayout: View = layoutInflater.inflate(R.layout.view_input_view_dialog, null)
+        val textInputLayout: TextInputLayout = inputLayout.findViewById(R.id.input_layout)
+        val textInputEditText: TextInputEditText = inputLayout.findViewById(R.id.input_text)
+        textInputLayout.hint = resources.getString(R.string.network_url)
+        textInputLayout.endIconMode = TextInputLayout.END_ICON_CLEAR_TEXT
+        textInputEditText.imeOptions = EditorInfo.IME_ACTION_GO
+        textInputEditText.inputType = InputType.TYPE_TEXT_VARIATION_URI
+
+        textInputEditText.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_GO) {
+                val url = textInputEditText.text.toString()
+                loadPlayer(url)
+            }
+            return@setOnEditorActionListener false
+        }
+
+        if (clipboardURL != null && URLUtil.isValidUrl(clipboardURL)) textInputEditText.setText(clipboardURL)
+        materialAlertDialogBuilder
+            .setTitle("Network Stream")
+            .setMessage("Please enter a network URL:")
+            .setView(inputLayout)
+            .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
+                val url = textInputEditText.text.toString()
+                loadPlayer(url)
+            }
+            .setNegativeButton(resources.getString(R.string.cancel)) { _, _ -> }
+        materialAlertDialogBuilder.create().show()
+    }
+
+    private fun loadPlayer(url: String) {
+        if (url.isEmpty() || url.isBlank()) {
+            Toast.makeText(context, "Empty URL", Toast.LENGTH_LONG).show()
+            return
+        }
+        if (!URLUtil.isValidUrl(url)) {
+            Toast.makeText(context, "Invalid URL", Toast.LENGTH_LONG).show()
+            return
+        }
+        playerUtil.loadPlayer(context, Uri.parse(url), true)
     }
 }
