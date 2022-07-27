@@ -15,6 +15,7 @@
             android:id="@+id/tabLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:elevation="0dp"
             app:tabMode="fixed"
             app:tabGravity="fill"
             app:tabMaxWidth="0dp">
@@ -40,7 +41,6 @@
                 android:layout_height="match_parent"
                 android:orientation="vertical"
                 android:visibility="gone"
-                android:padding="10dp"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 tools:listitem="@layout/list_item_fixture" />
             <include
