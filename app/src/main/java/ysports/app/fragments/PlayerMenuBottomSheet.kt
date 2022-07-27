@@ -21,6 +21,7 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
     var subTrackClickListener: View.OnClickListener? = null
     var settingsClickListener: View.OnClickListener? = null
     var playbackSpeedClickListener: View.OnClickListener? = null
+    private val displayDensity = Resources.getSystem().displayMetrics.density
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -56,7 +57,7 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
         val configuration = requireActivity().resources.configuration
         if (dialog != null) {
             if (configuration.screenWidthDp > 470) {
-                dialog!!.window?.setLayout(width(), -1)
+                dialog!!.window?.setLayout(dpToPx(displayDensity, 450), -1)
             } else {
                 dialog!!.window?.setLayout(-1, -1)
             }
@@ -72,15 +73,20 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
         super.onConfigurationChanged(newConfig)
         if (dialog != null) {
             if (newConfig.screenWidthDp > 470) {
-                dialog!!.window?.setLayout(width(), -1)
+                dialog!!.window?.setLayout(dpToPx(displayDensity, 450), -1)
             } else {
                 dialog!!.window?.setLayout(-1, -1)
             }
         }
     }
 
-    private fun width(): Int {
-        val density: Float = Resources.getSystem().displayMetrics.density
-        return (450 * density + 0.5f).toInt()
+    @Suppress("SameParameterValue")
+    private fun dpToPx(density: Float, dps: Int): Int {
+        return (dps * density + 0.5f).toInt()
+    }
+
+    @Suppress("unused")
+    private fun pxToDp(density: Float, px: Int): Int {
+        return (px / density).toInt()
     }
 }
