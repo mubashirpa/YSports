@@ -63,6 +63,7 @@ class BrowserActivity : AppCompatActivity() {
     private val TAG = "BrowserActivity"
     private val INTENT_SCHEME = "intent:"
     private val TORRENT_SCHEME = "magnet:"
+    private val BLOB_SCHEME = "blob:"
     private var errorDescription: String = "Unknown"
     private var errorCode: Int = 0
     private var urlHost = "YSports"
@@ -162,7 +163,7 @@ class BrowserActivity : AppCompatActivity() {
                                     type = "text/plain"
                                     putExtra(Intent.EXTRA_TEXT, hitTestResult.extra)
                                 }
-                                startActivity(Intent.createChooser(shareIntent, "Share Link"))
+                                startActivity(Intent.createChooser(shareIntent, "Share via"))
                             }
                         }
                     }
@@ -320,6 +321,10 @@ class BrowserActivity : AppCompatActivity() {
                 .setView(downloadLayout)
                 .setNegativeButton(resources.getString(R.string.cancel)) { _, _ -> }
                 .setPositiveButton(resources.getString(R.string.download)) { _, _ ->
+                    if (url.startsWith(BLOB_SCHEME)) {
+                        AppUtil(context).openCustomTabs(url)
+                        return@setPositiveButton
+                    }
                     downloadReference = if (textFileName.text.isNullOrEmpty()) {
                         startDownload(url, userAgent, mimetype, fileName)
                     } else {
