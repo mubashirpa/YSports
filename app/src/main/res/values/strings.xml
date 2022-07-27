@@ -3,6 +3,9 @@
     <string name="default_notification_channel_id">default_channel</string>
     <string name="default_notification_channel_name">Default</string>
     <string name="default_notification_channel_description">Default notifications</string>
+    <string name="player_notification_channel_id">player_channel</string>
+    <string name="player_notification_channel_name">Player</string>
+    <string name="player_notification_channel_description">Player notifications</string>
 
     <!-- Exoplayer strings -->
     <string name="track_selection_title">Select tracks</string>
@@ -47,17 +50,12 @@
     <string name="audio">Audio</string>
     <string name="quality">Quality</string>
     <string name="retry">Retry</string>
-    <string name="live">Live</string>
+    <string name="live_caps">LIVE</string>
+    <string name="go_live_caps">GO LIVE</string>
     <string name="_00_00">00:00</string>
-    <string name="latest_news">Latest News</string>
-    <string name="today_matches">Today Matches</string>
-    <string name="leagues">Leagues</string>
-    <string name="view_all">View All</string>
     <string name="ysports_caps">YSPORTS</string>
     <string name="_0">0</string>
     <string name="playback_speed">Playback speed</string>
-    <string name="url_live_score_widget">https://ysportsapp.blogspot.com/p/livescore-widget.html</string>
-    <string name="url_highlights_widget">https://ysportsapp.blogspot.com/p/video-widget.html</string>
     <string name="url_404_error">https://ysports.app/assets/web/error_404/index.html</string>
     <string name="title_matches">Matches</string>
     <string name="title_leagues">Leagues</string>
