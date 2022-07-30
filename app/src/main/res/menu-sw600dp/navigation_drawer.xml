@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/home_item"
+        android:title="@string/home_subheader_title">
+        <menu>
+            <item
+                android:id="@+id/matches_item"
+                android:icon="@drawable/ic_outline_matches_24"
+                android:title="@string/matches_title"
+                android:checkable="true"
+                android:checked="true"
+                app:showAsAction="ifRoom" />
+            <item
+                android:id="@+id/leagues_item"
+                android:icon="@drawable/ic_outline_leagues_24"
+                android:title="@string/leagues_title"
+                android:checkable="true"
+                app:showAsAction="ifRoom"/>
+            <item
+                android:id="@+id/news_item"
+                android:icon="@drawable/ic_outline_news_24"
+                android:title="@string/news_title"
+                android:checkable="true"
+                app:showAsAction="ifRoom"/>
+            <item
+                android:id="@+id/more_item"
+                android:icon="@drawable/ic_outline_dashboard_24"
+                android:title="@string/more_title"
+                android:checkable="true"
+                app:showAsAction="ifRoom"/>
+        </menu>
+    </item>
+    <item
+        android:id="@+id/labels_item"
+        android:title="@string/labels_subheader_title">
+        <menu>
+            <item
+                android:id="@+id/network_stream_item"
+                android:icon="@drawable/ic_baseline_network_stream_24"
+                android:title="@string/network_stream_title"
+                android:checkable="false"
+                app:showAsAction="ifRoom"/>
+        </menu>
+    </item>
+</menu>
