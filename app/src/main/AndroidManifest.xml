@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    tools:ignore="MissingLeanbackLauncher">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"
@@ -42,6 +41,7 @@
     <uses-feature
         android:name="android.hardware.location.gps"
         android:required="false" />
+    <uses-sdk/>
 
     <!-- Chrome Custom Tabs -->
     <queries>
@@ -52,6 +52,7 @@
 
     <!-- requestLegacyExternalStorage attribute is only for Android 10 -->
     <!-- preserveLegacyExternalStorage attribute is for Android 11 and later -->
+    <!-- TODO("Set banner") -->
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -64,17 +65,18 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.YSports"
         android:usesCleartextTraffic="true"
-        tools:targetApi="31">
+        android:banner="@drawable/img_poster_horizontal"
+        tools:targetApi="s">
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|screenSize|uiMode"
             android:exported="true"
-            android:theme="@style/Theme.App.Starting"
+            android:theme="@style/Theme.YSports.Starting"
             android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -87,6 +89,20 @@
                     android:pathPrefix="/play"
                     android:scheme="https" />
             </intent-filter>
+
+            <!-- Exoplayer -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="http"/>
+                <data android:scheme="https"/>
+                <data android:scheme="content"/>
+                <data android:scheme="asset"/>
+                <data android:scheme="file"/>
+                <data android:host="*"/>
+                <data android:pathPattern=".*\\.exolist\\.json"/>
+            </intent-filter>
         </activity>
         <activity
             android:name=".YouTubePlayerActivity"
@@ -95,18 +111,38 @@
             android:hardwareAccelerated="true"
             android:launchMode="singleTop"
             android:screenOrientation="sensorLandscape"
-            android:theme="@style/Theme.YouTubePlayer" />
+            android:theme="@style/Theme.YSports.YouTubePlayerActivity" />
         <activity
             android:name=".PlayerActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
-            android:exported="true"
-            android:hardwareAccelerated="true"
             android:launchMode="singleTask"
+            android:hardwareAccelerated="true"
             android:resizeableActivity="true"
             android:screenOrientation="sensorLandscape"
             android:supportsPictureInPicture="true"
-            android:theme="@style/Theme.Player"
-            tools:targetApi="n" />
+            android:theme="@style/Theme.YSports.PlayerActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.exoplayer.demo.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:scheme="http"/>
+                <data android:scheme="https"/>
+                <data android:scheme="content"/>
+                <data android:scheme="asset"/>
+                <data android:scheme="file"/>
+                <data android:scheme="ssai"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.google.android.exoplayer.demo.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:scheme="content"/>
+                <data android:mimeType="*/*"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.google.android.exoplayer.demo.action.VIEW_LIST"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
         <activity
             android:name=".BrowserActivity"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
@@ -127,6 +163,15 @@
         <meta-data
             android:name="android.webkit.WebView.MetricsOptOut"
             android:value="false" />
+
+        <!-- Exoplayer -->
+        <service android:name=".player.PlayerDownloadService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.android.exoplayer.downloadService.action.RESTART"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </service>
 
         <!-- Firebase Cloud Messaging -->
         <service
