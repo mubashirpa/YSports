@@ -35,12 +35,12 @@ import java.util.List;
 import ysports.app.R;
 
 /** A service for downloading media. */
-public class DemoDownloadService extends DownloadService {
+public class PlayerDownloadService extends DownloadService {
 
     private static final int JOB_ID = 1;
     private static final int FOREGROUND_NOTIFICATION_ID = 1;
 
-    public DemoDownloadService() {
+    public PlayerDownloadService() {
         super(
                 FOREGROUND_NOTIFICATION_ID,
                 DEFAULT_FOREGROUND_NOTIFICATION_UPDATE_INTERVAL,
@@ -83,8 +83,8 @@ public class DemoDownloadService extends DownloadService {
     /**
      * Creates and displays notifications for downloads when they complete or fail.
      *
-     * <p>This helper will outlive the lifespan of a single instance of {@link DemoDownloadService}.
-     * It is static to avoid leaking the first {@link DemoDownloadService} instance.
+     * <p>This helper will outlive the lifespan of a single instance of {@link PlayerDownloadService}.
+     * It is static to avoid leaking the first {@link PlayerDownloadService} instance.
      */
     private static final class TerminalStateNotificationHelper implements DownloadManager.Listener {
 
