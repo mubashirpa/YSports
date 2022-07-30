@@ -34,9 +34,12 @@
         <item name="colorOutline">@color/outline</item>
         <item name="android:windowBackground">@color/background</item>
         <item name="popupMenuBackground">@drawable/bg_popup_menu</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.YSports.AlertDialog</item>
+        <item name="android:alertDialogTheme">@style/ThemeOverlay.YSports.AlertDialog</item>
     </style>
 
-    <style name="Theme.Main" parent="Theme.YSports">
+    <style name="Theme.YSports.MainActivity" parent="Theme.YSports">
+        <item name="android:windowTranslucentStatus">true</item>
         <item name="android:navigationBarColor">@color/navigation_bar</item>
     </style>
 </resources>
