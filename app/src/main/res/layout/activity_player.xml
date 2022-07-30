@@ -13,7 +13,7 @@
         android:layout_height="match_parent"
         app:controller_layout_id="@layout/view_player_control"
         app:animation_enabled="false"
-        app:show_buffering="always"/>
+        app:show_buffering="always" />
 
     <LinearLayout
         android:id="@+id/brightness_control"
