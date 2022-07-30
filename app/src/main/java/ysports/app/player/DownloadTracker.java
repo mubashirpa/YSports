@@ -110,7 +110,7 @@ public class DownloadTracker {
         @Nullable Download download = downloads.get(checkNotNull(mediaItem.localConfiguration).uri);
         if (download != null && download.state != Download.STATE_FAILED) {
             DownloadService.sendRemoveDownload(
-                    context, DemoDownloadService.class, download.request.id, /* foreground= */ false);
+                    context, PlayerDownloadService.class, download.request.id, /* foreground= */ false);
         } else {
             if (startDownloadDialogHelper != null) {
                 startDownloadDialogHelper.release();
@@ -342,7 +342,7 @@ public class DownloadTracker {
 
         private void startDownload(DownloadRequest downloadRequest) {
             DownloadService.sendAddDownload(
-                    context, DemoDownloadService.class, downloadRequest, /* foreground= */ false);
+                    context, PlayerDownloadService.class, downloadRequest, /* foreground= */ false);
         }
 
         private DownloadRequest buildDownloadRequest() {
