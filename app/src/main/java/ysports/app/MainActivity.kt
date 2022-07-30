@@ -1,7 +1,5 @@
 package ysports.app
 
-import android.app.Notification
-import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.ClipboardManager
 import android.content.Context
@@ -20,7 +18,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.navigation.NavigationView
+import com.google.android.material.navigationrail.NavigationRailView
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.database.DataSnapshot
@@ -36,6 +37,7 @@ import ysports.app.ui.matches.MatchesFragment
 import ysports.app.ui.more.MoreFragment
 import ysports.app.ui.news.NewsFragment
 import ysports.app.util.AppUtil
+import ysports.app.util.NotificationUtil
 
 @Suppress("PrivatePropertyName")
 class MainActivity : AppCompatActivity() {
@@ -45,7 +47,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var toolbar: MaterialToolbar
     private val TAG: String = "MainActivity"
     private lateinit var drawerLayout: DrawerLayout
+    private lateinit var navigationDrawer: NavigationView
+    private var navigationBar: BottomNavigationView? = null
+    private var navigationRail: NavigationRailView? = null
     private val playerUtil = PlayerUtil()
+    private val leaguesFragment = LeaguesFragment()
+    private val matchesFragment = MatchesFragment()
+    private val newsFragment = NewsFragment()
+    private val moreFragment = MoreFragment()
+    private var tablet = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Handle the splash screen transition.
@@ -58,13 +68,9 @@ class MainActivity : AppCompatActivity() {
         context = this
         toolbar = binding.materialToolbar
         drawerLayout = binding.drawerLayout
-        val bottomNavigation = binding.bottomNavigation
-
-        val leaguesFragment = LeaguesFragment()
-        val matchesFragment = MatchesFragment()
-        val newsFragment = NewsFragment()
-        val moreFragment = MoreFragment()
-        bottomNavigation?.selectedItemId = R.id.navigation_matches
+        navigationDrawer = binding.navigationView
+        navigationBar = binding.bottomNavigation
+        navigationRail = binding.navigationRail
 
         // Removes all the available fragments (in case of app restart)
         supportFragmentManager.fragments.let {
@@ -100,9 +106,21 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        binding.navigationView.setNavigationItemSelectedListener { menuItem ->
+        navigationDrawer.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
-                R.id.network_stream -> {
+                R.id.matches_item -> {
+                    changeFragmentDestination(0)
+                }
+                R.id.leagues_item -> {
+                    changeFragmentDestination(1)
+                }
+                R.id.news_item -> {
+                    changeFragmentDestination(2)
+                }
+                R.id.more_item -> {
+                    changeFragmentDestination(3)
+                }
+                R.id.network_stream_item -> {
                     networkStream()
                 }
             }
@@ -110,74 +128,51 @@ class MainActivity : AppCompatActivity() {
             true
         }
 
-        bottomNavigation?.setOnItemSelectedListener { item ->
+        navigationBar?.setOnItemSelectedListener { item ->
             when(item.itemId) {
-                R.id.navigation_matches -> {
-                    hideFragments()
-                    supportFragmentManager.beginTransaction().apply {
-                        if (matchesFragment.isAdded) show(matchesFragment) else add(R.id.frame_layout, matchesFragment)
-                    }.commit()
+                R.id.matches -> {
+                    changeFragmentDestination(0)
                     true
                 }
-                R.id.navigation_leagues -> {
-                    hideFragments()
-                    supportFragmentManager.beginTransaction().apply {
-                        if (leaguesFragment.isAdded) show(leaguesFragment) else add(R.id.frame_layout, leaguesFragment)
-                    }.commit()
+                R.id.leagues -> {
+                    changeFragmentDestination(1)
                     true
                 }
-                R.id.navigation_news -> {
-                    hideFragments()
-                    supportFragmentManager.beginTransaction().apply {
-                        if (newsFragment.isAdded) show(newsFragment) else add(R.id.frame_layout, newsFragment)
-                    }.commit()
+                R.id.news -> {
+                    changeFragmentDestination(2)
                     true
                 }
-                R.id.navigation_more -> {
-                    hideFragments()
-                    supportFragmentManager.beginTransaction().apply {
-                        if (moreFragment.isAdded) show(moreFragment) else add(R.id.frame_layout, moreFragment)
-                    }.commit()
+                R.id.more -> {
+                    changeFragmentDestination(3)
                     true
                 }
                 else -> false
             }
         }
 
-        binding.navigationRail?.setOnItemSelectedListener { item ->
+        navigationRail?.setOnItemSelectedListener { item ->
             when(item.itemId) {
-                R.id.navigation_matches -> {
-                    hideFragments()
-                    supportFragmentManager.beginTransaction().apply {
-                        if (matchesFragment.isAdded) show(matchesFragment) else add(R.id.frame_layout, matchesFragment)
-                    }.commit()
+                R.id.matches -> {
+                    changeFragmentDestination(0)
                     true
                 }
-                R.id.navigation_leagues -> {
-                    hideFragments()
-                    supportFragmentManager.beginTransaction().apply {
-                        if (leaguesFragment.isAdded) show(leaguesFragment) else add(R.id.frame_layout, leaguesFragment)
-                    }.commit()
+                R.id.leagues -> {
+                    changeFragmentDestination(1)
                     true
                 }
-                R.id.navigation_news -> {
-                    hideFragments()
-                    supportFragmentManager.beginTransaction().apply {
-                        if (newsFragment.isAdded) show(newsFragment) else add(R.id.frame_layout, newsFragment)
-                    }.commit()
+                R.id.news -> {
+                    changeFragmentDestination(2)
                     true
                 }
-                R.id.navigation_more -> {
-                    hideFragments()
-                    supportFragmentManager.beginTransaction().apply {
-                        if (moreFragment.isAdded) show(moreFragment) else add(R.id.frame_layout, moreFragment)
-                    }.commit()
+                R.id.more -> {
+                    changeFragmentDestination(3)
                     true
                 }
                 else -> false
             }
         }
 
+        tablet = isTablet()
         handleIntent(intent)
         checkUpdate()
         createNotificationChannel()
@@ -227,22 +222,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun createNotificationChannel() {
-        val channelId: String = getString(R.string.default_notification_channel_id)
-        val channelName: CharSequence = getString(R.string.default_notification_channel_name)
-        val channelDescription = getString(R.string.default_notification_channel_description)
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT)
-            channel.description = channelDescription
-            channel.enableLights(true)
-            channel.setShowBadge(true)
-            channel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
-            notificationManager.createNotificationChannel(channel)
+            val channelId: String = getString(R.string.default_notification_channel_id)
+            val channelName: String = getString(R.string.default_notification_channel_name)
+            val channelDescription = getString(R.string.default_notification_channel_description)
+            NotificationUtil(context).createNotificationChannel(channelName, channelDescription, channelId, NotificationManager.IMPORTANCE_DEFAULT)
         }
     }
 
     private fun handleIntent(intent: Intent?) {
+        // TODO("Handle exo player intent")
         val appLinkAction: String? = intent?.action
         val appLinkData: Uri? = intent?.data
         if (appLinkAction == Intent.ACTION_VIEW && appLinkData != null) {
@@ -280,6 +269,47 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun changeFragmentDestination(destination: Int) {
+        when (destination) {
+            0 -> {
+                hideFragments()
+                supportFragmentManager.beginTransaction().apply {
+                    if (matchesFragment.isAdded) show(matchesFragment) else add(R.id.frame_layout, matchesFragment)
+                }.commit()
+            }
+            1 -> {
+                hideFragments()
+                supportFragmentManager.beginTransaction().apply {
+                    if (leaguesFragment.isAdded) show(leaguesFragment) else add(R.id.frame_layout, leaguesFragment)
+                }.commit()
+            }
+            2 -> {
+                hideFragments()
+                supportFragmentManager.beginTransaction().apply {
+                    if (newsFragment.isAdded) show(newsFragment) else add(R.id.frame_layout, newsFragment)
+                }.commit()
+            }
+            3 -> {
+                hideFragments()
+                supportFragmentManager.beginTransaction().apply {
+                    if (moreFragment.isAdded) show(moreFragment) else add(R.id.frame_layout, moreFragment)
+                }.commit()
+            }
+        }
+        setNavigationSelectedItem(destination)
+    }
+
+    private fun setNavigationSelectedItem(selectedItem: Int) {
+        if (navigationDrawer.menu.size() == 1) return
+        val drawerMenuItem = navigationDrawer.menu.getItem(0)
+        if (tablet && drawerMenuItem.hasSubMenu()) {
+            val subMenu = drawerMenuItem.subMenu
+            for (i in 0..subMenu.size()) subMenu.getItem(i).isChecked = false
+            subMenu.getItem(selectedItem).isChecked = true
+        }
+        navigationRail?.menu?.getItem(selectedItem)?.isChecked = true
+    }
+
     private fun networkStream() {
         val materialAlertDialogBuilder = MaterialAlertDialogBuilder(context)
         val clipboardURL = getFromClipboard()
@@ -294,6 +324,7 @@ class MainActivity : AppCompatActivity() {
         textInputEditText.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_GO) {
                 val url = textInputEditText.text.toString()
+                // TODO("Dismiss dialog")
                 loadPlayer(url)
             }
             return@setOnEditorActionListener false
@@ -322,5 +353,11 @@ class MainActivity : AppCompatActivity() {
             return
         }
         playerUtil.loadPlayer(context, Uri.parse(url), true)
+    }
+
+    private fun isTablet() : Boolean {
+        val widthDp = resources.displayMetrics.run { widthPixels / density }
+        Log.d("NewsFragment", widthDp.toString())
+        return widthDp >= 600
     }
 }
