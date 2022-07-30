@@ -1,23 +1,2 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:id="@+id/navigation_matches"
-        android:enabled="true"
-        android:icon="@drawable/ic_outline_matches_24"
-        android:title="@string/title_matches" />
-    <item
-        android:id="@+id/navigation_leagues"
-        android:enabled="true"
-        android:icon="@drawable/ic_outline_leagues_24"
-        android:title="@string/title_leagues"/>
-    <item
-        android:id="@+id/navigation_news"
-        android:enabled="true"
-        android:icon="@drawable/ic_outline_news_24"
-        android:title="@string/title_news"/>
-    <item
-        android:id="@+id/navigation_more"
-        android:enabled="true"
-        android:icon="@drawable/ic_outline_dashboard_24"
-        android:title="@string/title_more"/>
-</menu>
+<menu/>
