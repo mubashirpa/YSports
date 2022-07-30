@@ -37,6 +37,22 @@
     <string name="error_activity_not_found">No activity found to handle intent</string>
     <string name="error_initialize_youtube_player">Failed to initialize player</string>
     <string name="error_empty_url">Empty URL</string>
+    
+    <!-- Navigation drawer -->
+    <item name="home_item" type="string">Home</item>
+    <item name="labels_item" type="string">More</item>
+    <item name="home_subheader_title" type="string">Home</item>
+    <item name="labels_subheader_title" type="string">More</item>
+    <item name="network_stream_title" type="string">Network stream</item>
+    <item name="matches_title" type="string">Matches</item>
+    <item name="leagues_title" type="string">Leagues</item>
+    <item name="news_title" type="string">News</item>
+    <item name="more_title" type="string">More</item>
+    <!-- Navigation Rail, Bottom Navigation -->
+    <item name="matches_destination_label" type="string">Matches</item>
+    <item name="leagues_destination_label" type="string">Leagues</item>
+    <item name="news_destination_label" type="string">News</item>
+    <item name="more_destination_label" type="string">More</item>
 
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
