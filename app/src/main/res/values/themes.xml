@@ -21,6 +21,7 @@
 
         <!-- Status bar. -->
         <item name="android:statusBarColor">@color/black</item>
+        <item name="android:navigationBarColor">@color/black</item>
 
         <item name="colorOnBackground">@color/onBackground</item>
         <item name="colorSurface">@color/surface</item>
@@ -30,38 +31,54 @@
         <item name="colorOutline">@color/outline</item>
         <item name="android:windowBackground">@color/background</item>
         <item name="popupMenuBackground">@drawable/bg_popup_menu</item>
-        <item name="android:textSize">14sp</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.YSports.AlertDialog</item>
+        <item name="android:alertDialogTheme">@style/ThemeOverlay.YSports.AlertDialog</item>
     </style>
 
-    <style name="Theme.Main" parent="Theme.YSports">
+    <style name="Theme.YSports.MainActivity" parent="Theme.YSports">
         <item name="android:windowTranslucentStatus">true</item>
     </style>
 
-    <style name="Theme.Player" parent="Theme.YSports">
+    <style name="Theme.YSports.PlayerActivity" parent="Theme.YSports">
         <item name="android:windowBackground">@android:color/black</item>
         <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="o_mr1">shortEdges</item>
         <item name="android:windowTranslucentStatus">true</item>
         <item name="android:windowTranslucentNavigation">true</item>
-        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.App.BottomSheetDialog</item>
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.YSports.BottomSheetDialog</item>
     </style>
 
-    <style name="Theme.YouTubePlayer" parent="Theme.YSports">
+    <style name="Theme.YSports.YouTubePlayerActivity" parent="Theme.YSports">
         <item name="android:windowBackground">@android:color/black</item>
         <item name="android:windowTranslucentStatus">true</item>
         <item name="android:windowTranslucentNavigation">true</item>
     </style>
 
+    <style name="Theme.YSports.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_icon_splash</item>
+        <item name="windowSplashScreenAnimationDuration">200</item>
+        <item name="postSplashScreenTheme">@style/Theme.YSports.MainActivity</item>
+    </style>
+
     <!-- Browser Activity Toolbar Theme -->
-    <style name="Widget.App.Toolbar" parent="Widget.Material3.Toolbar">
-        <item name="titleTextAppearance">@style/TextAppearance.App.TitleLarge</item>
-        <item name="subtitleTextAppearance">@style/TextAppearance.App.TitleMedium</item>
+    <style name="Widget.YSports.Toolbar" parent="Widget.Material3.Toolbar">
+        <item name="titleTextAppearance">@style/TextAppearance.YSports.TitleLarge</item>
+        <item name="subtitleTextAppearance">@style/TextAppearance.YSports.TitleMedium</item>
     </style>
 
-    <style name="ThemeOverlay.App.BottomSheetDialog" parent="ThemeOverlay.Material3.BottomSheetDialog">
-        <item name="bottomSheetStyle">@style/ModalBottomSheetDialog</item>
+    <style name="ThemeOverlay.YSports.BottomSheetDialog" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.YSports.BottomSheet.Modal</item>
     </style>
 
-    <style name="TrackSelectionDialogThemeOverlay" parent="ThemeOverlay.AppCompat.Dialog.Alert">
+    <style name="ThemeOverlay.YSports.AlertDialog" parent="ThemeOverlay.AppCompat.Dialog.Alert">
+        <item name="android:maxWidth">560dp</item>
+        <item name="dialogCornerRadius">28dp</item>
+        <item name="android:backgroundTint">@color/surface</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontWeight" tools:targetApi="o">400</item>
+    </style>
+
+    <style name="ThemeOverlay.YSports.TrackSelectionDialog" parent="ThemeOverlay.AppCompat.Dialog.Alert">
         <item name="windowNoTitle">false</item>
     </style>
 </resources>
