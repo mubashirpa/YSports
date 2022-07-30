@@ -18,7 +18,7 @@
             android:layout_height="?attr/actionBarSize"
             app:menu="@menu/browser_activity"
             app:navigationIcon="@drawable/ic_baseline_close_24"
-            style="@style/Widget.App.Toolbar"/>
+            style="@style/Widget.YSports.Toolbar"/>
     </com.google.android.material.appbar.AppBarLayout>
     <LinearLayout
         android:layout_width="match_parent"
