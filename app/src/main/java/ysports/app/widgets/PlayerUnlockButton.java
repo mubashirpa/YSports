@@ -29,18 +29,18 @@ public class PlayerUnlockButton extends AppCompatImageButton {
 
     @Override
     protected void onVisibilityChanged(@NonNull View changedView, int visibility) {
-        if (handler != null && runnable != null) {
-            handler.removeCallbacks(runnable);
-            handler = null;
-            runnable = null;
-        }
-        if (visibility == View.VISIBLE) {
+        if (handler == null || runnable == null) {
             handler = new Handler(Looper.getMainLooper());
-            runnable = () -> {
-                changedView.setVisibility(GONE);
-                handler = null;
-                runnable = null;
-            };
+            runnable = () -> changedView.setVisibility(GONE);
+            if (visibility == View.VISIBLE) {
+                handler.postDelayed(runnable, 5000);
+            } else {
+                super.onVisibilityChanged(changedView, visibility);
+            }
+            return;
+        }
+        handler.removeCallbacksAndMessages(null);
+        if (visibility == View.VISIBLE) {
             handler.postDelayed(runnable, 5000);
         } else {
             super.onVisibilityChanged(changedView, visibility);
