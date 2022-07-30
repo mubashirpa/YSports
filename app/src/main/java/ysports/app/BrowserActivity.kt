@@ -44,10 +44,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import ysports.app.databinding.ActivityBrowserBinding
 import ysports.app.player.PlayerUtil
-import ysports.app.util.AdBlocker
-import ysports.app.util.AppUtil
-import ysports.app.util.NetworkUtil
-import ysports.app.util.YouTubePlay
+import ysports.app.util.*
 import java.net.URISyntaxException
 
 @Suppress("PrivatePropertyName")
@@ -194,7 +191,7 @@ class BrowserActivity : AppCompatActivity() {
                                     type = "text/plain"
                                     putExtra(Intent.EXTRA_TEXT, hitTestResult.extra)
                                 }
-                                startActivity(Intent.createChooser(shareIntent, "Share Link"))
+                                startActivity(Intent.createChooser(shareIntent, "Share via"))
                             }
                         }
                     }
@@ -292,7 +289,7 @@ class BrowserActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             webView.setRendererPriorityPolicy(RENDERER_PRIORITY_BOUND, true)
         }
-        webView.addJavascriptInterface(WebAppInterface(), "Android")
+        webView.addJavascriptInterface(WebAppInterface(context, BrowserActivity()), "Android")
         webView.webViewClient = CustomWebViewClient(assetLoader)
         webView.webChromeClient = CustomWebChromeClient()
         webView.loadUrl(WEB_URL)
@@ -389,36 +386,6 @@ class BrowserActivity : AppCompatActivity() {
                 onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)
             } else {
                 fetchLocation()
-            }
-        }
-    }
-
-    @Suppress("unused")
-    inner class WebAppInterface {
-
-        @JavascriptInterface
-        fun exitActivity() {
-            finish()
-        }
-
-        @JavascriptInterface
-        fun showToast(message: String?) {
-            if (message != null) {
-                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        @JavascriptInterface
-        fun loadPlayer(url: String?) {
-            if (url != null) {
-                PlayerUtil().loadPlayer(context, Uri.parse(url), true)
-            }
-        }
-
-        @JavascriptInterface
-        fun loadPlayerYT(url: String?) {
-            if (url != null) {
-                YouTubePlay(context).playVideo(url)
             }
         }
     }

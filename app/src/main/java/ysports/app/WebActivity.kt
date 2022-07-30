@@ -44,7 +44,7 @@ import ysports.app.databinding.ActivityWebBinding
 import ysports.app.player.PlayerUtil
 import ysports.app.util.AdBlocker
 import ysports.app.util.AppUtil
-import ysports.app.util.YouTubePlay
+import ysports.app.util.WebAppInterface
 import java.net.URISyntaxException
 import java.net.URLDecoder
 
@@ -174,7 +174,7 @@ class WebActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             webView.setRendererPriorityPolicy(RENDERER_PRIORITY_BOUND, true)
         }
-        webView.addJavascriptInterface(WebAppInterface(context), "Android")
+        webView.addJavascriptInterface(WebAppInterface(context, WebActivity(), window), "Android")
         webView.webViewClient = CustomWebViewClient(assetLoader)
         webView.webChromeClient = CustomWebChromeClient()
         webView.loadUrl(WEB_URL)
@@ -235,43 +235,6 @@ class WebActivity : AppCompatActivity() {
                 onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)
             } else {
                 fetchLocation()
-            }
-        }
-    }
-
-    @Suppress("unused")
-    inner class WebAppInterface(private val context: Context) {
-
-        @JavascriptInterface
-        fun exitActivity() {
-            finish()
-        }
-
-        @JavascriptInterface
-        fun showToast(message: String?) {
-            if (message != null) {
-                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        @JavascriptInterface
-        fun loadPlayer(url: String?) {
-            if (url != null) {
-                playerUtil.loadPlayer(context, Uri.parse(url), true)
-            }
-        }
-
-        @JavascriptInterface
-        fun loadPlayerYT(url: String?) {
-            if (url != null) {
-                YouTubePlay(context).playVideo(url)
-            }
-        }
-
-        @JavascriptInterface
-        fun changeStatusBarColor(light: Boolean, red: Int, green: Int, blue: Int) {
-            runOnUiThread {
-                setStatusBarColor(light, red, green, blue)
             }
         }
     }
@@ -846,37 +809,6 @@ class WebActivity : AppCompatActivity() {
             }
         } else {
             onGeolocationPermissionConfirmation(geolocationOrigin, allowed = true, retain = false)
-        }
-    }
-
-    private fun setStatusBarColor(light: Boolean, red: Int, green: Int, blue: Int) {
-        window.apply {
-            statusBarColor = Color.rgb(red, green, blue)
-            if (light) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    val controller = window.insetsController
-                    controller?.setSystemBarsAppearance(
-                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
-                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
-                    )
-                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-
-                    //Deprecated in Api level 30
-                    addFlags(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
-                }
-            } else {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    val controller = window.insetsController
-                    controller?.setSystemBarsAppearance(
-                        0,
-                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
-                    )
-                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-
-                    //Deprecated in Api level 30
-                    clearFlags(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
-                }
-            }
         }
     }
 }
