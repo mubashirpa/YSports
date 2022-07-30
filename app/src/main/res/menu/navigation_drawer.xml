@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/network_stream"
+        android:id="@+id/network_stream_item"
         android:icon="@drawable/ic_baseline_network_stream_24"
-        android:title="@string/network_stream"
-        android:checkable="false"/>
+        android:title="@string/network_stream_title"
+        android:checkable="false"
+        app:showAsAction="ifRoom"/>
 </menu>
