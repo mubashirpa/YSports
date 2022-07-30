@@ -16,7 +16,7 @@ class DescriptionAdapter : PlayerNotificationManager.MediaDescriptionAdapter {
     }
 
     override fun getCurrentContentText(player: Player): CharSequence? {
-        return "Description"
+        return null
     }
 
     override fun getCurrentLargeIcon(
