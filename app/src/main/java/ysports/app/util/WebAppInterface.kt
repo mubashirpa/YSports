@@ -2,6 +2,7 @@ package ysports.app.util
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
 import android.os.Build
@@ -9,6 +10,8 @@ import android.view.View
 import android.view.WindowInsetsController
 import android.webkit.JavascriptInterface
 import android.widget.Toast
+import ysports.app.PlayerChooserActivity
+import ysports.app.YouTubePlayerActivity
 import ysports.app.player.PlayerUtil
 
 class WebAppInterface(
@@ -17,12 +20,12 @@ class WebAppInterface(
 ) {
 
     @JavascriptInterface
-    fun exitActivity() {
+    fun finish() {
         activity.finish()
     }
 
     @JavascriptInterface
-    fun showToast(message: String?) {
+    fun toast(message: String?) {
         if (message != null) {
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
@@ -31,15 +34,21 @@ class WebAppInterface(
     @JavascriptInterface
     fun loadPlayer(url: String?) {
         if (url != null) {
-            PlayerUtil().loadPlayer(context, Uri.parse(url), true)
+            if (url.startsWith("https://youtu.be/")) {
+                val intent = Intent(context, YouTubePlayerActivity::class.java).apply {
+                    putExtra("VIDEO_URL", url)
+                }
+                context.startActivity(intent)
+            } else PlayerUtil().loadPlayer(context, Uri.parse(url), true)
         }
     }
 
     @JavascriptInterface
-    fun loadPlayerYT(url: String?) {
-        if (url != null) {
-            YouTubePlay(context).playVideo(url)
+    fun loadPlayerMedia(json: String?) {
+        val intent = Intent(context, PlayerChooserActivity::class.java).apply {
+            putExtra("JSON_URL", json)
         }
+        context.startActivity(intent)
     }
 
     @JavascriptInterface
