@@ -6,32 +6,19 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.view.View
-import android.view.Window
 import android.view.WindowInsetsController
 import android.webkit.JavascriptInterface
 import android.widget.Toast
 import ysports.app.player.PlayerUtil
 
-class WebAppInterface {
-
-    private var context: Context? = null
-    private var activity: Activity? = null
-    private var window: Window? = null
-
-    constructor(context: Context, activity: Activity) {
-        this.context = context
-        this.activity = activity
-    }
-
-    constructor(context: Context, activity: Activity, window: Window) {
-        this.context = context
-        this.activity = activity
-        this.window = window
-    }
+class WebAppInterface(
+    val context: Context,
+    val activity: Activity
+) {
 
     @JavascriptInterface
     fun exitActivity() {
-        activity?.finish()
+        activity.finish()
     }
 
     @JavascriptInterface
@@ -44,30 +31,31 @@ class WebAppInterface {
     @JavascriptInterface
     fun loadPlayer(url: String?) {
         if (url != null) {
-            PlayerUtil().loadPlayer(context!!, Uri.parse(url), true)
+            PlayerUtil().loadPlayer(context, Uri.parse(url), true)
         }
     }
 
     @JavascriptInterface
     fun loadPlayerYT(url: String?) {
         if (url != null) {
-            YouTubePlay(context!!).playVideo(url)
+            YouTubePlay(context).playVideo(url)
         }
     }
 
     @JavascriptInterface
     fun changeStatusBarColor(light: Boolean, red: Int, green: Int, blue: Int) {
-        activity?.runOnUiThread {
+        activity.runOnUiThread {
             setStatusBarColor(light, red, green, blue)
         }
     }
 
     private fun setStatusBarColor(light: Boolean, red: Int, green: Int, blue: Int) {
+        val window = activity.window
         window?.apply {
             statusBarColor = Color.rgb(red, green, blue)
             if (light) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    val controller = window!!.insetsController
+                    val controller = window.insetsController
                     controller?.setSystemBarsAppearance(
                         WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
                         WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
@@ -80,7 +68,7 @@ class WebAppInterface {
                 }
             } else {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    val controller = window!!.insetsController
+                    val controller = window.insetsController
                     controller?.setSystemBarsAppearance(
                         0,
                         WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
