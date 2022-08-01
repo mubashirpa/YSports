@@ -6,10 +6,8 @@ import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 
 class RecyclerDecorationVertical(
-    private var top: Int,
-    private var bottom: Int,
-    private var left: Int,
-    private var right: Int,
+    private var marginTop: Int,
+    private var marginBottom: Int,
     private var verticalSpacing: Int
 ) : RecyclerView.ItemDecoration() {
 
@@ -21,11 +19,12 @@ class RecyclerDecorationVertical(
         parent: RecyclerView,
         state: RecyclerView.State
     ) {
+        val total: Int = state.itemCount
         val position: Int = parent.getChildAdapterPosition(view)
-        if (position == 0) outRect.top = dpToPx(displayDensity, top)
+
         outRect.bottom = dpToPx(displayDensity, verticalSpacing)
-        outRect.left = dpToPx(displayDensity, left)
-        outRect.right = dpToPx(displayDensity, right)
+        if (position == 0) outRect.top = dpToPx(displayDensity, marginTop)
+        if (position == total - 1) outRect.bottom = dpToPx(displayDensity, marginBottom)
     }
 
     private fun dpToPx(density: Float, dps: Int): Int {

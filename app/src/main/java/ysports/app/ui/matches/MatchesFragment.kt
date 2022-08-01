@@ -71,7 +71,7 @@ class MatchesFragment : Fragment() {
         stateDescription = binding.errorLayout.stateDescription
         fixtureRecyclerView = binding.recyclerViewFixture
         tabLayout = binding.tabLayout
-        itemDecoration = RecyclerDecorationVertical(10, 10, 10, 10, 10)
+        itemDecoration = RecyclerDecorationVertical(10, 10, 10)
 
         retryButton.setOnClickListener {
             errorLayout.hideView()
@@ -141,6 +141,7 @@ class MatchesFragment : Fragment() {
                 })
             )
         }
+
         readDatabase()
     }
 
@@ -160,7 +161,7 @@ class MatchesFragment : Fragment() {
 
     private fun readDatabase() {
         fixtureApi = JsonApi.create("https://api.npoint.io/").getFixture("831085549ee2af13a198")
-        fixtureApi!!.enqueue(object : Callback<FixtureResponse> {
+        fixtureApi?.enqueue(object : Callback<FixtureResponse> {
             override fun onResponse(call: Call<FixtureResponse>, response: Response<FixtureResponse>) {
                 if (!response.isSuccessful) {
                     errorOccurred(R.string.error_retrofit_response, false)
