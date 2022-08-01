@@ -1,39 +1,150 @@
 package ysports.app.ui.leagues
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.DefaultItemAnimator
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.progressindicator.CircularProgressIndicator
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import ysports.app.R
+import ysports.app.WebActivity
+import ysports.app.adapter.LeaguesAdapter
+import ysports.app.api.JsonApi
+import ysports.app.api.leagues.Leagues
+import ysports.app.api.leagues.LeaguesResponse
 import ysports.app.databinding.FragmentLeaguesBinding
+import ysports.app.util.RecyclerDecorationVertical
+import ysports.app.util.RecyclerTouchListener
+import java.util.*
+import kotlin.concurrent.schedule
 
 class LeaguesFragment : Fragment() {
 
     private var _binding: FragmentLeaguesBinding? = null
     private val binding get() = _binding!!
 
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var progressBar: CircularProgressIndicator
+    private lateinit var errorView: View
+    private lateinit var retryButton: Button
+    private lateinit var stateDescription: TextView
+    private lateinit var itemDecoration: RecyclerDecorationVertical
+    private var leaguesApi: Call<LeaguesResponse>? = null
+    private var leaguesList: ArrayList<Leagues> = ArrayList()
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val dashboardViewModel =
-            ViewModelProvider(this).get(LeaguesViewModel::class.java)
-
         _binding = FragmentLeaguesBinding.inflate(inflater, container, false)
-        val root: View = binding.root
+        return binding.root
+    }
 
-        val textView: TextView = binding.textDashboard
-        dashboardViewModel.text.observe(viewLifecycleOwner) {
-            textView.text = it
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        recyclerView = binding.recyclerView
+        progressBar = binding.progressBar
+        errorView = binding.errorView.root
+        retryButton = binding.errorView.buttonRetry
+        stateDescription = binding.errorView.stateDescription
+        itemDecoration = RecyclerDecorationVertical(10, 10, 10)
+
+        retryButton.setOnClickListener {
+            errorView.hideView()
+            progressBar.showView()
+            Timer().schedule(500) {
+                readDatabase()
+            }
         }
-        return root
+
+        recyclerView.apply {
+            itemAnimator = DefaultItemAnimator()
+            addItemDecoration(itemDecoration)
+            addOnItemTouchListener(
+                RecyclerTouchListener(context, recyclerView, object : RecyclerTouchListener.ClickListener {
+                    override fun onClick(view: View, position: Int) {
+                        if (!leaguesList[position].url.isNullOrEmpty()) {
+                            val url: String = leaguesList[position].url!!
+                            val intent = Intent(context, WebActivity::class.java).apply {
+                                putExtra("WEB_URL", url)
+                            }
+                            startActivity(intent)
+                        }
+                    }
+
+                    override fun onLongClick(view: View, position: Int) {
+                    }
+
+                })
+            )
+        }
+
+        readDatabase()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        leaguesApi?.cancel()
+    }
+
+    private fun View.showView() {
+        if (!this.isVisible) this.visibility = View.VISIBLE
+    }
+
+    private fun View.hideView() {
+        if (this.isVisible) this.visibility = View.GONE
+    }
+
+    private fun readDatabase() {
+        leaguesApi = JsonApi.create("https://api.npoint.io/").getLeagues("ef26b2579a1e6fba29fe")
+        leaguesApi?.enqueue(object : Callback<LeaguesResponse> {
+            override fun onResponse(call: Call<LeaguesResponse>, response: Response<LeaguesResponse>) {
+                if (!response.isSuccessful) {
+                    errorOccurred(R.string.error_retrofit_response, false)
+                    return
+                }
+                leaguesList = response.body()?.leagues ?: ArrayList()
+                if (leaguesList.isEmpty()) {
+                    errorOccurred(R.string.error_no_leagues, false)
+                    return
+                }
+                setRecyclerAdapter(leaguesList)
+            }
+
+            override fun onFailure(call: Call<LeaguesResponse>, t: Throwable) {
+                if (isAdded) {
+                    errorOccurred(R.string.error_failed_to_load_content, true)
+                }
+            }
+
+        })
+    }
+
+    private fun setRecyclerAdapter(arrayList: ArrayList<Leagues>) {
+        errorView.hideView()
+        val leaguesAdapter = LeaguesAdapter(requireContext(), arrayList)
+        recyclerView.adapter = leaguesAdapter
+        progressBar.hideView()
+        recyclerView.showView()
+    }
+
+    private fun errorOccurred(error: Int, showButton: Boolean) {
+        progressBar.hideView()
+        recyclerView.hideView()
+        stateDescription.text = getString(error)
+        retryButton.isVisible = showButton
+        errorView.showView()
     }
 }
