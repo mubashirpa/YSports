@@ -87,7 +87,8 @@
             android:configChanges="orientation|screenSize|uiMode"
             android:exported="true"
             android:theme="@style/Theme.YSports.Starting"
-            android:windowSoftInputMode="adjustPan">
+            android:windowSoftInputMode="adjustPan"
+            android:label="@string/title_activity_main">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -123,7 +124,8 @@
             android:resizeableActivity="true"
             android:screenOrientation="sensorLandscape"
             android:supportsPictureInPicture="true"
-            android:theme="@style/Theme.YSports.PlayerActivity">
+            android:theme="@style/Theme.YSports.PlayerActivity"
+            android:label="@string/title_activity_player">
             <intent-filter>
                 <action android:name="com.google.android.exoplayer.demo.action.VIEW" />
 
