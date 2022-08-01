@@ -2,20 +2,20 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-sdk />
+
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"
+    <uses-permission
+        android:name="android.permission.ACCESS_NETWORK_STATE"
         tools:ignore="LeanbackUsesWifi" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"
+    <uses-permission
+        android:name="android.permission.ACCESS_WIFI_STATE"
         tools:ignore="LeanbackUsesWifi" />
-
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <!-- Include only if your app benefits from precise location access. -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -41,7 +41,6 @@
     <uses-feature
         android:name="android.hardware.location.gps"
         android:required="false" />
-    <uses-sdk/>
 
     <!-- Chrome Custom Tabs -->
     <queries>
@@ -50,23 +49,39 @@
         </intent>
     </queries>
 
-    <!-- requestLegacyExternalStorage attribute is only for Android 10 -->
-    <!-- preserveLegacyExternalStorage attribute is for Android 11 and later -->
-    <!-- TODO("Set banner") -->
     <application
         android:allowBackup="true"
+        android:banner="@drawable/img_poster_horizontal"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:requestLegacyExternalStorage="true"
         android:preserveLegacyExternalStorage="true"
+        android:requestLegacyExternalStorage="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.YSports"
         android:usesCleartextTraffic="true"
-        android:banner="@drawable/img_poster_horizontal"
         tools:targetApi="s">
+        <activity
+            android:name=".PlayerChooserActivity"
+            android:exported="true"
+            android:label="@string/title_activity_player_chooser">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:scheme="content" />
+                <data android:scheme="asset" />
+                <data android:scheme="file" />
+                <data android:host="*" />
+                <data android:pathPattern=".*\\.exolist\\.json" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|screenSize|uiMode"
@@ -75,8 +90,9 @@
             android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
-                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -88,20 +104,6 @@
                     android:host="ysports.page.link"
                     android:pathPrefix="/play"
                     android:scheme="https" />
-            </intent-filter>
-
-            <!-- Exoplayer -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="http"/>
-                <data android:scheme="https"/>
-                <data android:scheme="content"/>
-                <data android:scheme="asset"/>
-                <data android:scheme="file"/>
-                <data android:host="*"/>
-                <data android:pathPattern=".*\\.exolist\\.json"/>
             </intent-filter>
         </activity>
         <activity
@@ -115,32 +117,37 @@
         <activity
             android:name=".PlayerActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
-            android:launchMode="singleTask"
+            android:exported="true"
             android:hardwareAccelerated="true"
+            android:launchMode="singleTask"
             android:resizeableActivity="true"
             android:screenOrientation="sensorLandscape"
             android:supportsPictureInPicture="true"
-            android:theme="@style/Theme.YSports.PlayerActivity"
-            android:exported="true">
+            android:theme="@style/Theme.YSports.PlayerActivity">
             <intent-filter>
-                <action android:name="com.google.android.exoplayer.demo.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <data android:scheme="http"/>
-                <data android:scheme="https"/>
-                <data android:scheme="content"/>
-                <data android:scheme="asset"/>
-                <data android:scheme="file"/>
-                <data android:scheme="ssai"/>
+                <action android:name="com.google.android.exoplayer.demo.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:scheme="content" />
+                <data android:scheme="asset" />
+                <data android:scheme="file" />
+                <data android:scheme="ssai" />
             </intent-filter>
             <intent-filter>
-                <action android:name="com.google.android.exoplayer.demo.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <data android:scheme="content"/>
-                <data android:mimeType="*/*"/>
+                <action android:name="com.google.android.exoplayer.demo.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:scheme="content" />
+                <data android:mimeType="*/*" />
             </intent-filter>
             <intent-filter>
-                <action android:name="com.google.android.exoplayer.demo.action.VIEW_LIST"/>
-                <category android:name="android.intent.category.DEFAULT"/>
+                <action android:name="com.google.android.exoplayer.demo.action.VIEW_LIST" />
+
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
         <activity
@@ -165,11 +172,13 @@
             android:value="false" />
 
         <!-- Exoplayer -->
-        <service android:name=".player.PlayerDownloadService"
+        <service
+            android:name=".player.PlayerDownloadService"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.google.android.exoplayer.downloadService.action.RESTART"/>
-                <category android:name="android.intent.category.DEFAULT"/>
+                <action android:name="com.google.android.exoplayer.downloadService.action.RESTART" />
+
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </service>
 
