@@ -289,7 +289,7 @@ class BrowserActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             webView.setRendererPriorityPolicy(RENDERER_PRIORITY_BOUND, true)
         }
-        webView.addJavascriptInterface(WebAppInterface(context, BrowserActivity()), "Android")
+        webView.addJavascriptInterface(WebAppInterface(context, this), "Android")
         webView.webViewClient = CustomWebViewClient(assetLoader)
         webView.webChromeClient = CustomWebChromeClient()
         webView.loadUrl(WEB_URL)
