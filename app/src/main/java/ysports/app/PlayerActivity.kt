@@ -688,7 +688,8 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
 
     /* End */
 
-    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration?) {
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         if (isInPictureInPictureMode) {
             playerView?.hideController()
