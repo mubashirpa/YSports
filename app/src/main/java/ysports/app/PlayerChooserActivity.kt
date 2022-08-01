@@ -18,6 +18,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.Nullable
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.MediaItem.ClippingConfiguration
 import com.google.android.exoplayer2.MediaMetadata
@@ -27,6 +28,7 @@ import com.google.android.exoplayer2.upstream.DataSourceUtil
 import com.google.android.exoplayer2.upstream.DataSpec
 import com.google.android.exoplayer2.util.Log
 import com.google.android.exoplayer2.util.Util
+import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.common.base.Objects
 import com.google.common.base.Preconditions.*
 import com.google.common.collect.ImmutableList
@@ -52,6 +54,8 @@ class PlayerChooserActivity : AppCompatActivity(), OnChildClickListener {
     private var uris: Array<String?> = arrayOf()
     private lateinit var listViewAdapter: ListViewAdapter
     private lateinit var expandableListView: ExpandableListView
+    private lateinit var progressBar: CircularProgressIndicator
+    private lateinit var errorView: View
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,6 +66,8 @@ class PlayerChooserActivity : AppCompatActivity(), OnChildClickListener {
 
         listViewAdapter = ListViewAdapter()
         expandableListView = binding.expandableListView
+        progressBar = binding.progressBar
+        errorView = binding.errorView.root
 
         expandableListView.setAdapter(listViewAdapter)
         expandableListView.setOnChildClickListener(this)
@@ -70,20 +76,13 @@ class PlayerChooserActivity : AppCompatActivity(), OnChildClickListener {
         if (dataUri != null) {
             uris = arrayOf(dataUri)
         } else {
-            val uriList: ArrayList<String> = ArrayList()
-            val assetManager = assets
-            try {
-                for (asset in assetManager.list("")!!) {
-                    if (asset.endsWith(".exolist.json")) {
-                        uriList.add("asset:///$asset")
-                    }
-                }
-            } catch (e: IOException) {
-                Toast.makeText(context, "One or more sample lists failed to load", Toast.LENGTH_LONG).show()
+            val intentUri: String? = intent.getStringExtra("JSON_URL")
+            if (intentUri != null) {
+                uris = arrayOf(intentUri)
+            } else {
+                Toast.makeText(context, "Failed to load the list", Toast.LENGTH_LONG).show()
+                finish()
             }
-            uris = arrayOfNulls(uriList.size)
-            uriList.toArray(uris)
-            Arrays.sort(uris)
         }
 
         loadSample()
@@ -115,6 +114,8 @@ class PlayerChooserActivity : AppCompatActivity(), OnChildClickListener {
     }
 
     override fun onChildClick(parent: ExpandableListView?, view: View?, groupPosition: Int, childPosition: Int, id: Long): Boolean {
+        Log.d(TAG, "On child click")
+
         // Save the selected item first to be able to restore it if the tested code crashes.
         val prefEditor = getPreferences(MODE_PRIVATE).edit()
         prefEditor.putInt(GROUP_POSITION_PREFERENCE_KEY, groupPosition)
@@ -157,11 +158,33 @@ class PlayerChooserActivity : AppCompatActivity(), OnChildClickListener {
             expandableListView.expandGroup(groupPosition) // shouldExpandGroup does not work without this.
             expandableListView.setSelectedChild(groupPosition, childPosition,  /* shouldExpandGroup= */true)
         }
+
+        loadComplete(groups.isEmpty())
+    }
+
+    private fun loadComplete(isEmpty: Boolean) {
+        if (isEmpty) {
+            progressBar.hideView()
+            binding.errorView.buttonRetry.hideView()
+            binding.errorView.stateDescription.text = getString(R.string.error_no_list_found)
+            errorView.showView()
+        } else {
+            progressBar.hideView()
+            expandableListView.showView()
+        }
+    }
+
+    private fun View.showView() {
+        if (!this.isVisible) this.visibility = View.VISIBLE
+    }
+
+    private fun View.hideView() {
+        if (this.isVisible) this.visibility = View.GONE
     }
 
     @SuppressLint("StaticFieldLeak")
     @Suppress("LocalVariableName")
-    private inner class ListLoader() : AsyncTask<String, Void, MutableList<PlaylistGroup>>() {
+    private inner class ListLoader : AsyncTask<String, Void, MutableList<PlaylistGroup>>() {
 
         var sawError = false
 
@@ -287,7 +310,7 @@ class PlayerChooserActivity : AppCompatActivity(), OnChildClickListener {
                 for (i in 0 until children.size) {
                     mediaItems.addAll(children[i].mediaItems)
                 }
-                PlaylistHolder(title!!, mediaItems)
+                PlaylistHolder(title, mediaItems)
             } else {
                 @Nullable val adaptiveMimeType = Util.getAdaptiveMimeTypeForContentType(
                     if (TextUtils.isEmpty(extension)) Util.inferContentType(uri!!) else Util.inferContentTypeForExtension(extension!!)
@@ -321,7 +344,7 @@ class PlayerChooserActivity : AppCompatActivity(), OnChildClickListener {
                         .build()
                     mediaItem.setSubtitleConfigurations(ImmutableList.of(subtitleConfiguration))
                 }
-                PlaylistHolder(title!!, Collections.singletonList(mediaItem.build()))
+                PlaylistHolder(title, Collections.singletonList(mediaItem.build()))
             }
         }
 
@@ -398,13 +421,13 @@ class PlayerChooserActivity : AppCompatActivity(), OnChildClickListener {
 
         private fun initializeChildView(view: View, playlistHolder: PlaylistHolder) {
             view.tag = playlistHolder
-            val titleText: TextView = findViewById(R.id.title)
+            val titleText: TextView = view.findViewById(R.id.title)
             titleText.text = playlistHolder.title
         }
     }
 
-    private class PlaylistHolder(title: String, mediaItems: List<MediaItem>) {
-        val title: String
+    private class PlaylistHolder(title: String?, mediaItems: List<MediaItem>) {
+        val title: String?
         val mediaItems: List<MediaItem>
 
         init {
@@ -414,7 +437,7 @@ class PlayerChooserActivity : AppCompatActivity(), OnChildClickListener {
         }
     }
 
-    private class PlaylistGroup(val title: String) {
+    private class PlaylistGroup(val title: String?) {
         val playlists: MutableList<PlaylistHolder>
 
         init {
