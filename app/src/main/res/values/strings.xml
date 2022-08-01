@@ -36,6 +36,7 @@
     <string name="error_no_leagues">No leagues found</string>
     <string name="error_initialize_youtube_player">Failed to initialize player</string>
     <string name="error_empty_url">Empty URL</string>
+    <string name="error_no_list_found">Something went wrong, please check your internet connection and try again</string>
 
     <!-- Navigation drawer -->
     <string name="home_subheader_title">Home</string>
@@ -51,6 +52,11 @@
     <string name="leagues_destination_label">Leagues</string>
     <string name="news_destination_label">News</string>
     <string name="more_destination_label">More</string>
+
+    <!-- Activity labels -->
+    <string name="title_activity_main">YSports</string>
+    <string name="title_activity_player">Play</string>
+    <string name="title_activity_player_chooser">Player Chooser</string>
 
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
@@ -85,5 +91,4 @@
     <string name="allow">Allow</string>
     <string name="download">Download</string>
     <string name="play">Play</string>
-    <string name="title_activity_player_chooser">PlayerChooserActivity</string>
 </resources>
