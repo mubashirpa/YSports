@@ -1,14 +1,19 @@
-// Last updated on 27 Jul 2022
+// Last updated on 01 Aug 2022
 
 package ysports.app.player
 
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.text.TextUtils
+import androidx.annotation.Nullable
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.trackselection.TrackSelectionOverride
+import com.google.android.exoplayer2.util.Util
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.common.base.Preconditions
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableMap
 import ysports.app.PlayerActivity
 import ysports.app.R
 import ysports.app.api.fixture.Media
@@ -48,69 +53,105 @@ class PlayerUtil {
 
     fun createMediaItems(mediaList: ArrayList<Media>) : List<MediaItem> {
         if (mediaList.isEmpty()) return Collections.emptyList()
-        val mediaItemsBuilder = MediaItem.Builder()
-        val mediaItems: MutableList<MediaItem> = ArrayList()
 
-        var name: String?
-        var uri: String?
-        var drmScheme: String?
-        var drmLicenseUri: String?
-        var drmSessionForClearContent: Boolean?
-        var drmForceDefaultLicenseUri: Boolean?
-        var adTagUri: String?
-        var clipEndPositionMs: Int?
-        var clipStartPositionMs: Int?
-        var subtitleUri: String?
+        var uri: Uri?
+        var extension: String?
+        var title: String?
+        var subtitleUri: Uri?
         var subtitleMimeType: String?
         var subtitleLanguage: String?
+        var drmUuid: UUID? = null
+        var drmLicenseUri: String? = null
+        val drmLicenseRequestHeaders: ImmutableMap<String, String> = ImmutableMap.of()
+        var drmSessionForClearContent: Boolean
+        var drmMultiSession: Boolean
+        var drmForceDefaultLicenseUri: Boolean
+        val clippingConfiguration = MediaItem.ClippingConfiguration.Builder()
+
+        var mediaItems: MutableList<MediaItem> = ArrayList()
+        val mediaItem = MediaItem.Builder()
 
         for (i in 0 until mediaList.size) {
-            name = mediaList[i].name
-            uri = mediaList[i].uri
-            drmScheme = mediaList[i].drmScheme
-            drmLicenseUri = mediaList[i].drmLicenseUri
-            drmSessionForClearContent = mediaList[i].drmSessionForClearContent
-            drmForceDefaultLicenseUri = mediaList[i].drmForceDefaultLicenseUri
-            adTagUri = mediaList[i].adTagUri
-            clipEndPositionMs = mediaList[i].clipEndPositionMs
-            clipStartPositionMs = mediaList[i].clipStartPositionMs
-            subtitleUri = mediaList[i].subtitleUri
+            title = mediaList[i].name
+            uri = Uri.parse(mediaList[i].uri)
+            extension = mediaList[i].extension
+            val clipStartPositionMs = mediaList[i].clipStartPositionMs
+            if (clipStartPositionMs != null)
+                clippingConfiguration.setStartPositionMs(clipStartPositionMs)
+            val clipEndPositionMs = mediaList[i].clipEndPositionMs
+            if (clipEndPositionMs != null)
+                clippingConfiguration.setEndPositionMs(clipEndPositionMs)
+            val adTagUri = mediaList[i].adTagUri
+            if (adTagUri != null)
+                mediaItem.setAdsConfiguration(MediaItem.AdsConfiguration.Builder(Uri.parse(adTagUri)).build())
+            val drmScheme = mediaList[i].drmScheme
+            if (drmScheme != null)
+                drmUuid = Util.getDrmUuid(drmScheme)
+            val licenseUri = mediaList[i].drmLicenseUri
+            val licenseUrl = mediaList[i].drmLicenseUrl
+            if (licenseUri != null)
+                drmLicenseUri = licenseUri
+            else if (licenseUrl != null)
+                drmLicenseUri = licenseUrl
+            drmSessionForClearContent = mediaList[i].drmSessionForClearContent == true
+            drmMultiSession = mediaList[i].drmMultiSession == true
+            drmForceDefaultLicenseUri = mediaList[i].drmForceDefaultLicenseUri == true
+            subtitleUri = Uri.parse(mediaList[i].subtitleUri)
             subtitleMimeType = mediaList[i].subtitleMimeType
             subtitleLanguage = mediaList[i].subtitleLanguage
 
-            if (!name.isNullOrEmpty()) mediaItemsBuilder.setMediaMetadata(MediaMetadata.Builder().setTitle(name).build())
-            if (!uri.isNullOrEmpty()) mediaItemsBuilder.setUri(uri)
-            if (!drmScheme.isNullOrEmpty()) {
-                val drmConfigurationBuilder = MediaItem.DrmConfiguration.Builder(drmConfigScheme(drmScheme))
-                    .setPlayClearContentWithoutKey(drmSessionForClearContent ?: false)
-                    .setForceDefaultLicenseUri(drmForceDefaultLicenseUri ?: false)
-                if (!drmLicenseUri.isNullOrEmpty()) drmConfigurationBuilder.setLicenseUri(drmLicenseUri)
-                mediaItemsBuilder.setDrmConfiguration(drmConfigurationBuilder.build())
+            @Nullable val adaptiveMimeType = Util.getAdaptiveMimeTypeForContentType(
+                if (TextUtils.isEmpty(extension)) Util.inferContentType(uri) else Util.inferContentTypeForExtension(extension!!)
+            )
+            mediaItem
+                .setUri(uri)
+                .setMediaMetadata(MediaMetadata.Builder().setTitle(title).build())
+                .setMimeType(adaptiveMimeType)
+                .setClippingConfiguration(clippingConfiguration.build())
+            if (drmUuid != null) {
+                mediaItem
+                    .setDrmConfiguration(MediaItem.DrmConfiguration.Builder(drmUuid)
+                        .setLicenseUri(drmLicenseUri)
+                        .setLicenseRequestHeaders(drmLicenseRequestHeaders)
+                        .setForceSessionsForAudioAndVideoTracks(drmSessionForClearContent)
+                        .setMultiSession(drmMultiSession)
+                        .setForceDefaultLicenseUri(drmForceDefaultLicenseUri)
+                        .build())
+            }  else {
+                Preconditions.checkState(
+                    drmLicenseUri == null,
+                    "drm_uuid is required if drm_license_uri is set."
+                )
+                Preconditions.checkState(
+                    drmLicenseRequestHeaders.isEmpty(),
+                    "drm_uuid is required if drm_key_request_properties is set."
+                )
+                Preconditions.checkState(
+                    !drmSessionForClearContent,
+                    "drm_uuid is required if drm_session_for_clear_content is set."
+                )
+                Preconditions.checkState(
+                    !drmMultiSession,
+                    "drm_uuid is required if drm_multi_session is set."
+                )
+                Preconditions.checkState(
+                    !drmForceDefaultLicenseUri,
+                    "drm_uuid is required if drm_force_default_license_uri is set."
+                )
             }
-            if (!adTagUri.isNullOrEmpty()) mediaItemsBuilder.setAdsConfiguration(MediaItem.AdsConfiguration.Builder(Uri.parse(adTagUri)).build())
-            if (clipEndPositionMs != null) mediaItemsBuilder.setClippingConfiguration(
-                MediaItem.ClippingConfiguration.Builder()
-                    .setEndPositionMs(clipEndPositionMs.toLong())
-                    .build())
-            if (clipStartPositionMs != null) mediaItemsBuilder.setClippingConfiguration(
-                MediaItem.ClippingConfiguration.Builder()
-                    .setStartPositionMs(clipStartPositionMs.toLong())
-                    .build())
-            if (!subtitleUri.isNullOrEmpty()) {
-                val subtitleConfiguration = MediaItem.SubtitleConfiguration.Builder(Uri.parse(subtitleUri))
-                if (!subtitleMimeType.isNullOrEmpty()) subtitleConfiguration.setMimeType(subtitleMimeType)
-                if (!subtitleLanguage.isNullOrEmpty()) subtitleConfiguration.setLanguage(subtitleLanguage)
-                mediaItemsBuilder.setSubtitleConfigurations(ImmutableList.of(subtitleConfiguration.build()))
+            if (subtitleUri != null) {
+                val subtitleConfiguration = MediaItem.SubtitleConfiguration.Builder(subtitleUri)
+                    .setMimeType(Preconditions.checkNotNull(subtitleMimeType) {
+                        "subtitle_mime_type is required if subtitle_uri is set."
+                    })
+                    .setLanguage(subtitleLanguage)
+                    .build()
+                mediaItem.setSubtitleConfigurations(ImmutableList.of(subtitleConfiguration))
             }
-            mediaItems.add(mediaItemsBuilder.build())
+
+            mediaItems = Collections.unmodifiableList(Collections.singletonList(mediaItem.build()))
         }
         return mediaItems
-    }
-
-    private fun drmConfigScheme(scheme: String) : UUID {
-        if (scheme == "widevine") return C.WIDEVINE_UUID
-        if (scheme == "playready") return C.PLAYREADY_UUID
-        return C.UUID_NIL
     }
 
     fun selectAudioTrack(
