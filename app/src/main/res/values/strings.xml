@@ -33,26 +33,24 @@
     <string name="error_retrofit_response">No response found</string>
     <string name="error_no_matches_today">No matches today</string>
     <string name="error_no_matches">No matches found</string>
-    <string name="error_failed_load_news">Unable to fetch news</string>
-    <string name="error_activity_not_found">No activity found to handle intent</string>
+    <string name="error_no_leagues">No leagues found</string>
     <string name="error_initialize_youtube_player">Failed to initialize player</string>
     <string name="error_empty_url">Empty URL</string>
-    
+
     <!-- Navigation drawer -->
-    <item name="home_item" type="string">Home</item>
-    <item name="labels_item" type="string">More</item>
-    <item name="home_subheader_title" type="string">Home</item>
-    <item name="labels_subheader_title" type="string">More</item>
-    <item name="network_stream_title" type="string">Network stream</item>
-    <item name="matches_title" type="string">Matches</item>
-    <item name="leagues_title" type="string">Leagues</item>
-    <item name="news_title" type="string">News</item>
-    <item name="more_title" type="string">More</item>
+    <string name="home_subheader_title">Home</string>
+    <string name="labels_subheader_title">More</string>
+    <string name="network_stream_title">Network stream</string>
+    <string name="matches_title">Matches</string>
+    <string name="leagues_title">Leagues</string>
+    <string name="news_title">News</string>
+    <string name="more_title">More</string>
+
     <!-- Navigation Rail, Bottom Navigation -->
-    <item name="matches_destination_label" type="string">Matches</item>
-    <item name="leagues_destination_label" type="string">Leagues</item>
-    <item name="news_destination_label" type="string">News</item>
-    <item name="more_destination_label" type="string">More</item>
+    <string name="matches_destination_label">Matches</string>
+    <string name="leagues_destination_label">Leagues</string>
+    <string name="news_destination_label">News</string>
+    <string name="more_destination_label">More</string>
 
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
@@ -60,7 +58,6 @@
     <string name="proceed">Proceed</string>
     <string name="continue_page">Continue</string>
     <string name="search">Search</string>
-    <string name="network_stream">Network stream</string>
     <string name="settings">Settings</string>
     <string name="subtitles">Subtitles</string>
     <string name="audio">Audio</string>
@@ -73,10 +70,6 @@
     <string name="_0">0</string>
     <string name="playback_speed">Playback speed</string>
     <string name="url_404_error">https://ysports.app/assets/web/error_404/index.html</string>
-    <string name="title_matches">Matches</string>
-    <string name="title_leagues">Leagues</string>
-    <string name="title_news">News</string>
-    <string name="title_more">More</string>
     <string name="previous">Previous</string>
     <string name="today">Today</string>
     <string name="upcoming">Upcoming</string>
@@ -92,4 +85,5 @@
     <string name="allow">Allow</string>
     <string name="download">Download</string>
     <string name="play">Play</string>
+    <string name="title_activity_player_chooser">PlayerChooserActivity</string>
 </resources>
