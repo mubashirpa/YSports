@@ -1,6 +1,7 @@
 package ysports.app.ui.matches
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -17,6 +18,7 @@ import com.google.android.material.tabs.TabLayout
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import ysports.app.PlayerChooserActivity
 import ysports.app.R
 import ysports.app.WebActivity
 import ysports.app.YouTubePlayerActivity
@@ -30,11 +32,13 @@ import ysports.app.player.PlayerUtil
 import ysports.app.util.AppUtil
 import ysports.app.util.RecyclerDecorationVertical
 import ysports.app.util.RecyclerTouchListener
+import java.net.URLDecoder
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.concurrent.schedule
 
+@Suppress("PrivatePropertyName")
 class MatchesFragment : Fragment() {
 
     private var _binding: FragmentMatchesBinding? = null
@@ -52,6 +56,11 @@ class MatchesFragment : Fragment() {
     private val dateFormat = SimpleDateFormat("dd MM yyyy", Locale.getDefault())
     private val currentDate = Date()
     private lateinit var tabLayout: TabLayout
+    private val playerUtil = PlayerUtil()
+
+    private val CHROME_SCHEME = "chrome:"
+    private val VIDEO_SCHEME = "video:"
+    private val MEDIA_SCHEME = "media:"
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -106,18 +115,25 @@ class MatchesFragment : Fragment() {
                         if (!filteredList[position].url.isNullOrEmpty()) {
                             val url: String = filteredList[position].url!!
                             when {
-                                url.startsWith("chrome://") -> {
-                                    val replacedURL: String = url.replace("chrome://", "")
-                                    AppUtil(requireContext()).openCustomTabs(replacedURL)
+                                url.startsWith(CHROME_SCHEME) -> {
+                                    val replacedURL = URLDecoder.decode(url.substring(CHROME_SCHEME.length), "UTF-8")
+                                    AppUtil(context).openCustomTabs(replacedURL)
                                 }
-                                url.startsWith("video://") -> {
-                                    val replacedURL = url.replace("video://", "")
+                                url.startsWith(VIDEO_SCHEME) -> {
+                                    val replacedURL = URLDecoder.decode(url.substring(VIDEO_SCHEME.length), "UTF-8")
                                     if (replacedURL.startsWith("https://youtu.be/")) {
                                         val intent = Intent(context, YouTubePlayerActivity::class.java).apply {
                                             putExtra("VIDEO_URL", replacedURL)
                                         }
                                         startActivity(intent)
+                                    } else playerUtil.loadPlayer(context, Uri.parse(replacedURL), true)
+                                }
+                                url.startsWith(MEDIA_SCHEME) -> {
+                                    val replacedURL = URLDecoder.decode(url.substring(MEDIA_SCHEME.length), "UTF-8")
+                                    val intent = Intent(context, PlayerChooserActivity::class.java).apply {
+                                        putExtra("JSON_URL", replacedURL)
                                     }
+                                    startActivity(intent)
                                 }
                                 else -> {
                                     val intent = Intent(context, WebActivity::class.java).apply {
@@ -128,7 +144,6 @@ class MatchesFragment : Fragment() {
                             }
                         } else if (!filteredList[position].media.isNullOrEmpty()) {
                             val mediaList: ArrayList<Media> = filteredList[position].media ?: ArrayList()
-                            val playerUtil = PlayerUtil()
                             val mediaItems: List<MediaItem> = playerUtil.createMediaItems(
                                 mediaList
                             )
