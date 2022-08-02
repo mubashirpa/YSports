@@ -41,7 +41,7 @@ class YouTubePlay(var context: Context) {
                             .setTitle(vMeta!!.title ?: "")
                             .setItems(videoItems) { _, position ->
                                 val playerUtil = PlayerUtil()
-                                playerUtil.loadPlayer(context, Uri.parse(videoURL[position]), true)
+                                playerUtil.loadPlayer(context, Uri.parse(videoURL[position]), null, true)
                             }
                             .show()
                     } else {

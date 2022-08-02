@@ -307,7 +307,7 @@ class BrowserActivity : AppCompatActivity() {
 
             if (mimetype.contains("video")) {
                 downloadDialogBuilder.setNeutralButton(resources.getString(R.string.play)) { _, _ ->
-                    PlayerUtil().loadPlayer(context, Uri.parse(url), true)
+                    PlayerUtil().loadPlayer(context, Uri.parse(url), fileName, true)
                 }
             }
             val wifiConnected = NetworkUtil().wifiConnected(context)

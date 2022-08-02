@@ -32,19 +32,19 @@ class WebAppInterface(
     }
 
     @JavascriptInterface
-    fun loadPlayer(url: String?) {
+    fun play(url: String?, title: String?) {
         if (url != null) {
             if (url.startsWith("https://youtu.be/")) {
                 val intent = Intent(context, YouTubePlayerActivity::class.java).apply {
                     putExtra("VIDEO_URL", url)
                 }
                 context.startActivity(intent)
-            } else PlayerUtil().loadPlayer(context, Uri.parse(url), true)
+            } else PlayerUtil().loadPlayer(context, Uri.parse(url), title, true)
         }
     }
 
     @JavascriptInterface
-    fun loadPlayerMedia(json: String?) {
+    fun media(json: String?) {
         val intent = Intent(context, PlayerChooserActivity::class.java).apply {
             putExtra("JSON_URL", json)
         }

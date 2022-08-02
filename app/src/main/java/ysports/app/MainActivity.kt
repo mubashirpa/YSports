@@ -239,8 +239,7 @@ class MainActivity : AppCompatActivity() {
                 Log.d(TAG, "Loading player")
                 try {
                     val videoUri = Uri.parse(appLinkData.getQueryParameter("url"))
-                    Log.d(TAG, videoUri.toString())
-                    playerUtil.loadPlayer(context, videoUri, true)
+                    playerUtil.loadPlayer(context, videoUri, null, true)
                 } catch (e: NullPointerException) {
                     Log.d(TAG, "Failed to load player")
                 }
@@ -352,7 +351,7 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(context, "Invalid URL", Toast.LENGTH_LONG).show()
             return
         }
-        playerUtil.loadPlayer(context, Uri.parse(url), true)
+        playerUtil.loadPlayer(context, Uri.parse(url), null, true)
     }
 
     private fun isTablet() : Boolean {

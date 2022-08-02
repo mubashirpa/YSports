@@ -624,7 +624,7 @@ class WebActivity : AppCompatActivity() {
                         }
                         startActivity(intent)
                     } else {
-                        playerUtil.loadPlayer(context, Uri.parse(replacedURL), true)
+                        playerUtil.loadPlayer(context, Uri.parse(replacedURL), null, true)
                     }
                 }
                 url?.startsWith(INTENT_SCHEME) == true -> {

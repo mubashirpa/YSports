@@ -120,13 +120,14 @@ class MatchesFragment : Fragment() {
                                     AppUtil(context).openCustomTabs(replacedURL)
                                 }
                                 url.startsWith(VIDEO_SCHEME) -> {
+                                    val title = "${filteredList[position].homeTeam} vs ${filteredList[position].awayTeam} (${filteredList[position].leagueName})"
                                     val replacedURL = URLDecoder.decode(url.substring(VIDEO_SCHEME.length), "UTF-8")
                                     if (replacedURL.startsWith("https://youtu.be/")) {
                                         val intent = Intent(context, YouTubePlayerActivity::class.java).apply {
                                             putExtra("VIDEO_URL", replacedURL)
                                         }
                                         startActivity(intent)
-                                    } else playerUtil.loadPlayer(context, Uri.parse(replacedURL), true)
+                                    } else playerUtil.loadPlayer(context, Uri.parse(replacedURL), title, true)
                                 }
                                 url.startsWith(MEDIA_SCHEME) -> {
                                     val replacedURL = URLDecoder.decode(url.substring(MEDIA_SCHEME.length), "UTF-8")
