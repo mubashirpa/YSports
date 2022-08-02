@@ -2,7 +2,6 @@ package ysports.app
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.AsyncTask
@@ -35,7 +34,7 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import ysports.app.databinding.ActivityPlayerChooserBinding
 import ysports.app.player.DemoUtil
-import ysports.app.player.IntentUtil
+import ysports.app.player.PlayerUtil
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
@@ -123,10 +122,7 @@ class PlayerChooserActivity : AppCompatActivity(), OnChildClickListener {
         prefEditor.apply()
 
         val playlistHolder: PlaylistHolder = view?.tag as PlaylistHolder
-        val intent = Intent(this, PlayerActivity::class.java)
-        intent.putExtra(IntentUtil.PREFER_EXTENSION_DECODERS_EXTRA, true)
-        IntentUtil.addToIntent(playlistHolder.mediaItems, intent)
-        startActivity(intent)
+        PlayerUtil().loadPlayer(context, playlistHolder.mediaItems, true)
         return true
     }
 
