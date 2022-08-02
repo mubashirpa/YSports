@@ -124,6 +124,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
     private lateinit var exoUnlock: ImageButton
     private lateinit var navigationButton: ImageButton
     private lateinit var exoPIP: ImageButton
+    private lateinit var exoTitle: TextView
     private lateinit var exoPrevious: ImageButton
     private lateinit var exoNext: ImageButton
     private lateinit var liveIndicator: Chip
@@ -161,6 +162,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         exoUnlock = findViewById(R.id.exo_unlock)
         navigationButton = findViewById(R.id.exo_navigation)
         exoPIP = findViewById(R.id.exo_pip)
+        exoTitle = findViewById(R.id.exo_title)
         exoPrevious = findViewById(R.id.exo_prev)
         exoNext = findViewById(R.id.exo_next)
         liveIndicator = findViewById(R.id.exo_live_indicator)
@@ -633,6 +635,13 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
                 exoPrevious.hideView()
                 exoNext.hideView()
             }
+        }
+
+        override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
+            super.onMediaMetadataChanged(mediaMetadata)
+            val mediaTitle = mediaMetadata.title
+            if (mediaTitle != null && mediaTitle != "null")
+                exoTitle.text = mediaTitle
         }
     }
 
