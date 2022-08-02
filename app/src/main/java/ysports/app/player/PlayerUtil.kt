@@ -30,7 +30,6 @@ class PlayerUtil {
     private var selectedSpeedPosition = 3
     private var selectedSpeedChoice = 3
     private var isVideoTrackAuto = true
-    private var maxVideoBitrate: Int = 0
 
     fun loadPlayer(context: Context, mediaItems: List<MediaItem>, preferExtensionDecoders: Boolean) {
         val intent = Intent(context, PlayerActivity::class.java).apply {
@@ -40,13 +39,15 @@ class PlayerUtil {
         context.startActivity(intent)
     }
 
-    fun loadPlayer(context: Context, videoUri: Uri, preferExtensionDecoders: Boolean) {
+    fun loadPlayer(context: Context, videoUri: Uri, title: String?, preferExtensionDecoders: Boolean) {
         val intent = Intent(context, PlayerActivity::class.java).apply {
             putExtra(IntentUtil.PREFER_EXTENSION_DECODERS_EXTRA, preferExtensionDecoders)
         }
-        val mediaItems: List<MediaItem> = ImmutableList.of(
-            MediaItem.fromUri(videoUri)
-        )
+        val mediaItem = MediaItem.Builder()
+            .setUri(videoUri)
+            .setMediaMetadata(MediaMetadata.Builder().setTitle(title ?: videoUri.lastPathSegment.toString()).build())
+            .build()
+        val mediaItems: List<MediaItem> = ImmutableList.of(mediaItem)
         IntentUtil.addToIntent(mediaItems, intent)
         context.startActivity(intent)
     }
@@ -57,7 +58,7 @@ class PlayerUtil {
         var uri: Uri?
         var extension: String?
         var title: String?
-        var subtitleUri: Uri?
+        var subtitleUri: Uri? = null
         var subtitleMimeType: String?
         var subtitleLanguage: String?
         var drmUuid: UUID? = null
@@ -66,9 +67,9 @@ class PlayerUtil {
         var drmSessionForClearContent: Boolean
         var drmMultiSession: Boolean
         var drmForceDefaultLicenseUri: Boolean
-        val clippingConfiguration = MediaItem.ClippingConfiguration.Builder()
+        var clippingConfiguration = MediaItem.ClippingConfiguration.Builder()
 
-        var mediaItems: MutableList<MediaItem> = ArrayList()
+        val mediaItems: MutableList<MediaItem> = ArrayList()
         val mediaItem = MediaItem.Builder()
 
         for (i in 0 until mediaList.size) {
@@ -96,7 +97,9 @@ class PlayerUtil {
             drmSessionForClearContent = mediaList[i].drmSessionForClearContent == true
             drmMultiSession = mediaList[i].drmMultiSession == true
             drmForceDefaultLicenseUri = mediaList[i].drmForceDefaultLicenseUri == true
-            subtitleUri = Uri.parse(mediaList[i].subtitleUri)
+            val subtitle = mediaList[i].subtitleUri
+            if (subtitle != null)
+                subtitleUri = Uri.parse(subtitle)
             subtitleMimeType = mediaList[i].subtitleMimeType
             subtitleLanguage = mediaList[i].subtitleLanguage
 
@@ -149,7 +152,12 @@ class PlayerUtil {
                 mediaItem.setSubtitleConfigurations(ImmutableList.of(subtitleConfiguration))
             }
 
-            mediaItems = Collections.unmodifiableList(Collections.singletonList(mediaItem.build()))
+            mediaItems.add(mediaItem.build())
+
+            subtitleUri = null
+            drmUuid = null
+            drmLicenseUri = null
+            clippingConfiguration = MediaItem.ClippingConfiguration.Builder()
         }
         return mediaItems
     }
@@ -341,7 +349,6 @@ class PlayerUtil {
                         selectedVideoPosition = 1
                         selectedVideoChoice = 1
                     }
-                    if (trackFormat.bitrate > maxVideoBitrate) maxVideoBitrate = trackFormat.bitrate
                     var bitrate = ""
                     if (trackFormat.bitrate != -1) {
                         bitrate = String.format("- %.2f Mbps", trackFormat.bitrate * 0.000001)
@@ -389,8 +396,7 @@ class PlayerUtil {
                     player?.trackSelectionParameters!!
                         .buildUpon()
                         .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, false)
-                        .setMaxVideoSizeSd()
-                        .setMaxVideoBitrate(maxVideoBitrate)
+                        .clearOverride(videoTrackGroup?.mediaTrackGroup!!)
                         .build()
             }
             else -> {
