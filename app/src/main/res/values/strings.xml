@@ -56,7 +56,7 @@
     <!-- Activity labels -->
     <string name="title_activity_main">YSports</string>
     <string name="title_activity_player">Play</string>
-    <string name="title_activity_player_chooser">Player Chooser</string>
+    <string name="title_activity_player_chooser">Media</string>
 
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
