@@ -43,7 +43,6 @@
     <color name="player_seekbar_played">#0D47A1</color>
     <color name="image_background_placeholder">#3C4043</color>
     <color name="surfaceDark">#131313</color>
-    <color name="black_opacity_60">#99000000</color>
     <color name="watermark">#AAAAAA</color>
     <color name="navigation_bar">#F2ECF6</color>
 </resources>
