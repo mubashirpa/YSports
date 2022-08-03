@@ -172,7 +172,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        tablet = isTablet()
+        tablet = AppUtil(context).isTablet()
         handleIntent(intent)
         checkUpdate()
         createNotificationChannel()
@@ -303,7 +303,7 @@ class MainActivity : AppCompatActivity() {
         val drawerMenuItem = navigationDrawer.menu.getItem(0)
         if (tablet && drawerMenuItem.hasSubMenu()) {
             val subMenu = drawerMenuItem.subMenu
-            for (i in 0..subMenu.size()) subMenu.getItem(i).isChecked = false
+            for (i in 0 until subMenu.size()) subMenu.getItem(i).isChecked = false
             subMenu.getItem(selectedItem).isChecked = true
         }
         navigationRail?.menu?.getItem(selectedItem)?.isChecked = true
@@ -352,11 +352,5 @@ class MainActivity : AppCompatActivity() {
             return
         }
         playerUtil.loadPlayer(context, Uri.parse(url), null, true)
-    }
-
-    private fun isTablet() : Boolean {
-        val widthDp = resources.displayMetrics.run { widthPixels / density }
-        Log.d("NewsFragment", widthDp.toString())
-        return widthDp >= 600
     }
 }
