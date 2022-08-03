@@ -8,9 +8,7 @@ import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
 import ysports.app.R
 
-class AppUtil(
-    val context: Context
-) {
+class AppUtil(val context: Context) {
 
     fun openCustomTabs(url: String) {
         val colorInt: Int = ContextCompat.getColor(context, R.color.primary)
@@ -25,5 +23,14 @@ class AppUtil(
         } catch (e: Exception) {
             Toast.makeText(context, "Failed to load url", Toast.LENGTH_LONG).show()
         }
+    }
+
+    fun isTablet() : Boolean {
+        val widthDp = context.resources.displayMetrics.run { widthPixels / density }
+        val heightDp = context.resources.displayMetrics.run { heightPixels / density }
+        if (heightDp < widthDp) {
+            return heightDp >= 600
+        }
+        return widthDp >= 600
     }
 }
