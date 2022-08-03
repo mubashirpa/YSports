@@ -2,7 +2,6 @@ package ysports.app.ui.news
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -25,6 +24,7 @@ import ysports.app.api.newsapi.org.Articles
 import ysports.app.api.newsapi.org.NewsApi
 import ysports.app.api.newsapi.org.NewsResponse
 import ysports.app.databinding.FragmentNewsBinding
+import ysports.app.util.AppUtil
 import ysports.app.util.RecyclerTouchListener
 import java.util.*
 import kotlin.concurrent.schedule
@@ -84,6 +84,7 @@ class NewsFragment : Fragment() {
     }
 
     private fun readNewsDB() {
+        val isTablet = AppUtil(requireContext()).isTablet()
         newsApi = NewsApi.create().getNews("top-headlines", getString(R.string.news_api_v2), "sports", "in")
         newsApi!!.enqueue(object : Callback<NewsResponse> {
             override fun onResponse(call: Call<NewsResponse>, response: Response<NewsResponse>) {
@@ -99,7 +100,7 @@ class NewsFragment : Fragment() {
                 val newsAdapter = NewsAdapter(requireContext(), newsList)
 
                 var recyclerLayoutManager = LinearLayoutManager(context)
-                if (isTablet()) {
+                if (isTablet) {
                     recyclerLayoutManager = GridLayoutManager(context, 2)
                     recyclerLayoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
                         override fun getSpanSize(position: Int): Int {
@@ -145,11 +146,5 @@ class NewsFragment : Fragment() {
         stateDescription.text = resources.getString(error)
         retryButton.isVisible = showButton
         errorView.showView()
-    }
-
-    private fun isTablet() : Boolean {
-        val widthDp = resources.displayMetrics.run { widthPixels / density }
-        Log.d("NewsFragment", widthDp.toString())
-        return widthDp >= 600
     }
 }
