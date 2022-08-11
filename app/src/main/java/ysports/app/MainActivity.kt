@@ -1,5 +1,6 @@
 package ysports.app
 
+import android.Manifest
 import android.app.NotificationManager
 import android.content.ClipboardManager
 import android.content.Context
@@ -14,7 +15,10 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.webkit.URLUtil
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.appbar.MaterialToolbar
@@ -71,6 +75,8 @@ class MainActivity : AppCompatActivity() {
         navigationDrawer = binding.navigationView
         navigationBar = binding.bottomNavigation
         navigationRail = binding.navigationRail
+
+        onBackPressedDispatcher.addCallback(onBackPressedCallback)
 
         // Removes all the available fragments (in case of app restart)
         supportFragmentManager.fragments.let {
@@ -175,24 +181,22 @@ class MainActivity : AppCompatActivity() {
         tablet = AppUtil(context).isTablet()
         handleIntent(intent)
         checkUpdate()
-        createNotificationChannel()
+        initializeNotification()
     }
 
-    override fun onBackPressed() {
-        if (drawerLayout.isDrawerOpen(binding.navigationView)) {
-            drawerLayout.close()
-        } else {
-            super.onBackPressed()
-            finish()
+    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            when {
+                drawerLayout.isDrawerOpen(binding.navigationView) -> drawerLayout.close()
+                else -> finish()
+            }
         }
     }
 
     private fun checkUpdate() {
-        val currentVersion: String = try {
-            packageManager.getPackageInfo(packageName, 0).versionName
-        } catch (nameNotFoundException: PackageManager.NameNotFoundException) {
-            return
-        }
+        // Version name should specified inside build gradle
+        val currentVersion: String = BuildConfig.VERSION_NAME
+        Log.d(TAG, currentVersion)
         val database = Firebase.database
         val reference = database.getReference("version")
         reference.addValueEventListener(object : ValueEventListener {
@@ -221,12 +225,52 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun createNotificationChannel() {
+    private fun initializeNotification() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channelId: String = getString(R.string.default_notification_channel_id)
             val channelName: String = getString(R.string.default_notification_channel_name)
             val channelDescription = getString(R.string.default_notification_channel_description)
             NotificationUtil(context).createNotificationChannel(channelName, channelDescription, channelId, NotificationManager.IMPORTANCE_DEFAULT)
+        }
+
+        if (Build.VERSION.SDK_INT >= 33) {
+            val notificationPermission = Manifest.permission.POST_NOTIFICATIONS
+            when {
+                isPermissionGranted(notificationPermission) -> {
+                    Log.d(TAG, "Permission already granted")
+                }
+                shouldShowRequestPermissionRationale(notificationPermission) -> {
+                    MaterialAlertDialogBuilder(context)
+                        .setTitle("Get notified!")
+                        .setMessage("Get notification about latest match updates and news")
+                        .setNegativeButton(resources.getString(R.string.skip)) { _, _ ->
+                            Log.d(TAG, "Permission denied")
+                        }
+                        .setPositiveButton(resources.getString(R.string.im_in)) { _, _ ->
+                            requestPermissionLauncher.launch(notificationPermission)
+                        }
+                        .setCancelable(false)
+                        .show()
+                }
+                else -> {
+                    requestPermissionLauncher.launch(notificationPermission)
+                }
+            }
+        }
+    }
+
+    @Suppress("SameParameterValue")
+    private fun isPermissionGranted(permission: String) : Boolean {
+        return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Log.d(TAG, "Permission granted")
+        } else {
+            Log.d(TAG, "Permission denied")
         }
     }
 
@@ -303,7 +347,7 @@ class MainActivity : AppCompatActivity() {
         val drawerMenuItem = navigationDrawer.menu.getItem(0)
         if (tablet && drawerMenuItem.hasSubMenu()) {
             val subMenu = drawerMenuItem.subMenu
-            for (i in 0 until subMenu.size()) subMenu.getItem(i).isChecked = false
+            for (i in 0 until subMenu!!.size()) subMenu.getItem(i).isChecked = false
             subMenu.getItem(selectedItem).isChecked = true
         }
         navigationRail?.menu?.getItem(selectedItem)?.isChecked = true
