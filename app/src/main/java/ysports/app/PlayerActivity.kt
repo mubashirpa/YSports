@@ -727,7 +727,6 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         binding.appName.isVisible = !isInPictureInPictureMode
     }
 
-    @SuppressLint("UnspecifiedImmutableFlag")
     @RequiresApi(Build.VERSION_CODES.O)
     private fun updatePictureInPictureParams() : PictureInPictureParams {
         val paramsBuilder: PictureInPictureParams.Builder = PictureInPictureParams.Builder()
@@ -737,11 +736,8 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         playerView?.getGlobalVisibleRect(sourceRectHint)
 
         val actionIntent = Intent(ACTION_PIP_MEDIA_CONTROL)
-        val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        val pendingIntent =
             PendingIntent.getBroadcast(context, PIP_REQUEST_CODE, actionIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-        } else {
-            PendingIntent.getBroadcast(context, PIP_REQUEST_CODE, actionIntent, PendingIntent.FLAG_UPDATE_CURRENT)
-        }
         PIP_ACTION_ICON_ID = if (player?.isPlaying == true) R.drawable.ic_baseline_pause_24 else R.drawable.ic_baseline_play_arrow_24
         val icon: Icon = Icon.createWithResource(context, PIP_ACTION_ICON_ID)
 
