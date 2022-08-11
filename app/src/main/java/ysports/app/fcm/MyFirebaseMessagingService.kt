@@ -1,6 +1,5 @@
 package ysports.app.fcm
 
-import android.annotation.SuppressLint
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
@@ -14,8 +13,6 @@ import ysports.app.R
 import ysports.app.util.NotificationUtil
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
-
-    private var notificationId = 100
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         Log.d(TAG, "From: ${remoteMessage.from}")
@@ -47,29 +44,21 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         }
     }
 
-    @SuppressLint("UnspecifiedImmutableFlag")
     private fun sendNotification(messageTitle: String?, messageBody: String?) {
-        notificationId++
+        createNotificationChannel()
         val channelId: String = getString(R.string.default_notification_channel_id)
         // Create an explicit intent for an Activity in your app
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
-        val pendingIntent: PendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-        } else {
-            PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT)
-        }
+        val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            NotificationUtil(this).createNotification(
-                channelId, messageTitle!!, messageBody!!, NotificationManager.IMPORTANCE_HIGH, pendingIntent, notificationId
-            )
+        val priority = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            NotificationManager.IMPORTANCE_HIGH
         } else {
-            NotificationUtil(this).createNotification(
-                channelId, messageTitle!!, messageBody!!, NotificationCompat.PRIORITY_HIGH, pendingIntent, notificationId
-            )
+            NotificationCompat.PRIORITY_HIGH
         }
+        NotificationUtil(this).sendNotification(channelId, messageTitle!!, messageBody!!, priority, pendingIntent)
     }
 
     companion object {
