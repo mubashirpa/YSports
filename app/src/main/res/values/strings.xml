@@ -62,6 +62,8 @@
     <string name="ok">OK</string>
     <string name="block">Block</string>
     <string name="proceed">Proceed</string>
+    <string name="im_in">I\'m in</string>
+    <string name="skip">Skip</string>
     <string name="continue_page">Continue</string>
     <string name="search">Search</string>
     <string name="settings">Settings</string>
