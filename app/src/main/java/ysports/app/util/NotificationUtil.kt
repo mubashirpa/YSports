@@ -15,27 +15,27 @@ class NotificationUtil(val context: Context) {
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun createNotificationChannel(
-        name: String,
-        description: String,
-        id: String,
-        importance: Int
+        channelName: String,
+        channelDescription: String,
+        channelId: String,
+        channelImportance: Int
     ) : String {
-        val channel = NotificationChannel(id, name, importance)
-        channel.description = description
+        val channel = NotificationChannel(channelId, channelName, channelImportance)
+        channel.description = channelDescription
         val notificationManager = context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.createNotificationChannel(channel)
-        return id
+        if (notificationManager.getNotificationChannel(channelId) != null)
+            notificationManager.createNotificationChannel(channel)
+        return channelId
     }
 
-    fun createNotification(
-        id: String,
+    fun sendNotification(
+        channelId: String,
         title: String,
         message: String,
         priority: Int,
-        intent: PendingIntent,
-        notificationID: Int
+        intent: PendingIntent
     ) {
-        val builder = NotificationCompat.Builder(context, id)
+        val builder = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
             .setContentText(message)
@@ -46,7 +46,9 @@ class NotificationUtil(val context: Context) {
 
         with(NotificationManagerCompat.from(context)) {
             // notificationId is a unique int for each notification that you must define
-            notify(notificationID, builder.build())
+            notify(getUniqueId(), builder.build())
         }
     }
+
+    private fun getUniqueId() = ((System.currentTimeMillis() % 10000).toInt())
 }
