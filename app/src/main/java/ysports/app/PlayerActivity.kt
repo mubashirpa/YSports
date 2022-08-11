@@ -40,6 +40,7 @@ import android.view.View.OnClickListener
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.annotation.NonNull
 import androidx.annotation.Nullable
 import androidx.annotation.RequiresApi
@@ -181,6 +182,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         gestureDetectorCompat = GestureDetectorCompat(context, this)
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         exoPIP.isVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+        onBackPressedDispatcher.addCallback(onBackPressedCallback)
 
         playerView = binding.playerView
         playerView?.setControllerVisibilityListener(this)
@@ -272,13 +274,15 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
 
     /* END */
 
-    override fun onBackPressed() {
-        if (playerLocked) {
-            showToast("Player is locked")
-            exoUnlock.showView()
-        } else {
-            super.onBackPressed()
-            finish()
+    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            when {
+                playerLocked -> {
+                    showToast("Player is locked")
+                    exoUnlock.showView()
+                }
+                else -> finish()
+            }
         }
     }
 
@@ -327,7 +331,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
     override fun onClick(v: View?) {
         when (v) {
             selectTracksButton -> openSettings()
-            navigationButton -> onBackPressed()
+            navigationButton -> onBackPressedCallback.handleOnBackPressed()
             exoPIP -> enterPictureInPicture()
             changeAspectRatioButton -> {
                 if (playerView!!.resizeMode != AspectRatioFrameLayout.RESIZE_MODE_FILL) {
@@ -884,16 +888,20 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
 
     /* Experimental */
 
-    override fun onDown(p0: MotionEvent?): Boolean {
+    override fun onDown(p0: MotionEvent): Boolean {
         minSwipeY = 0f
         return false
     }
 
-    override fun onShowPress(p0: MotionEvent?) = Unit
+    override fun onShowPress(p0: MotionEvent) {
+        return
+    }
 
-    override fun onSingleTapUp(p0: MotionEvent?): Boolean = false
+    override fun onSingleTapUp(p0: MotionEvent): Boolean {
+        return false
+    }
 
-    override fun onScroll(event1: MotionEvent?, event2: MotionEvent?, distanceX: Float, distanceY: Float): Boolean {
+    override fun onScroll(event1: MotionEvent, event2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
         if (playerLocked) return false
 
         minSwipeY += distanceY
@@ -902,55 +910,57 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         val screenHeight = Resources.getSystem().displayMetrics.heightPixels
         val border = 20 * Resources.getSystem().displayMetrics.density.toInt()
 
-        if (event1 != null) {
-            if( event1.x < border || event1.y < border || event1.x > screenWidth - border || event1.y > screenHeight - border)
-                return false
+        if( event1.x < border || event1.y < border || event1.x > screenWidth - border || event1.y > screenHeight - border)
+            return false
 
-            if(abs(distanceX) < abs(distanceY) && abs(minSwipeY) > 50){
-                if(event1.x < screenWidth/2){
-                    //brightness
-                    binding.brightnessControl.showView()
-                    binding.volumeControl.hideView()
-                    val increase = distanceY > 0
-                    val newValue = if(increase) brightness + 1 else brightness - 1
-                    if(newValue in 0..30) brightness = newValue
-                    setScreenBrightness(brightness)
-                }
-                else {
-                    //volume
-                    val volumeIconSrc: Int
-                    binding.brightnessControl.hideView()
-                    binding.volumeControl.showView()
-                    val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-                    volume = currentVolume
-                    val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-                    val increase = distanceY > 0
-                    val newValue: Int
-                    if(increase) {
-                        newValue = volume + 1
-                        volumeIconSrc = R.drawable.ic_baseline_volume_up_24
-                    } else {
-                        newValue = volume - 1
-                        volumeIconSrc = if (newValue > 0) {
-                            R.drawable.ic_baseline_volume_down_24
-                        } else {
-                            R.drawable.ic_baseline_volume_mute_24
-                        }
-                    }
-                    if(newValue in 0..maxVolume) volume = newValue
-                    binding.volumeIcon.setImageResource(volumeIconSrc)
-                    binding.volumeProgress.progress = (volume * 100) / maxVolume
-                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0)
-                }
-                minSwipeY = 0f
+        if(abs(distanceX) < abs(distanceY) && abs(minSwipeY) > 50){
+            if(event1.x < screenWidth/2){
+                //brightness
+                binding.brightnessControl.showView()
+                binding.volumeControl.hideView()
+                val increase = distanceY > 0
+                val newValue = if(increase) brightness + 1 else brightness - 1
+                if(newValue in 0..30) brightness = newValue
+                setScreenBrightness(brightness)
             }
+            else {
+                //volume
+                val volumeIconSrc: Int
+                binding.brightnessControl.hideView()
+                binding.volumeControl.showView()
+                val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+                volume = currentVolume
+                val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+                val increase = distanceY > 0
+                val newValue: Int
+                if(increase) {
+                    newValue = volume + 1
+                    volumeIconSrc = R.drawable.ic_baseline_volume_up_24
+                } else {
+                    newValue = volume - 1
+                    volumeIconSrc = if (newValue > 0) {
+                        R.drawable.ic_baseline_volume_down_24
+                    } else {
+                        R.drawable.ic_baseline_volume_mute_24
+                    }
+                }
+                if(newValue in 0..maxVolume) volume = newValue
+                binding.volumeIcon.setImageResource(volumeIconSrc)
+                binding.volumeProgress.progress = (volume * 100) / maxVolume
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0)
+            }
+            minSwipeY = 0f
         }
         return true
     }
 
-    override fun onLongPress(p0: MotionEvent?) = Unit
+    override fun onLongPress(p0: MotionEvent) {
+        return
+    }
 
-    override fun onFling(p0: MotionEvent?, p1: MotionEvent?, p2: Float, p3: Float): Boolean = false
+    override fun onFling(p0: MotionEvent, p1: MotionEvent, p2: Float, p3: Float): Boolean {
+        return false
+    }
 
     @SuppressLint("ClickableViewAccessibility")
     private fun initializeSwipeControl() {

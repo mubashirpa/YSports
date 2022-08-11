@@ -15,6 +15,7 @@ import android.widget.ExpandableListView
 import android.widget.ExpandableListView.OnChildClickListener
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.annotation.Nullable
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
@@ -70,6 +71,7 @@ class PlayerChooserActivity : AppCompatActivity(), OnChildClickListener {
 
         expandableListView.setAdapter(listViewAdapter)
         expandableListView.setOnChildClickListener(this)
+        onBackPressedDispatcher.addCallback(onBackPressedCallback)
 
         val dataUri: String? = intent.dataString
         if (dataUri != null) {
@@ -92,9 +94,10 @@ class PlayerChooserActivity : AppCompatActivity(), OnChildClickListener {
         listViewAdapter.notifyDataSetChanged()
     }
 
-    override fun onBackPressed() {
-        super.onBackPressed()
-        finish()
+    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            finish()
+        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {

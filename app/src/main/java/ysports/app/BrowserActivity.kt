@@ -25,6 +25,7 @@ import android.webkit.WebView.RENDERER_PRIORITY_BOUND
 import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.Nullable
@@ -98,6 +99,7 @@ class BrowserActivity : AppCompatActivity() {
         AdBlocker.init(context)
         urlHost = Uri.parse(WEB_URL).host.toString()
         toolbar.subtitle = if (urlHost == "null") WEB_URL else urlHost
+        onBackPressedDispatcher.addCallback(onBackPressedCallback)
 
         toolbar.setNavigationOnClickListener {
             finish()
@@ -333,8 +335,12 @@ class BrowserActivity : AppCompatActivity() {
         }
     }
 
-    override fun onBackPressed() {
-        if (webView.canGoBack()) webView.goBack() else finish()
+    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            when {
+                webView.canGoBack() -> webView.goBack()
+            }
+        }
     }
 
     override fun onDestroy() {
@@ -429,7 +435,6 @@ class BrowserActivity : AppCompatActivity() {
             return false
         }
 
-        // API >= 21
         @Nullable
         override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
             if (!enableAdBlocker) return assetLoader.shouldInterceptRequest(request.url)
@@ -498,6 +503,11 @@ class BrowserActivity : AppCompatActivity() {
             if (WebViewFeature.isFeatureSupported(WebViewFeature.RECEIVE_HTTP_ERROR)) {
                 super.onReceivedHttpError(view, request, errorResponse)
             }
+        }
+
+        override fun doUpdateVisitedHistory(view: WebView?, url: String?, isReload: Boolean) {
+            super.doUpdateVisitedHistory(view, url, isReload)
+            onBackPressedCallback.isEnabled = webView.canGoBack()
         }
     }
 

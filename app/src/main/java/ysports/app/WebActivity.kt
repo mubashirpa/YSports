@@ -27,6 +27,7 @@ import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.Nullable
@@ -89,6 +90,7 @@ class WebActivity : AppCompatActivity() {
 
         webView.setBackgroundColor(Color.TRANSPARENT)
         AdBlocker.init(context)
+        onBackPressedDispatcher.addCallback(onBackPressedCallback)
 
         webView.setOnLongClickListener {
             true
@@ -188,8 +190,12 @@ class WebActivity : AppCompatActivity() {
         }
     }
 
-    override fun onBackPressed() {
-        if (webView.canGoBack()) webView.goBack() else finish()
+    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            when {
+                webView.canGoBack() -> webView.goBack()
+            }
+        }
     }
 
     override fun onDestroy() {
@@ -294,6 +300,11 @@ class WebActivity : AppCompatActivity() {
                 super.onReceivedHttpError(view, request, errorResponse)
                 Log.e(TAG, "WebView ReceivedHttpError: ${request.url}")
             }
+        }
+
+        override fun doUpdateVisitedHistory(view: WebView?, url: String?, isReload: Boolean) {
+            super.doUpdateVisitedHistory(view, url, isReload)
+            onBackPressedCallback.isEnabled = webView.canGoBack()
         }
     }
 
