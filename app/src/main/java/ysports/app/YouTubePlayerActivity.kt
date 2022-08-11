@@ -31,6 +31,7 @@ class YouTubePlayerActivity : YouTubeBaseActivity() {
         youTubePlayer = binding.youtubePlayer
         API_KEY = getString(R.string.youtube_data_api_v3)
         var videoID = intent.getStringExtra("VIDEO_URL") ?: ""
+
         if (videoID.isEmpty()) {
             Toast.makeText(context, getString(R.string.error_empty_url), Toast.LENGTH_LONG).show()
             finish()
@@ -53,11 +54,6 @@ class YouTubePlayerActivity : YouTubeBaseActivity() {
                 Toast.makeText(context, getString(R.string.error_initialize_youtube_player), Toast.LENGTH_SHORT).show()
             }
         })
-    }
-
-    override fun onBackPressed() {
-        super.onBackPressed()
-        finish()
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
