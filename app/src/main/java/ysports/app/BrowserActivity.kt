@@ -32,7 +32,6 @@ import androidx.annotation.RequiresApi
 import androidx.annotation.RestrictTo
 import androidx.annotation.UiThread
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.webkit.*
@@ -44,7 +43,10 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import ysports.app.databinding.ActivityBrowserBinding
 import ysports.app.player.PlayerUtil
-import ysports.app.util.*
+import ysports.app.util.AdBlocker
+import ysports.app.util.AppUtil
+import ysports.app.util.NetworkUtil
+import ysports.app.util.WebAppInterface
 import java.net.URISyntaxException
 
 @Suppress("PrivatePropertyName")
@@ -270,9 +272,7 @@ class BrowserActivity : AppCompatActivity() {
             mediaPlaybackRequiresUserGesture = false
             mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
             setNeedInitialFocus(true)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                offscreenPreRaster = true
-            }
+            offscreenPreRaster = true
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 safeBrowsingEnabled = true
             }
@@ -445,18 +445,9 @@ class BrowserActivity : AppCompatActivity() {
             return if (ad) AdBlocker.createEmptyResource() else return assetLoader.shouldInterceptRequest(request.url)
         }
 
-        @RequiresApi(23)
         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
             if (!WebViewFeature.isFeatureSupported(WebViewFeature.SHOULD_OVERRIDE_WITH_REDIRECTS)) return false
             return overrideUrlLoading(request.url.toString())
-        }
-
-        @Deprecated("Deprecated in Java", ReplaceWith(
-            "return super.shouldOverrideUrlLoading(view, request)",
-            "androidx.webkit.WebViewClientCompat"
-        ))
-        override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-            return overrideUrlLoading(url)
         }
 
         override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
@@ -469,7 +460,6 @@ class BrowserActivity : AppCompatActivity() {
             toolbar.subtitle = if (urlHost == "null") WEB_URL else urlHost
         }
 
-        @RequiresApi(23)
         @UiThread
         override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceErrorCompat) {
             if (!WebViewFeature.isFeatureSupported(WebViewFeature.RECEIVE_WEB_RESOURCE_ERROR)) return
@@ -478,16 +468,6 @@ class BrowserActivity : AppCompatActivity() {
                 if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_RESOURCE_ERROR_GET_CODE)) errorCode = error.errorCode
                 onReceivedError()
             }
-        }
-
-        @Deprecated("Deprecated in Java", ReplaceWith(
-            "super.onReceivedError(view, request, error)",
-            "androidx.webkit.WebViewClientCompat"
-        ))
-        override fun onReceivedError(view: WebView?, code: Int, description: String?, failingUrl: String?) {
-            if (description != null) errorDescription = description
-            errorCode = code
-            onReceivedError()
         }
 
         @SuppressLint("WebViewClientOnReceivedSslError")
@@ -950,34 +930,26 @@ class BrowserActivity : AppCompatActivity() {
     }
 
     private fun requestWebViewPermission(permission: String, requestCode: Int, message: String, requestResources: Array<String>) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            when {
-                isPermissionGranted(permission) -> {
-                    Log.d(TAG, "Permission already granted")
-                    onPermissionRequestConfirmation(true, requestResources)
-                }
-                shouldShowRequestPermissionRationale(permission) -> {
-                    MaterialAlertDialogBuilder(context)
-                        .setTitle("Allow permission?")
-                        .setMessage(message)
-                        .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
-                            onPermissionRequestConfirmation(false, arrayOf(""))
-                        }
-                        .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
-                            requestPermissions(arrayOf(permission), requestCode)
-                        }
-                        .setCancelable(false)
-                        .show()
-                }
-                else -> {
-                    requestPermissions(arrayOf(permission), requestCode)
-                }
-            }
-        } else {
-            if (isPermissionGranted(permission)) {
+        when {
+            isPermissionGranted(permission) -> {
+                Log.d(TAG, "Permission already granted")
                 onPermissionRequestConfirmation(true, requestResources)
-            } else {
-                ActivityCompat.requestPermissions(this, arrayOf(permission), requestCode)
+            }
+            shouldShowRequestPermissionRationale(permission) -> {
+                MaterialAlertDialogBuilder(context)
+                    .setTitle("Allow permission?")
+                    .setMessage(message)
+                    .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
+                        onPermissionRequestConfirmation(false, arrayOf(""))
+                    }
+                    .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
+                        requestPermissions(arrayOf(permission), requestCode)
+                    }
+                    .setCancelable(false)
+                    .show()
+            }
+            else -> {
+                requestPermissions(arrayOf(permission), requestCode)
             }
         }
     }
@@ -1002,39 +974,30 @@ class BrowserActivity : AppCompatActivity() {
 
     private fun requestLocationPermission() {
         val permissions = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            when {
-                isPermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION) -> {
-                    Log.d(TAG, "Permission already granted (Fine)")
-                    fetchLocation()
-                }
-                isPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION) -> {
-                    Log.d(TAG, "Permission already granted (Coarse")
-                    fetchLocation()
-                }
-                shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) -> {
-                    MaterialAlertDialogBuilder(context)
-                        .setTitle("Allow permission?")
-                        .setMessage("YSports need location permission for this site")
-                        .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
-                            onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)
-                        }
-                        .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
-                            requestPermissions(permissions, LOCATION_PERMISSION_REQUEST_CODE)
-                        }
-                        .setCancelable(false)
-                        .show()
-                }
-                else -> {
-                    requestPermissions(permissions, LOCATION_PERMISSION_REQUEST_CODE)
-                }
-            }
-        } else {
-            if (isPermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION)
-                || isPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION)) {
+        when {
+            isPermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION) -> {
+                Log.d(TAG, "Permission already granted (Fine)")
                 fetchLocation()
-            } else {
-                ActivityCompat.requestPermissions(this, permissions, LOCATION_PERMISSION_REQUEST_CODE)
+            }
+            isPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION) -> {
+                Log.d(TAG, "Permission already granted (Coarse")
+                fetchLocation()
+            }
+            shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) -> {
+                MaterialAlertDialogBuilder(context)
+                    .setTitle("Allow permission?")
+                    .setMessage("YSports need location permission for this site")
+                    .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
+                        onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)
+                    }
+                    .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
+                        requestPermissions(permissions, LOCATION_PERMISSION_REQUEST_CODE)
+                    }
+                    .setCancelable(false)
+                    .show()
+            }
+            else -> {
+                requestPermissions(permissions, LOCATION_PERMISSION_REQUEST_CODE)
             }
         }
     }

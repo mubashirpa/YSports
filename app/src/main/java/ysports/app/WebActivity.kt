@@ -33,7 +33,6 @@ import androidx.annotation.Nullable
 import androidx.annotation.RequiresApi
 import androidx.annotation.UiThread
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.webkit.*
@@ -156,9 +155,7 @@ class WebActivity : AppCompatActivity() {
             mediaPlaybackRequiresUserGesture = false
             mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
             setNeedInitialFocus(true)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                offscreenPreRaster = true
-            }
+            offscreenPreRaster = true
             setSupportMultipleWindows(true)
             setSupportZoom(false)
             useWideViewPort = true
@@ -261,18 +258,9 @@ class WebActivity : AppCompatActivity() {
             return assetLoader.shouldInterceptRequest(request.url)
         }
 
-        @RequiresApi(23)
         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
             if (!WebViewFeature.isFeatureSupported(WebViewFeature.SHOULD_OVERRIDE_WITH_REDIRECTS)) return false
             return overrideUrlLoading(request.url.toString())
-        }
-
-        @Deprecated("Deprecated in Java", ReplaceWith(
-            "return super.shouldOverrideUrlLoading(view, request)",
-            "androidx.webkit.WebViewClientCompat"
-        ))
-        override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-            return overrideUrlLoading(url)
         }
 
         override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
@@ -287,21 +275,12 @@ class WebActivity : AppCompatActivity() {
             webViewProgressIndicator.hideView()
         }
 
-        @RequiresApi(23)
         @UiThread
         override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceErrorCompat) {
             if (!WebViewFeature.isFeatureSupported(WebViewFeature.RECEIVE_WEB_RESOURCE_ERROR)) return
             if (request.isForMainFrame) {
                 onReceivedError()
             }
-        }
-
-        @Deprecated("Deprecated in Java", ReplaceWith(
-            "super.onReceivedError(view, request, error)",
-            "androidx.webkit.WebViewClientCompat"
-        ))
-        override fun onReceivedError(view: WebView?, errorCode: Int, description: String?, failingUrl: String?) {
-            onReceivedError()
         }
 
         @SuppressLint("WebViewClientOnReceivedSslError")
@@ -699,34 +678,26 @@ class WebActivity : AppCompatActivity() {
     }
 
     private fun requestWebViewPermission(permission: String, requestCode: Int, message: String, requestResources: Array<String>) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            when {
-                isPermissionGranted(permission) -> {
-                    Log.d(TAG, "Permission already granted")
-                    onPermissionRequestConfirmation(true, requestResources)
-                }
-                shouldShowRequestPermissionRationale(permission) -> {
-                    MaterialAlertDialogBuilder(context)
-                        .setTitle("Allow permission?")
-                        .setMessage(message)
-                        .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
-                            onPermissionRequestConfirmation(false, arrayOf(""))
-                        }
-                        .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
-                            requestPermissions(arrayOf(permission), requestCode)
-                        }
-                        .setCancelable(false)
-                        .show()
-                }
-                else -> {
-                    requestPermissions(arrayOf(permission), requestCode)
-                }
-            }
-        } else {
-            if (isPermissionGranted(permission)) {
+        when {
+            isPermissionGranted(permission) -> {
+                Log.d(TAG, "Permission already granted")
                 onPermissionRequestConfirmation(true, requestResources)
-            } else {
-                ActivityCompat.requestPermissions(this, arrayOf(permission), requestCode)
+            }
+            shouldShowRequestPermissionRationale(permission) -> {
+                MaterialAlertDialogBuilder(context)
+                    .setTitle("Allow permission?")
+                    .setMessage(message)
+                    .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
+                        onPermissionRequestConfirmation(false, arrayOf(""))
+                    }
+                    .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
+                        requestPermissions(arrayOf(permission), requestCode)
+                    }
+                    .setCancelable(false)
+                    .show()
+            }
+            else -> {
+                requestPermissions(arrayOf(permission), requestCode)
             }
         }
     }
@@ -751,39 +722,30 @@ class WebActivity : AppCompatActivity() {
 
     private fun requestLocationPermission() {
         val permissions = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            when {
-                isPermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION) -> {
-                    Log.d(TAG, "Permission already granted (Fine)")
-                    fetchLocation()
-                }
-                isPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION) -> {
-                    Log.d(TAG, "Permission already granted (Coarse")
-                    fetchLocation()
-                }
-                shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) -> {
-                    MaterialAlertDialogBuilder(context)
-                        .setTitle("Allow permission?")
-                        .setMessage("YSports need location permission to access location")
-                        .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
-                            onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)
-                        }
-                        .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
-                            requestPermissions(permissions, LOCATION_PERMISSION_REQUEST_CODE)
-                        }
-                        .setCancelable(false)
-                        .show()
-                }
-                else -> {
-                    requestPermissions(permissions, LOCATION_PERMISSION_REQUEST_CODE)
-                }
-            }
-        } else {
-            if (isPermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION)
-                || isPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION)) {
+        when {
+            isPermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION) -> {
+                Log.d(TAG, "Permission already granted (Fine)")
                 fetchLocation()
-            } else {
-                ActivityCompat.requestPermissions(this, permissions, LOCATION_PERMISSION_REQUEST_CODE)
+            }
+            isPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION) -> {
+                Log.d(TAG, "Permission already granted (Coarse")
+                fetchLocation()
+            }
+            shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) -> {
+                MaterialAlertDialogBuilder(context)
+                    .setTitle("Allow permission?")
+                    .setMessage("YSports need location permission to access location")
+                    .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
+                        onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)
+                    }
+                    .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
+                        requestPermissions(permissions, LOCATION_PERMISSION_REQUEST_CODE)
+                    }
+                    .setCancelable(false)
+                    .show()
+            }
+            else -> {
+                requestPermissions(permissions, LOCATION_PERMISSION_REQUEST_CODE)
             }
         }
     }
