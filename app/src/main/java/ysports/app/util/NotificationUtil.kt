@@ -51,4 +51,8 @@ class NotificationUtil(val context: Context) {
     }
 
     private fun getUniqueId() = ((System.currentTimeMillis() % 10000).toInt())
+
+    private fun areNotificationEnabled() : Boolean {
+        return true
+    }
 }
