@@ -7,4 +7,10 @@
         android:title="@string/network_stream_title"
         android:checkable="false"
         app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/settings_item"
+        android:icon="@drawable/ic_baseline_settings_24"
+        android:title="@string/settings_title"
+        android:checkable="false"
+        app:showAsAction="ifRoom"/>
 </menu>
