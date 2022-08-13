@@ -335,7 +335,7 @@ class BrowserActivity : AppCompatActivity() {
         }
     }
 
-    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
+    private val onBackPressedCallback = object : OnBackPressedCallback(false) {
         override fun handleOnBackPressed() {
             when {
                 webView.canGoBack() -> webView.goBack()
