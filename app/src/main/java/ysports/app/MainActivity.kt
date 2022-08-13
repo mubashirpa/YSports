@@ -19,7 +19,6 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -62,10 +61,8 @@ class MainActivity : AppCompatActivity() {
     private var tablet = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Handle the splash screen transition.
-        installSplashScreen()
-
         super.onCreate(savedInstanceState)
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -128,6 +125,10 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.network_stream_item -> {
                     networkStream()
+                }
+                R.id.settings_item -> {
+                    val intent = Intent(context, SettingsActivity::class.java)
+                    startActivity(intent)
                 }
             }
             drawerLayout.close()
@@ -194,9 +195,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkUpdate() {
-        // Version name should specified inside build gradle
-        val currentVersion: String = BuildConfig.VERSION_NAME
-        Log.d(TAG, currentVersion)
+        val currentVersion: String = BuildConfig.VERSION_NAME // Version name should specified inside build gradle
         val database = Firebase.database
         val reference = database.getReference("version")
         reference.addValueEventListener(object : ValueEventListener {
@@ -242,7 +241,7 @@ class MainActivity : AppCompatActivity() {
                 shouldShowRequestPermissionRationale(notificationPermission) -> {
                     MaterialAlertDialogBuilder(context)
                         .setTitle("Get notified!")
-                        .setMessage("Get notification about latest match updates and news")
+                        .setMessage("Get notification about latest match updates, news and more")
                         .setNegativeButton(resources.getString(R.string.skip)) { _, _ ->
                             Log.d(TAG, "Permission denied")
                         }
