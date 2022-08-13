@@ -42,6 +42,7 @@
     <string name="home_subheader_title">Home</string>
     <string name="labels_subheader_title">More</string>
     <string name="network_stream_title">Network stream</string>
+    <string name="settings_title">Settings</string>
     <string name="matches_title">Matches</string>
     <string name="leagues_title">Leagues</string>
     <string name="news_title">News</string>
@@ -57,6 +58,7 @@
     <string name="title_activity_main">YSports</string>
     <string name="title_activity_player">Play</string>
     <string name="title_activity_player_chooser">Media</string>
+    <string name="title_activity_settings">SettingsActivity</string>
 
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
@@ -93,4 +95,14 @@
     <string name="allow">Allow</string>
     <string name="download">Download</string>
     <string name="play">Play</string>
+
+    <string name="activity_settings_title">Settings</string>
+
+    <!-- Preference screen -->
+    <string name="theme_title">Theme</string>
+    <string name="notifications_title">Notifications</string>
+    <string name="theme_system_default_summary">Turn on dark theme when your devices dark theme or Battery saver is on</string>
+    <string name="theme_light_summary">Light</string>
+    <string name="theme_dark_summary">Dark</string>
+    <string name="notifications_summary">Manage notification settings</string>
 </resources>
