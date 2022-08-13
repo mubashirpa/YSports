@@ -8,6 +8,8 @@ import com.google.android.exoplayer2.ui.PlayerNotificationManager
 class DescriptionAdapter : PlayerNotificationManager.MediaDescriptionAdapter {
 
     override fun getCurrentContentTitle(player: Player): CharSequence {
+        val title = player.mediaMetadata.title
+        if (title != null && title != "null") return title
         return "YSports"
     }
 
