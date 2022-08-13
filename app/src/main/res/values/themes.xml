@@ -62,7 +62,7 @@
         <item name="windowSplashScreenBackground">@color/background</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_icon_splash</item>
         <item name="windowSplashScreenAnimationDuration">200</item>
-        <item name="postSplashScreenTheme">@style/Theme.YSports.MainActivity</item>
+        <item name="postSplashScreenTheme">@style/Theme.YSports</item>
     </style>
 
     <!-- Browser Activity Toolbar Theme -->
@@ -76,14 +76,13 @@
     </style>
 
     <style name="ThemeOverlay.YSports.AlertDialog" parent="ThemeOverlay.AppCompat.Dialog.Alert">
-        <item name="android:maxWidth">560dp</item>
         <item name="dialogCornerRadius">28dp</item>
-        <item name="android:backgroundTint">@color/surface</item>
-        <item name="android:textSize">14sp</item>
-        <item name="android:fontWeight" tools:targetApi="o">400</item>
+        <item name="android:background">@color/surface</item>
     </style>
 
     <style name="ThemeOverlay.YSports.TrackSelectionDialog" parent="ThemeOverlay.AppCompat.Dialog.Alert">
         <item name="windowNoTitle">false</item>
+        <item name="dialogCornerRadius">28dp</item>
+        <item name="android:colorBackground">@color/surface</item>
     </style>
 </resources>
