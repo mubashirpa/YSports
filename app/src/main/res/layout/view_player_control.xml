@@ -91,7 +91,7 @@
             android:layout_width="wrap_content"
             android:layout_height="24dp"
             android:text="@string/live_caps"
-            android:layout_marginEnd="4dp"
+            android:layout_marginEnd="8dp"
             android:visibility="gone"
             android:checkable="false"
             app:ensureMinTouchTargetSize="false"
