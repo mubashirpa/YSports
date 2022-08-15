@@ -44,10 +44,10 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import ysports.app.databinding.ActivityBrowserBinding
 import ysports.app.player.PlayerUtil
-import ysports.app.util.AdBlocker
+import ysports.app.webview.AdBlocker
 import ysports.app.util.AppUtil
 import ysports.app.util.NetworkUtil
-import ysports.app.util.WebAppInterface
+import ysports.app.webview.WebAppInterface
 import java.net.URISyntaxException
 
 @Suppress("PrivatePropertyName")

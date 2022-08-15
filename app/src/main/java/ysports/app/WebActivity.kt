@@ -42,9 +42,9 @@ import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.android.material.textfield.TextInputEditText
 import ysports.app.databinding.ActivityWebBinding
 import ysports.app.player.PlayerUtil
-import ysports.app.util.AdBlocker
+import ysports.app.webview.AdBlocker
 import ysports.app.util.AppUtil
-import ysports.app.util.WebAppInterface
+import ysports.app.webview.WebAppInterface
 import java.net.URISyntaxException
 import java.net.URLDecoder
 
