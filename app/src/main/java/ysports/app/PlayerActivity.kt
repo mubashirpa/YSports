@@ -71,7 +71,7 @@ import com.google.android.exoplayer2.util.Util
 import com.google.android.material.chip.Chip
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull
 import ysports.app.databinding.ActivityPlayerBinding
-import ysports.app.fragments.PlayerMenuBottomSheet
+import ysports.app.ui.bottomsheet.PlayerMenuBottomSheet
 import ysports.app.player.*
 import ysports.app.player.IntentUtil.PREFER_EXTENSION_DECODERS_EXTRA
 import ysports.app.util.NotificationUtil

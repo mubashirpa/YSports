@@ -17,13 +17,12 @@ import retrofit2.Callback
 import retrofit2.Response
 import ysports.app.R
 import ysports.app.WebActivity
-import ysports.app.adapter.LeaguesAdapter
 import ysports.app.api.JsonApi
 import ysports.app.api.leagues.Leagues
 import ysports.app.api.leagues.LeaguesResponse
 import ysports.app.databinding.FragmentLeaguesBinding
-import ysports.app.util.RecyclerDecorationVertical
-import ysports.app.util.RecyclerTouchListener
+import ysports.app.widgets.recyclerview.GridSpacingItemDecoration
+import ysports.app.widgets.recyclerview.ItemTouchListener
 import java.util.*
 import kotlin.concurrent.schedule
 
@@ -37,7 +36,7 @@ class LeaguesFragment : Fragment() {
     private lateinit var errorView: View
     private lateinit var retryButton: Button
     private lateinit var stateDescription: TextView
-    private lateinit var itemDecoration: RecyclerDecorationVertical
+    private lateinit var itemDecoration: GridSpacingItemDecoration
     private var leaguesApi: Call<LeaguesResponse>? = null
     private var leaguesList: ArrayList<Leagues> = ArrayList()
 
@@ -58,7 +57,7 @@ class LeaguesFragment : Fragment() {
         errorView = binding.errorView.root
         retryButton = binding.errorView.buttonRetry
         stateDescription = binding.errorView.stateDescription
-        itemDecoration = RecyclerDecorationVertical(10, 10, 10)
+        itemDecoration = GridSpacingItemDecoration(2, 10, 0, includeEdge = true, isReverse = false)
 
         retryButton.setOnClickListener {
             errorView.hideView()
@@ -72,7 +71,7 @@ class LeaguesFragment : Fragment() {
             itemAnimator = DefaultItemAnimator()
             addItemDecoration(itemDecoration)
             addOnItemTouchListener(
-                RecyclerTouchListener(context, recyclerView, object : RecyclerTouchListener.ClickListener {
+                ItemTouchListener(context, recyclerView, object : ItemTouchListener.ClickListener {
                     override fun onClick(view: View, position: Int) {
                         if (!leaguesList[position].url.isNullOrEmpty()) {
                             val url: String = leaguesList[position].url!!

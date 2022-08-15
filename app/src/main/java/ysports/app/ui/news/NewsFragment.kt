@@ -19,13 +19,12 @@ import retrofit2.Callback
 import retrofit2.Response
 import ysports.app.BrowserActivity
 import ysports.app.R
-import ysports.app.adapter.NewsAdapter
 import ysports.app.api.newsapi.org.Articles
 import ysports.app.api.newsapi.org.NewsApi
 import ysports.app.api.newsapi.org.NewsResponse
 import ysports.app.databinding.FragmentNewsBinding
 import ysports.app.util.AppUtil
-import ysports.app.util.RecyclerTouchListener
+import ysports.app.widgets.recyclerview.ItemTouchListener
 import java.util.*
 import kotlin.concurrent.schedule
 
@@ -114,7 +113,7 @@ class NewsFragment : Fragment() {
                     layoutManager = recyclerLayoutManager
                     adapter = newsAdapter
                     addOnItemTouchListener(
-                        RecyclerTouchListener(context, recyclerView, object : RecyclerTouchListener.ClickListener {
+                        ItemTouchListener(context, recyclerView, object : ItemTouchListener.ClickListener {
                             override fun onClick(view: View, position: Int) {
                                 if (!newsList[position].url.isNullOrEmpty()) {
                                     val intent = Intent(context, BrowserActivity::class.java).apply {
