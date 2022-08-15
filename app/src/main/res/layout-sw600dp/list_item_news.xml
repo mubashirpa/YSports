@@ -20,7 +20,7 @@
             android:layout_height="wrap_content"
             app:cardCornerRadius="8dp"
             style="?attr/materialCardViewFilledStyle">
-            <ysports.app.widgets.RatioImageView
+            <ysports.app.widgets.imageview.RatioImageView
                 android:id="@+id/backdrop"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
