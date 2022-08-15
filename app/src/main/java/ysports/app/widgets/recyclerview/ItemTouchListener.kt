@@ -1,4 +1,4 @@
-package ysports.app.util
+package ysports.app.widgets.recyclerview
 
 import android.content.Context
 import android.view.GestureDetector
@@ -7,10 +7,10 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 
-class RecyclerTouchListener(
+class ItemTouchListener(
     context: Context,
     recyclerView: RecyclerView,
-    private var clickListener: ClickListener
+    private val clickListener: ClickListener
 ) : RecyclerView.OnItemTouchListener {
 
     private var gestureDetector: GestureDetector = GestureDetector(context, object : SimpleOnGestureListener() {

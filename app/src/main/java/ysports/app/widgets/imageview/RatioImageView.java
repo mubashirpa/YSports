@@ -1,20 +1,23 @@
-package ysports.app.widgets;
+package ysports.app.widgets.imageview;
 
 import android.content.Context;
 import android.util.AttributeSet;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatImageView;
 
 public class RatioImageView extends AppCompatImageView {
 
-    public RatioImageView(Context context) {
+    public RatioImageView(@NonNull Context context) {
         super(context);
     }
 
-    public RatioImageView(Context context, AttributeSet attrs) {
+    public RatioImageView(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public RatioImageView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public RatioImageView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 

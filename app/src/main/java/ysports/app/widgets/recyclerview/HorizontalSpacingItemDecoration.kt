@@ -1,14 +1,14 @@
-package ysports.app.util
+package ysports.app.widgets.recyclerview
 
 import android.content.res.Resources
 import android.graphics.Rect
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 
-class RecyclerDecorationVertical(
-    private var marginTop: Int,
-    private var marginBottom: Int,
-    private var verticalSpacing: Int
+class HorizontalSpacingItemDecoration(
+    private val marginStart: Int,
+    private val marginEnd: Int,
+    private val horizontalSpacing: Int
 ) : RecyclerView.ItemDecoration() {
 
     private val displayDensity = Resources.getSystem().displayMetrics.density
@@ -21,10 +21,9 @@ class RecyclerDecorationVertical(
     ) {
         val total: Int = state.itemCount
         val position: Int = parent.getChildAdapterPosition(view)
-
-        outRect.bottom = dpToPx(displayDensity, verticalSpacing)
-        if (position == 0) outRect.top = dpToPx(displayDensity, marginTop)
-        if (position == total - 1) outRect.bottom = dpToPx(displayDensity, marginBottom)
+        outRect.right = dpToPx(displayDensity, horizontalSpacing)
+        if (position == 0) outRect.left = dpToPx(displayDensity, marginStart)
+        if (position == total - 1) outRect.right = dpToPx(displayDensity, marginEnd)
     }
 
     private fun dpToPx(density: Float, dps: Int): Int {

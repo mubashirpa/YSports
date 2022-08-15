@@ -1,22 +1,25 @@
-package ysports.app.widgets;
+package ysports.app.widgets.imageview;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatImageView;
 
 public class ResizableImageView extends AppCompatImageView {
 
-    public ResizableImageView(Context context) {
+    public ResizableImageView(@NonNull Context context) {
         super(context);
     }
 
-    public ResizableImageView(Context context, AttributeSet attributeSet) {
-        super(context, attributeSet);
+    public ResizableImageView(@NonNull Context context, @Nullable AttributeSet attrs) {
+        super(context, attrs);
     }
 
-    public ResizableImageView(Context context, AttributeSet attributeSet, int defStyleAttr) {
-        super(context, attributeSet, defStyleAttr);
+    public ResizableImageView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
     }
 
     @Override
