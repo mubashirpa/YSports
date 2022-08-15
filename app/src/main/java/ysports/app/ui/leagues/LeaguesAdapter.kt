@@ -1,4 +1,4 @@
-package ysports.app.adapter
+package ysports.app.ui.leagues
 
 import android.content.Context
 import android.view.LayoutInflater

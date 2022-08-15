@@ -1,4 +1,4 @@
-package ysports.app.adapter
+package ysports.app.ui.news
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -8,7 +8,6 @@ import ysports.app.R
 import ysports.app.api.newsapi.org.Articles
 import ysports.app.databinding.ListItemNewsBannerBinding
 import ysports.app.databinding.ListItemNewsBinding
-import ysports.app.ui.news.NewsViewHolder
 
 class NewsAdapter(
     private val context: Context,

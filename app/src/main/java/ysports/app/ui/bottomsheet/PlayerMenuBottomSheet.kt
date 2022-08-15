@@ -1,4 +1,4 @@
-package ysports.app.fragments
+package ysports.app.ui.bottomsheet
 
 import android.app.Dialog
 import android.content.res.Configuration
