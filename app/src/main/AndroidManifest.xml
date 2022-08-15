@@ -82,11 +82,12 @@
         <activity
             android:name=".SettingsActivity"
             android:exported="false"
-            android:label="@string/title_activity_settings" />
+            android:label="@string/label_activity_settings" />
         <activity
             android:name=".PlayerChooserActivity"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout"
             android:exported="true"
-            android:label="@string/title_activity_player_chooser">
+            android:label="@string/label_activity_player_chooser">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -104,9 +105,9 @@
         </activity>
         <activity
             android:name=".MainActivity"
-            android:configChanges="orientation|screenSize"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout"
             android:exported="true"
-            android:label="@string/title_activity_main"
+            android:label="@string/label_activity_main"
             android:theme="@style/Theme.YSports.MainActivity"
             android:windowSoftInputMode="adjustPan">
             <intent-filter>
@@ -133,7 +134,7 @@
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
             android:exported="true"
             android:hardwareAccelerated="true"
-            android:label="@string/title_activity_player"
+            android:label="@string/label_activity_player"
             android:launchMode="singleTask"
             android:resizeableActivity="true"
             android:supportsPictureInPicture="true"
