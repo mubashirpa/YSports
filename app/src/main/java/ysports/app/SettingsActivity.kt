@@ -46,9 +46,9 @@ class SettingsActivity : AppCompatActivity() {
             val themePreference: ListPreference? = findPreference("theme")
 
             when (themePreference?.value) {
-                "light" -> themePreference.summary = getString(R.string.theme_light_summary)
-                "dark" -> themePreference.summary = getString(R.string.theme_dark_summary)
-                else -> themePreference?.summary = getString(R.string.theme_system_default_summary)
+                "light" -> themePreference.summary = getString(R.string.summary_theme_light)
+                "dark" -> themePreference.summary = getString(R.string.summary_theme_dark)
+                else -> themePreference?.summary = getString(R.string.summary_theme_system_default)
             }
 
             notificationsPreference?.setOnPreferenceClickListener {
@@ -68,15 +68,15 @@ class SettingsActivity : AppCompatActivity() {
             themePreference?.setOnPreferenceChangeListener { preference, newValue ->
                 when (newValue) {
                     "light" -> {
-                        preference.summary = getString(R.string.theme_light_summary)
+                        preference.summary = getString(R.string.summary_theme_light)
                         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
                     }
                     "dark" -> {
-                        preference.summary = getString(R.string.theme_dark_summary)
+                        preference.summary = getString(R.string.summary_theme_dark)
                         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
                     }
                     else -> {
-                        preference.summary = getString(R.string.theme_system_default_summary)
+                        preference.summary = getString(R.string.summary_theme_system_default)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
                         } else {
