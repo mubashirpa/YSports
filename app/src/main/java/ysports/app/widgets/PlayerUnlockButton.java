@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.AttributeSet;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatImageButton;
 import android.view.View;
 import android.widget.RemoteViews.RemoteView;
@@ -15,15 +16,15 @@ public class PlayerUnlockButton extends AppCompatImageButton {
     private Handler handler;
     private Runnable runnable;
 
-    public PlayerUnlockButton(Context context) {
+    public PlayerUnlockButton(@NonNull Context context) {
         super(context);
     }
 
-    public PlayerUnlockButton(Context context, AttributeSet attrs) {
+    public PlayerUnlockButton(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public PlayerUnlockButton(Context context, AttributeSet attrs, int defStyleAttr) {
+    public PlayerUnlockButton(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 
