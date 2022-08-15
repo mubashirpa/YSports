@@ -4,21 +4,21 @@
         android:id="@+id/matches"
         android:enabled="true"
         android:icon="@drawable/ic_outline_matches_24"
-        android:title="@string/matches_destination_label" />
+        android:title="@string/label_matches_destination" />
     <item
         android:id="@+id/leagues"
         android:enabled="true"
         android:icon="@drawable/ic_outline_leagues_24"
-        android:title="@string/leagues_destination_label"
+        android:title="@string/label_leagues_destination"
         android:checked="true"/>
     <item
         android:id="@+id/news"
         android:enabled="true"
         android:icon="@drawable/ic_outline_news_24"
-        android:title="@string/news_destination_label"/>
+        android:title="@string/label_news_destination"/>
     <item
         android:id="@+id/more"
         android:enabled="true"
         android:icon="@drawable/ic_outline_dashboard_24"
-        android:title="@string/more_destination_label"/>
+        android:title="@string/label_more_destination"/>
 </menu>

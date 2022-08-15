@@ -2,15 +2,15 @@
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
     <Preference
         app:key="notifications"
-        app:title="@string/notifications_title"
-        app:summary="@string/notifications_summary"
+        app:title="@string/title_notifications"
+        app:summary="@string/summary_notifications"
         app:iconSpaceReserved="false"/>
     <ListPreference
         app:defaultValue="system_default"
         app:entries="@array/theme_entries"
         app:entryValues="@array/theme_values"
         app:key="theme"
-        app:title="@string/theme_title"
-        app:summary="@string/theme_system_default_summary"
+        app:title="@string/title_theme"
+        app:summary="@string/summary_theme_system_default"
         app:iconSpaceReserved="false"/>
 </PreferenceScreen>
