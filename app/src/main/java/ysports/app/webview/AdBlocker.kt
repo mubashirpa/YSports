@@ -1,4 +1,4 @@
-package ysports.app.util
+package ysports.app.webview
 
 import android.content.Context
 import android.webkit.WebResourceResponse
