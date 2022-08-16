@@ -20,6 +20,7 @@ import ysports.app.api.fixture.FixtureResponse
 import ysports.app.api.fixture.Fixtures
 import ysports.app.databinding.FragmentMatchesBinding
 import ysports.app.ui.matches.adapter.MatchesViewPagerAdapter
+import ysports.app.util.NetworkUtil
 import java.util.*
 import kotlin.concurrent.schedule
 
@@ -84,7 +85,7 @@ class MatchesFragment : Fragment() {
         fixtureApi?.enqueue(object : Callback<FixtureResponse> {
             override fun onResponse(call: Call<FixtureResponse>, response: Response<FixtureResponse>) {
                 if (!response.isSuccessful) {
-                    errorOccurred(R.string.error_retrofit_response, false)
+                    errorOccurred(R.string.error_retrofit_response, true)
                     return
                 }
                 fixtureList = response.body()?.fixtures ?: ArrayList()
@@ -97,7 +98,8 @@ class MatchesFragment : Fragment() {
 
             override fun onFailure(call: Call<FixtureResponse>, t: Throwable) {
                 if (isAdded) {
-                    errorOccurred(R.string.error_failed_to_load_content, true)
+                    val error = if (NetworkUtil().isOnline(context)) R.string.error_failed_to_load_content else R.string.error_no_network
+                    errorOccurred(error, true)
                 }
             }
         })

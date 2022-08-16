@@ -85,7 +85,7 @@
             android:label="@string/label_activity_settings" />
         <activity
             android:name=".PlayerChooserActivity"
-            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout"
+            android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout"
             android:exported="true"
             android:label="@string/label_activity_player_chooser">
             <intent-filter>

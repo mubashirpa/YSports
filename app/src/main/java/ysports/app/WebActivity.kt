@@ -285,7 +285,8 @@ class WebActivity : AppCompatActivity() {
         override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceErrorCompat) {
             if (!WebViewFeature.isFeatureSupported(WebViewFeature.RECEIVE_WEB_RESOURCE_ERROR)) return
             if (request.isForMainFrame) {
-                onReceivedError()
+                val errorCode = if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_RESOURCE_ERROR_GET_CODE)) error.errorCode else -1
+                onReceivedError(errorCode)
             }
         }
 
@@ -657,10 +658,10 @@ class WebActivity : AppCompatActivity() {
         return true
     }
 
-    private fun onReceivedError() {
+    private fun onReceivedError(errorCode: Int) {
         webView.evaluateJavascript("javascript:document.open();document.write('');document.close();", null)
         webView.hideView()
-        errorTextView.text = resources.getString(R.string.error_failed_to_load_content)
+        errorTextView.text = if (errorCode == -2) resources.getString(R.string.error_no_network) else resources.getString(R.string.error_failed_to_load_content)
         errorView.showView()
     }
 

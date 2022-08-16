@@ -1,6 +1,7 @@
 package ysports.app.util
 
 import android.content.Context
+import android.content.res.Resources
 import android.net.Uri
 import android.widget.Toast
 import androidx.browser.customtabs.CustomTabColorSchemeParams
@@ -32,5 +33,19 @@ class AppUtil(val context: Context) {
             return heightDp >= 600
         }
         return widthDp >= 600
+    }
+
+    fun minScreenWidth() : Int {
+        val displayDensity = Resources.getSystem().displayMetrics.density
+        val widthDp = context.resources.displayMetrics.run { widthPixels / density }
+        val heightDp = context.resources.displayMetrics.run { heightPixels / density }
+        if (heightDp < widthDp) {
+            return dpToPx(displayDensity, heightDp.toInt())
+        }
+        return dpToPx(displayDensity, widthDp.toInt())
+    }
+
+    private fun dpToPx(density: Float, dps: Int): Int {
+        return (dps * density + 0.5f).toInt()
     }
 }

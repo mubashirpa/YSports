@@ -24,6 +24,7 @@ import ysports.app.api.newsapi.org.NewsApi
 import ysports.app.api.newsapi.org.NewsResponse
 import ysports.app.databinding.FragmentNewsBinding
 import ysports.app.util.AppUtil
+import ysports.app.util.NetworkUtil
 import ysports.app.widgets.recyclerview.ItemTouchListener
 import java.util.*
 import kotlin.concurrent.schedule
@@ -57,6 +58,8 @@ class NewsFragment : Fragment() {
         retryButton = binding.errorView.buttonRetry
         progressBar = binding.progressBar
         recyclerView = binding.recyclerView
+        val appUtil = AppUtil(requireContext())
+        val isTablet = appUtil.isTablet()
 
         retryButton.setOnClickListener {
             errorView.hideView()
@@ -66,6 +69,7 @@ class NewsFragment : Fragment() {
             }
         }
 
+        if (isTablet) binding.recyclerContainer.maxWidth = appUtil.minScreenWidth()
         readNewsDB()
     }
 
@@ -88,7 +92,7 @@ class NewsFragment : Fragment() {
         newsApi!!.enqueue(object : Callback<NewsResponse> {
             override fun onResponse(call: Call<NewsResponse>, response: Response<NewsResponse>) {
                 if (!response.isSuccessful) {
-                    errorOccurred(R.string.error_retrofit_response, false)
+                    errorOccurred(R.string.error_retrofit_response, true)
                     return
                 }
                 val newsList: ArrayList<Articles> = response.body()?.articles ?: ArrayList()
@@ -134,7 +138,10 @@ class NewsFragment : Fragment() {
             }
 
             override fun onFailure(call: Call<NewsResponse>, t: Throwable) {
-                if (!isDetached) errorOccurred(R.string.error_failed_to_load_content, true)
+                if (isAdded) {
+                    val error = if (NetworkUtil().isOnline(context)) R.string.error_failed_to_load_content else R.string.error_no_network
+                    errorOccurred(error, true)
+                }
             }
         })
     }
@@ -142,7 +149,7 @@ class NewsFragment : Fragment() {
     private fun errorOccurred(error: Int, showButton: Boolean) {
         progressBar.hideView()
         recyclerView.hideView()
-        stateDescription.text = resources.getString(error)
+        stateDescription.text = activity?.resources?.getString(error)
         retryButton.isVisible = showButton
         errorView.showView()
     }

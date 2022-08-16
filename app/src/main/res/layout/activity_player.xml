@@ -18,11 +18,12 @@
     <LinearLayout
         android:id="@+id/brightness_control"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="48dp"
         android:orientation="horizontal"
         android:gravity="center"
         android:layout_gravity="end"
-        android:paddingVertical="16dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="10dp"
         android:paddingHorizontal="10dp"
         android:visibility="gone">
         <com.google.android.material.progressindicator.LinearProgressIndicator
@@ -45,11 +46,12 @@
     <LinearLayout
         android:id="@+id/volume_control"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="48dp"
         android:orientation="horizontal"
         android:gravity="center"
         android:layout_gravity="end"
-        android:paddingVertical="16dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="10dp"
         android:paddingHorizontal="10dp"
         android:visibility="gone">
         <com.google.android.material.progressindicator.LinearProgressIndicator

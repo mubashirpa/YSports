@@ -29,6 +29,7 @@
 
     <!-- Error strings -->
     <string name="error_default">An error occurred</string>
+    <string name="error_no_network">No internet connection. Make sure that Wi-Fi or mobile data is turned on, and then try again.</string>
     <string name="error_empty_response">Empty response found</string>
     <string name="error_failed_to_load_content">We\'re unable to load content. Please try again</string>
     <string name="error_fdb_on_cancelled">Failed to connect with database</string>

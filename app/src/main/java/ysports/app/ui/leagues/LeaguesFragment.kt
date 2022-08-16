@@ -21,6 +21,7 @@ import ysports.app.api.JsonApi
 import ysports.app.api.leagues.Leagues
 import ysports.app.api.leagues.LeaguesResponse
 import ysports.app.databinding.FragmentLeaguesBinding
+import ysports.app.util.AppUtil
 import ysports.app.widgets.recyclerview.GridSpacingItemDecoration
 import ysports.app.widgets.recyclerview.ItemTouchListener
 import java.util.*
@@ -58,6 +59,8 @@ class LeaguesFragment : Fragment() {
         retryButton = binding.errorView.buttonRetry
         stateDescription = binding.errorView.stateDescription
         itemDecoration = GridSpacingItemDecoration(2, 10, 0, includeEdge = true, isReverse = false)
+        val appUtil = AppUtil(requireContext())
+        val isTablet = appUtil.isTablet()
 
         retryButton.setOnClickListener {
             errorView.hideView()
@@ -89,6 +92,7 @@ class LeaguesFragment : Fragment() {
             )
         }
 
+        if (isTablet) binding.recyclerContainer.maxWidth = appUtil.minScreenWidth()
         readDatabase()
     }
 
