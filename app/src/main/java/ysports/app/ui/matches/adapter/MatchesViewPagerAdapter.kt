@@ -23,7 +23,6 @@ class MatchesViewPagerAdapter(
         fragment.arguments = Bundle().apply {
             putInt(ARG_POSITION, position)
         }
-        //if (viewPager.currentItem == 0) viewPager.setCurrentItem(1, false)
         return fragment
     }
 }

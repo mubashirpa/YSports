@@ -22,6 +22,7 @@ import ysports.app.api.leagues.Leagues
 import ysports.app.api.leagues.LeaguesResponse
 import ysports.app.databinding.FragmentLeaguesBinding
 import ysports.app.util.AppUtil
+import ysports.app.util.NetworkUtil
 import ysports.app.widgets.recyclerview.GridSpacingItemDecoration
 import ysports.app.widgets.recyclerview.ItemTouchListener
 import java.util.*
@@ -115,7 +116,7 @@ class LeaguesFragment : Fragment() {
         leaguesApi?.enqueue(object : Callback<LeaguesResponse> {
             override fun onResponse(call: Call<LeaguesResponse>, response: Response<LeaguesResponse>) {
                 if (!response.isSuccessful) {
-                    errorOccurred(R.string.error_retrofit_response, false)
+                    errorOccurred(R.string.error_retrofit_response, true)
                     return
                 }
                 leaguesList = response.body()?.leagues ?: ArrayList()
@@ -128,10 +129,10 @@ class LeaguesFragment : Fragment() {
 
             override fun onFailure(call: Call<LeaguesResponse>, t: Throwable) {
                 if (isAdded) {
-                    errorOccurred(R.string.error_failed_to_load_content, true)
+                    val error = if (NetworkUtil().isOnline(context)) R.string.error_failed_to_load_content else R.string.error_no_network
+                    errorOccurred(error, true)
                 }
             }
-
         })
     }
 

@@ -55,8 +55,6 @@ class MatchesFragment : Fragment() {
         errorLayout = binding.errorLayout.root
         retryButton = binding.errorLayout.buttonRetry
 
-        readDatabase()
-
         retryButton.setOnClickListener {
             errorLayout.hideView()
             progressBar.showView()
@@ -64,6 +62,8 @@ class MatchesFragment : Fragment() {
                 readDatabase()
             }
         }
+
+        readDatabase()
     }
 
     override fun onDestroyView() {
