@@ -29,6 +29,7 @@ import java.util.*
 
 const val ARG_POSITION = "position"
 
+/* Empty constructor is added due to no constructor found error occurred when app restarts */
 @Suppress("PrivatePropertyName")
 class MatchesObjectFragment() : Fragment() {
 
