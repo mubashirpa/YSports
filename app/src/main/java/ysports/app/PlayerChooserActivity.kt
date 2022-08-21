@@ -110,7 +110,7 @@ class PlayerChooserActivity : AppCompatActivity(), OnChildClickListener {
         if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             loadSample()
         } else {
-            Toast.makeText(applicationContext, "One or more sample lists failed to load", Toast.LENGTH_LONG).show()
+            Toast.makeText(applicationContext, "One or more lists failed to load", Toast.LENGTH_LONG).show()
             finish()
         }
     }
@@ -145,7 +145,7 @@ class PlayerChooserActivity : AppCompatActivity(), OnChildClickListener {
 
     private fun onPlaylistGroups(groups: MutableList<PlaylistGroup>, sawError: Boolean) {
         if (sawError) {
-            Toast.makeText(applicationContext, "One or more sample lists failed to load", Toast.LENGTH_LONG).show()
+            Toast.makeText(applicationContext, "One or more lists failed to load", Toast.LENGTH_LONG).show()
         }
         listViewAdapter.setPlaylistGroups(groups)
 

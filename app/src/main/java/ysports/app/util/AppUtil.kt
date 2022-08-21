@@ -22,7 +22,7 @@ class AppUtil(val context: Context) {
         try {
             customTabsIntent.launchUrl(context, Uri.parse(url))
         } catch (e: Exception) {
-            Toast.makeText(context, "Failed to load url", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, context.getString(R.string.error_url_load_fail), Toast.LENGTH_LONG).show()
         }
     }
 

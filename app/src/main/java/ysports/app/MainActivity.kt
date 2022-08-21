@@ -99,7 +99,7 @@ class MainActivity : AppCompatActivity() {
             when (menuItem.itemId) {
                 R.id.search -> {
                     // TODO("Handle search icon press")
-                    val intent = Intent(context, BrowserActivity::class.java).apply {
+                    val intent = Intent(context, WebActivity::class.java).apply {
                         putExtra("WEB_URL", "https://google.com")
                     }
                     startActivity(intent)
