@@ -40,6 +40,17 @@
     <string name="error_initialize_youtube_player">Failed to initialize player</string>
     <string name="error_empty_url">Empty URL</string>
     <string name="error_no_list_found">Something went wrong, please check your internet connection and try again</string>
+    <string name="error_url_load_fail">Failed to load URL</string>
+    <string name="error_unsupported_url">Unsupported URL</string>
+    <string name="error_no_torrent_client">Download a torrent client and Try again!</string>
+    <string name="error_disabled_location_service">Please enable location services in settings</string>
+    <string name="error_ssl_title">SSL Certificate Error</string>
+    <string name="error_ssl">Certificate error.</string>
+    <string name="error_ssl_untrusted">The certificate authority is not trusted.</string>
+    <string name="error_ssl_expired">The certificate has been expired.</string>
+    <string name="error_ssl_id_mismatch">The certificate hostname mismatch.</string>
+    <string name="error_ssl_not_yet_valid">The certificate is not yet valid.</string>
+    <string name="error_ssl_date_invalid">The certificate date is invalid</string>
 
     <!-- Navigation drawer -->
     <string name="title_home_subheader">Home</string>
@@ -109,4 +120,23 @@
     <string name="allow">Allow</string>
     <string name="download">Download</string>
     <string name="play">Play</string>
+    <string name="web_user_agent" translatable="false">Mozilla/5.0 (Linux; Android <xliff:g id="build_release">%1$s</xliff:g>; <xliff:g id="build_model">%2$s</xliff:g>) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Mobile Safari/537.36</string>
+    <string name="request_message_permission_camera">YSports need camera permission to access camera</string>
+    <string name="request_message_permission_mic">YSports need microphone permission to access mic</string>
+    <string name="request_message_permission_location">YSports need location permission to access location</string>
+    <string name="request_title_allow_permission">Allow permission?</string>
+    <string name="warning_cellular_data_usage">Using cellular data now, download will consume traffic</string>
+    <string name="warning_unsafe_page_title">Unsafe</string>
+    <string name="warning_unsafe_page_message">Unsafe web page detected. Do you want to block it?</string>
+    <string name="unsafe_page_blocked">Unsafe web page blocked</string>
+    <string name="popup_blocked">Pop-up blocked</string>
+    <string name="js_dialog_title">%1$s says</string>
+    <string name="request_message_permission_camera_web">YSports need camera permission for this site</string>
+    <string name="request_message_permission_mic_web">YSports need microphone permission for this site</string>
+    <string name="request_message_permission_location_web">YSports need microphone permission for this site</string>
+    <string name="access_message_camera_web">%1$s wants to use your camera</string>
+    <string name="access_message_mic_web">%1$s wants to use your microphone</string>
+    <string name="access_message_location_web">%1$s wants to use your devices location</string>
+    <string name="downloading_file">Downloading file</string>
+    <string name="download_complete">Download complete</string>
 </resources>
