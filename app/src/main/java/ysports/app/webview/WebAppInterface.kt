@@ -27,7 +27,7 @@ class WebAppInterface(
     @JavascriptInterface
     fun toast(message: String?) {
         if (message != null) {
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
         }
     }
 
