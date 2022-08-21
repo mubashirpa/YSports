@@ -5,10 +5,10 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.DownloadManager
 import android.content.*
+import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
-import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.location.LocationManager
@@ -44,9 +44,9 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import ysports.app.databinding.ActivityBrowserBinding
 import ysports.app.player.PlayerUtil
-import ysports.app.webview.AdBlocker
 import ysports.app.util.AppUtil
 import ysports.app.util.NetworkUtil
+import ysports.app.webview.AdBlocker
 import ysports.app.webview.WebAppInterface
 import java.net.URISyntaxException
 
@@ -281,7 +281,7 @@ class BrowserActivity : AppCompatActivity() {
             setSupportMultipleWindows(true)
             setSupportZoom(true)
             useWideViewPort = true
-            userAgentString = "Mozilla/5.0 (Linux; Android " + Build.VERSION.RELEASE + "; " + Build.MODEL + ") AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.61 Mobile Safari/537.36"
+            userAgentString = getString(R.string.web_user_agent, Build.VERSION.RELEASE, Build.MODEL)
         }
         webView.isSoundEffectsEnabled = true
         webView.isLongClickable = true
@@ -313,7 +313,7 @@ class BrowserActivity : AppCompatActivity() {
                 }
             }
             val wifiConnected = NetworkUtil().wifiConnected(context)
-            if (!wifiConnected) downloadDialogBuilder.setMessage("Using cellular data now, download will consume traffic")
+            if (!wifiConnected) downloadDialogBuilder.setMessage(getString(R.string.warning_cellular_data_usage))
 
             downloadDialogBuilder
                 .setTitle(resources.getString(R.string.download))
@@ -321,7 +321,7 @@ class BrowserActivity : AppCompatActivity() {
                 .setNegativeButton(resources.getString(R.string.cancel)) { _, _ -> }
                 .setPositiveButton(resources.getString(R.string.download)) { _, _ ->
                     if (url.startsWith(BLOB_SCHEME)) {
-                        AppUtil(context).openCustomTabs(url)
+                        Toast.makeText(context, getString(R.string.error_unsupported_url), Toast.LENGTH_LONG).show()
                         return@setPositiveButton
                     }
                     downloadReference = if (textFileName.text.isNullOrEmpty()) {
@@ -402,14 +402,14 @@ class BrowserActivity : AppCompatActivity() {
         override fun onSafeBrowsingHit(view: WebView, request: WebResourceRequest, threatType: Int, callback: SafeBrowsingResponseCompat) {
             if (WebViewFeature.isFeatureSupported(WebViewFeature.SAFE_BROWSING_RESPONSE_BACK_TO_SAFETY)) {
                 MaterialAlertDialogBuilder(context)
-                    .setTitle("Unsafe")
-                    .setMessage("Unsafe web page detected. Do you want to block it?")
+                    .setTitle(getString(R.string.warning_unsafe_page_title))
+                    .setMessage(getString(R.string.warning_unsafe_page_message))
                     .setNegativeButton(resources.getString(R.string.continue_page)) { _, _ ->
                         callback.backToSafety(false)
                     }
                     .setPositiveButton(resources.getString(R.string.block)) { _, _ ->
                         callback.backToSafety(true)
-                        Toast.makeText(view.context, "Unsafe web page blocked.", Toast.LENGTH_LONG).show()
+                        Toast.makeText(view.context, getString(R.string.unsafe_page_blocked), Toast.LENGTH_LONG).show()
                     }
                     .setCancelable(false)
                     .show()
@@ -477,16 +477,16 @@ class BrowserActivity : AppCompatActivity() {
 
         @SuppressLint("WebViewClientOnReceivedSslError")
         override fun onReceivedSslError(view: WebView?, handler: SslErrorHandler?, error: SslError?) {
-            var errorMessage = "Certificate error."
-            when (error?.primaryError) {
-                SslError.SSL_UNTRUSTED -> errorMessage = "The certificate authority is not trusted."
-                SslError.SSL_EXPIRED -> errorMessage = "The certificate has been expired."
-                SslError.SSL_IDMISMATCH -> errorMessage = "The certificate hostname mismatch."
-                SslError.SSL_NOTYETVALID -> errorMessage = "The certificate is not yet valid."
-                SslError.SSL_DATE_INVALID -> errorMessage = "The certificate date is invalid"
+            val errorMessage = when (error?.primaryError) {
+                SslError.SSL_UNTRUSTED -> getString(R.string.error_ssl_untrusted)
+                SslError.SSL_EXPIRED -> getString(R.string.error_ssl_expired)
+                SslError.SSL_IDMISMATCH -> getString(R.string.error_ssl_id_mismatch)
+                SslError.SSL_NOTYETVALID -> getString(R.string.error_ssl_not_yet_valid)
+                SslError.SSL_DATE_INVALID -> getString(R.string.error_ssl_date_invalid)
+                else -> getString(R.string.error_ssl)
             }
             MaterialAlertDialogBuilder(context)
-                .setTitle("SSL Certificate Error")
+                .setTitle(getString(R.string.error_ssl_title))
                 .setMessage(errorMessage)
                 .setNegativeButton(resources.getString(R.string.cancel)) { _, _ ->
                     handler?.cancel()
@@ -528,7 +528,7 @@ class BrowserActivity : AppCompatActivity() {
 
         override fun onCreateWindow(view: WebView?, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message?): Boolean {
             if (!isUserGesture && enablePopupBlocker) {
-                Snackbar.make(binding.contextView, "Pop-up blocked", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(binding.contextView, getString(R.string.popup_blocked), Snackbar.LENGTH_LONG).show()
                 return false
             }
             val result: WebView.HitTestResult? = view?.hitTestResult
@@ -549,7 +549,7 @@ class BrowserActivity : AppCompatActivity() {
         override fun onJsAlert(view: WebView?, url: String?, message: String?, result: JsResult?): Boolean {
             val host = Uri.parse(webView.url).host
             MaterialAlertDialogBuilder(context)
-                .setTitle("$host says")
+                .setTitle(getString(R.string.js_dialog_title, host))
                 .setMessage(message)
                 .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
                     result?.confirm()
@@ -564,7 +564,7 @@ class BrowserActivity : AppCompatActivity() {
         override fun onJsConfirm(view: WebView?, url: String?, message: String?, result: JsResult?): Boolean {
             val host = Uri.parse(webView.url).host
             MaterialAlertDialogBuilder(context)
-                .setTitle("$host says")
+                .setTitle(getString(R.string.js_dialog_title, host))
                 .setMessage(message)
                 .setNegativeButton(resources.getString(R.string.cancel)) { _, _ ->
                     result?.cancel()
@@ -586,7 +586,7 @@ class BrowserActivity : AppCompatActivity() {
             textInputEditText.maxLines = 1
             textInputEditText.setText(defaultValue)
             MaterialAlertDialogBuilder(context)
-                .setTitle("$host says")
+                .setTitle(getString(R.string.js_dialog_title, host))
                 .setMessage(message)
                 .setView(inputLayout)
                 .setNegativeButton(resources.getString(R.string.cancel)) { _, _ ->
@@ -616,7 +616,7 @@ class BrowserActivity : AppCompatActivity() {
                     when (reqResources) {
                         PermissionRequest.RESOURCE_VIDEO_CAPTURE -> {
                             MaterialAlertDialogBuilder(context)
-                                .setMessage("$urlHost wants to use your camera")
+                                .setMessage(getString(R.string.access_message_camera_web, urlHost))
                                 .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
                                     onPermissionRequestConfirmation(false, arrayOf(""))
                                 }
@@ -624,7 +624,7 @@ class BrowserActivity : AppCompatActivity() {
                                     requestWebViewPermission(
                                         Manifest.permission.CAMERA,
                                         CAMERA_PERMISSION_REQUEST_CODE,
-                                        "YSports need camera permission for this site",
+                                        getString(R.string.request_message_permission_camera_web),
                                         arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE)
                                     )
                                 }
@@ -635,7 +635,7 @@ class BrowserActivity : AppCompatActivity() {
                         }
                         PermissionRequest.RESOURCE_AUDIO_CAPTURE -> {
                             MaterialAlertDialogBuilder(context)
-                                .setMessage("$urlHost wants to use your microphone")
+                                .setMessage(getString(R.string.access_message_mic_web, urlHost))
                                 .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
                                     onPermissionRequestConfirmation(false, arrayOf(""))
                                 }
@@ -643,7 +643,7 @@ class BrowserActivity : AppCompatActivity() {
                                     requestWebViewPermission(
                                         Manifest.permission.RECORD_AUDIO,
                                         MIC_PERMISSION_REQUEST_CODE,
-                                        "YSports need microphone permission for this site",
+                                        getString(R.string.request_message_permission_mic_web),
                                         arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE)
                                     )
                                 }
@@ -671,7 +671,7 @@ class BrowserActivity : AppCompatActivity() {
             geolocationCallback = callback
             geolocationOrigin = origin
             MaterialAlertDialogBuilder(context)
-                .setMessage("$urlHost wants to use your devices location")
+                .setMessage(getString(R.string.access_message_location_web, urlHost))
                 .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
                     onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)
                 }
@@ -703,29 +703,7 @@ class BrowserActivity : AppCompatActivity() {
             customViewCallback = callback
             (window.decorView as FrameLayout).addView(customView, FrameLayout.LayoutParams(-1, -1))
             hideSystemUi()
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                customView?.setOnApplyWindowInsetsListener { v: View, insets: WindowInsets? ->
-                    val suppliedInsets = v.onApplyWindowInsets(insets)
-                    if (suppliedInsets.isVisible(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())) {
-                        updateControls(0)
-                    } else {
-                        updateControls(getNavigationBarHeight())
-                    }
-                    suppliedInsets
-                }
-            } else {
-
-                //Deprecated in Api level 30
-                customView?.setOnSystemUiVisibilityChangeListener { visibility: Int ->
-                    if (visibility and View.SYSTEM_UI_FLAG_HIDE_NAVIGATION == 0) {
-                        updateControls(getNavigationBarHeight())
-                    } else {
-                        updateControls(0)
-                    }
-                }
-
-            }
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         }
 
         override fun onHideCustomView() {
@@ -750,7 +728,7 @@ class BrowserActivity : AppCompatActivity() {
             if (fileChooserParams != null) {
                 val allowMultiple: Boolean = fileChooserParams.mode == FileChooserParams.MODE_OPEN_MULTIPLE
                 if (pathCallback != null) {
-                    pathCallback!!.onReceiveValue(null)
+                    pathCallback?.onReceiveValue(null)
                     pathCallback = null
                 }
                 pathCallback = filePathCallback
@@ -766,16 +744,16 @@ class BrowserActivity : AppCompatActivity() {
         // User defined functions
 
         private fun getDefaultSystemUiVisibility(): Int {
-            val defaultSystemUiVisibility: Int = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val defaultSystemUiVisibility: Int? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 val insetsController = window.insetsController
-                insetsController!!.systemBarsBehavior
+                insetsController?.systemBarsBehavior
             } else {
 
                 // Deprecated in Api level 30
                 window.decorView.systemUiVisibility
 
             }
-            return defaultSystemUiVisibility
+            return defaultSystemUiVisibility!!
         }
 
         private fun hideSystemUi() {
@@ -824,21 +802,6 @@ class BrowserActivity : AppCompatActivity() {
             }
         }
 
-        private fun updateControls(bottomMargin: Int) {
-            val params = customView!!.layoutParams as FrameLayout.LayoutParams
-            params.bottomMargin = bottomMargin
-            customView!!.layoutParams = params
-        }
-
-        private fun getNavigationBarHeight(): Int {
-            val resources: Resources = resources
-            val resourceId: Int =
-                resources.getIdentifier("navigation_bar_height", "dimen", "android")
-            return if (resourceId > 0) {
-                resources.getDimensionPixelSize(resourceId)
-            } else 0
-        }
-
         private val activityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
             if (pathCallback != null) {
                 var results: Array<Uri>? = null
@@ -848,7 +811,7 @@ class BrowserActivity : AppCompatActivity() {
                         results = arrayOf(Uri.parse(dataString))
                     }
                 }
-                pathCallback!!.onReceiveValue(results)
+                pathCallback?.onReceiveValue(results)
                 pathCallback = null
             }
         }
@@ -874,12 +837,12 @@ class BrowserActivity : AppCompatActivity() {
                                 try {
                                     startActivity(marketIntent)
                                 } catch (notFoundException: ActivityNotFoundException) {
-                                    Toast.makeText(context, "Failed to load URL", Toast.LENGTH_LONG).show()
+                                    Toast.makeText(context, getString(R.string.error_url_load_fail), Toast.LENGTH_LONG).show()
                                 }
                             }
                         }
                     } catch (uriSyntaxException: URISyntaxException) {
-                        Toast.makeText(context, "Failed to load URL", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, getString(R.string.error_url_load_fail), Toast.LENGTH_LONG).show()
                     }
                 }
                 else -> {
@@ -889,9 +852,9 @@ class BrowserActivity : AppCompatActivity() {
                         startActivity(unknownURLIntent)
                     } catch (e: Exception) {
                         if (url.startsWith(TORRENT_SCHEME)) {
-                            Toast.makeText(context, "Download a torrent client and Try again!", Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, getString(R.string.error_no_torrent_client), Toast.LENGTH_LONG).show()
                         } else {
-                            Toast.makeText(context, "Unsupported URL", Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, getString(R.string.error_unsupported_url), Toast.LENGTH_LONG).show()
                         }
                     }
                 }
@@ -910,7 +873,7 @@ class BrowserActivity : AppCompatActivity() {
         binding.errorLayout.hideView()
         // Using timer to avoid multiple clicking on retry
         handler = Handler(Looper.getMainLooper())
-        handler!!.postDelayed({
+        handler?.postDelayed({
             if (!isDestroyed) {
                 webView.showView()
                 webView.reload()
@@ -947,7 +910,7 @@ class BrowserActivity : AppCompatActivity() {
             }
             shouldShowRequestPermissionRationale(permission) -> {
                 MaterialAlertDialogBuilder(context)
-                    .setTitle("Allow permission?")
+                    .setTitle(getString(R.string.request_title_allow_permission))
                     .setMessage(message)
                     .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
                         onPermissionRequestConfirmation(false, arrayOf(""))
@@ -967,10 +930,10 @@ class BrowserActivity : AppCompatActivity() {
     private fun onPermissionRequestConfirmation(allowed: Boolean, resources: Array<String>) {
         if (permissionRequest != null) {
             if (allowed) {
-                permissionRequest!!.grant(resources)
+                permissionRequest?.grant(resources)
                 Log.d(TAG, "Permission granted")
             } else {
-                permissionRequest!!.deny()
+                permissionRequest?.deny()
                 Log.e(TAG, "Permission request denied")
             }
             permissionRequest = null
@@ -995,8 +958,8 @@ class BrowserActivity : AppCompatActivity() {
             }
             shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) -> {
                 MaterialAlertDialogBuilder(context)
-                    .setTitle("Allow permission?")
-                    .setMessage("YSports need location permission for this site")
+                    .setTitle(getString(R.string.request_title_allow_permission))
+                    .setMessage(getString(R.string.request_message_permission_location_web))
                     .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
                         onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)
                     }
@@ -1024,7 +987,7 @@ class BrowserActivity : AppCompatActivity() {
     private fun fetchLocation() {
         if (!isLocationServiceEnabled()) {
             onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)
-            Toast.makeText(context, "Please enable location services in settings", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, getString(R.string.error_disabled_location_service), Toast.LENGTH_LONG).show()
             val locationIntent = Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)
             try {
                 startActivity(locationIntent)
@@ -1062,7 +1025,7 @@ class BrowserActivity : AppCompatActivity() {
         val cookies = CookieManager.getInstance().getCookie(url)
         request.addRequestHeader("cookie", cookies)
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-        Snackbar.make(binding.contextView, "Downloading file", Snackbar.LENGTH_LONG).show()
+        Snackbar.make(binding.contextView, getString(R.string.downloading_file), Snackbar.LENGTH_LONG).show()
         return downloadManager.enqueue(request)
     }
 
@@ -1070,7 +1033,7 @@ class BrowserActivity : AppCompatActivity() {
         override fun onReceive(context: Context?, intent: Intent) {
             val referenceId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
             if (downloadReference == referenceId) {
-                Snackbar.make(binding.contextView, "Download complete", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(binding.contextView, getString(R.string.download_complete), Snackbar.LENGTH_LONG).show()
             }
         }
     }

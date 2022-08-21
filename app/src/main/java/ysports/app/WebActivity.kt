@@ -6,10 +6,11 @@ import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import android.content.pm.PackageManager.MATCH_DEFAULT_ONLY
 import android.content.res.Configuration
-import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
@@ -42,8 +43,8 @@ import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.android.material.textfield.TextInputEditText
 import ysports.app.databinding.ActivityWebBinding
 import ysports.app.player.PlayerUtil
-import ysports.app.webview.AdBlocker
 import ysports.app.util.AppUtil
+import ysports.app.webview.AdBlocker
 import ysports.app.webview.WebAppInterface
 import java.net.URISyntaxException
 import java.net.URLDecoder
@@ -135,10 +136,6 @@ class WebActivity : AppCompatActivity() {
 
         // WebView settings
         webView.settings.apply {
-
-            // 'setter for allowUniversalAccessFromFileURLs: Boolean' is deprecated. Deprecated in Java
-            allowUniversalAccessFromFileURLs = true
-
             allowContentAccess = true
             allowFileAccess = true
             blockNetworkImage = false
@@ -161,7 +158,7 @@ class WebActivity : AppCompatActivity() {
             setSupportMultipleWindows(true)
             setSupportZoom(false)
             useWideViewPort = true
-            userAgentString = "Mozilla/5.0 (Linux; Android " + Build.VERSION.RELEASE + "; " + Build.MODEL + ") AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.61 Mobile Safari/537.36"
+            userAgentString = getString(R.string.web_user_agent, Build.VERSION.RELEASE, Build.MODEL)
         }
         CookieManager.getInstance().setAcceptCookie(true)
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true)
@@ -174,8 +171,8 @@ class WebActivity : AppCompatActivity() {
             webView.setRendererPriorityPolicy(RENDERER_PRIORITY_BOUND, true)
         }
         webView.addJavascriptInterface(WebAppInterface(context, this), "Android")
-        webView.webViewClient = CustomWebViewClient(assetLoader)
-        webView.webChromeClient = CustomWebChromeClient()
+        webView.webViewClient = WebClient(assetLoader)
+        webView.webChromeClient = ChromeClient()
         webView.loadUrl(WEB_URL)
 
         webView.setDownloadListener { url, _, _, _, _ ->
@@ -185,7 +182,7 @@ class WebActivity : AppCompatActivity() {
             try {
                 startActivity(downloadIntent)
             } catch (e: Exception) {
-                Log.e(TAG, e.message.toString())
+                Toast.makeText(context, getString(R.string.error_url_load_fail), Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -242,7 +239,7 @@ class WebActivity : AppCompatActivity() {
         }
     }
 
-    inner class CustomWebViewClient(private val assetLoader: WebViewAssetLoader) : WebViewClientCompat() {
+    inner class WebClient(private val assetLoader: WebViewAssetLoader) : WebViewClientCompat() {
 
         @RequiresApi(26)
         override fun onRenderProcessGone(view: WebView?, detail: RenderProcessGoneDetail?): Boolean {
@@ -309,7 +306,7 @@ class WebActivity : AppCompatActivity() {
         }
     }
 
-    inner class CustomWebChromeClient : WebChromeClient() {
+    inner class ChromeClient : WebChromeClient() {
 
         private var hasShownCustomView: Boolean = false
         private var customView: View? = null
@@ -396,7 +393,7 @@ class WebActivity : AppCompatActivity() {
                             requestWebViewPermission(
                                 Manifest.permission.CAMERA,
                                 CAMERA_PERMISSION_REQUEST_CODE,
-                                "YSports need camera permission to access camera",
+                                getString(R.string.request_message_permission_camera),
                                 arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE)
                             )
                         }
@@ -404,7 +401,7 @@ class WebActivity : AppCompatActivity() {
                             requestWebViewPermission(
                                 Manifest.permission.RECORD_AUDIO,
                                 MIC_PERMISSION_REQUEST_CODE,
-                                "YSports need microphone permission to access mic",
+                                getString(R.string.request_message_permission_mic),
                                 arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE)
                             )
                         }
@@ -448,29 +445,7 @@ class WebActivity : AppCompatActivity() {
             customViewCallback = callback
             (window.decorView as FrameLayout).addView(customView, FrameLayout.LayoutParams(-1, -1))
             hideSystemUi()
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                customView?.setOnApplyWindowInsetsListener { v: View, insets: WindowInsets? ->
-                    val suppliedInsets = v.onApplyWindowInsets(insets)
-                    if (suppliedInsets.isVisible(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())) {
-                        updateControls(0)
-                    } else {
-                        updateControls(getNavigationBarHeight())
-                    }
-                    suppliedInsets
-                }
-            } else {
-
-                //Deprecated in Api level 30
-                customView?.setOnSystemUiVisibilityChangeListener { visibility: Int ->
-                    if (visibility and View.SYSTEM_UI_FLAG_HIDE_NAVIGATION == 0) {
-                        updateControls(getNavigationBarHeight())
-                    } else {
-                        updateControls(0)
-                    }
-                }
-
-            }
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         }
 
         override fun onHideCustomView() {
@@ -494,7 +469,7 @@ class WebActivity : AppCompatActivity() {
             if (fileChooserParams != null) {
                 val allowMultiple: Boolean = fileChooserParams.mode == FileChooserParams.MODE_OPEN_MULTIPLE
                 if (pathCallback != null) {
-                    pathCallback!!.onReceiveValue(null)
+                    pathCallback?.onReceiveValue(null)
                     pathCallback = null
                 }
                 pathCallback = filePathCallback
@@ -510,16 +485,16 @@ class WebActivity : AppCompatActivity() {
         // User defined functions
 
         private fun getDefaultSystemUiVisibility(): Int {
-            val defaultSystemUiVisibility: Int = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val defaultSystemUiVisibility: Int? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 val insetsController = window.insetsController
-                insetsController!!.systemBarsBehavior
+                insetsController?.systemBarsBehavior
             } else {
 
                 // Deprecated in Api level 30
                 window.decorView.systemUiVisibility
 
             }
-            return defaultSystemUiVisibility
+            return defaultSystemUiVisibility!!
         }
 
         private fun hideSystemUi() {
@@ -568,21 +543,6 @@ class WebActivity : AppCompatActivity() {
             }
         }
 
-        private fun updateControls(bottomMargin: Int) {
-            val params = customView!!.layoutParams as FrameLayout.LayoutParams
-            params.bottomMargin = bottomMargin
-            customView!!.layoutParams = params
-        }
-
-        private fun getNavigationBarHeight(): Int {
-            val resources: Resources = resources
-            val resourceId: Int =
-                resources.getIdentifier("navigation_bar_height", "dimen", "android")
-            return if (resourceId > 0) {
-                resources.getDimensionPixelSize(resourceId)
-            } else 0
-        }
-
         private val activityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
             if (pathCallback != null) {
                 var results: Array<Uri>? = null
@@ -592,7 +552,7 @@ class WebActivity : AppCompatActivity() {
                         results = arrayOf(Uri.parse(dataString))
                     }
                 }
-                pathCallback!!.onReceiveValue(results)
+                pathCallback?.onReceiveValue(results)
                 pathCallback = null
             }
         }
@@ -623,7 +583,7 @@ class WebActivity : AppCompatActivity() {
                         val handlerIntent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
                         if (handlerIntent != null) {
                             val packageManager = context.packageManager
-                            val info = packageManager.resolveActivity(handlerIntent, PackageManager.MATCH_DEFAULT_ONLY)
+                            val info = packageManager.resolveActivity(handlerIntent, MATCH_DEFAULT_ONLY)
                             if (info != null) {
                                 context.startActivity(handlerIntent)
                             } else {
@@ -632,12 +592,12 @@ class WebActivity : AppCompatActivity() {
                                 try {
                                     startActivity(marketIntent)
                                 } catch (notFoundException: ActivityNotFoundException) {
-                                    Toast.makeText(context, "Failed to load URL", Toast.LENGTH_LONG).show()
+                                    Toast.makeText(context, getString(R.string.error_url_load_fail), Toast.LENGTH_LONG).show()
                                 }
                             }
                         }
                     } catch (uriSyntaxException: URISyntaxException) {
-                        Toast.makeText(context, "Failed to load URL", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, getString(R.string.error_url_load_fail), Toast.LENGTH_LONG).show()
                     }
                 }
                 else -> {
@@ -647,9 +607,9 @@ class WebActivity : AppCompatActivity() {
                         startActivity(unknownURLIntent)
                     } catch (e: Exception) {
                         if (url?.startsWith(TORRENT_SCHEME) == true) {
-                            Toast.makeText(context, "Download a torrent client and Try again!", Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, getString(R.string.error_no_torrent_client), Toast.LENGTH_LONG).show()
                         } else {
-                            Toast.makeText(context, "Unsupported URL", Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, getString(R.string.error_unsupported_url), Toast.LENGTH_LONG).show()
                         }
                     }
                 }
@@ -669,7 +629,7 @@ class WebActivity : AppCompatActivity() {
         errorView.hideView()
         webViewProgressIndicator.showView()
         handler = Handler(Looper.getMainLooper())
-        handler!!.postDelayed({
+        handler?.postDelayed({
             if (!isDestroyed) {
                 webView.showView()
                 webView.reload()
@@ -697,7 +657,7 @@ class WebActivity : AppCompatActivity() {
             }
             shouldShowRequestPermissionRationale(permission) -> {
                 MaterialAlertDialogBuilder(context)
-                    .setTitle("Allow permission?")
+                    .setTitle(getString(R.string.request_title_allow_permission))
                     .setMessage(message)
                     .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
                         onPermissionRequestConfirmation(false, arrayOf(""))
@@ -717,10 +677,10 @@ class WebActivity : AppCompatActivity() {
     private fun onPermissionRequestConfirmation(allowed: Boolean, resources: Array<String>) {
         if (permissionRequest != null) {
             if (allowed) {
-                permissionRequest!!.grant(resources)
+                permissionRequest?.grant(resources)
                 Log.d(TAG, "Permission granted")
             } else {
-                permissionRequest!!.deny()
+                permissionRequest?.deny()
                 Log.e(TAG, "Permission request denied")
             }
             permissionRequest = null
@@ -745,8 +705,8 @@ class WebActivity : AppCompatActivity() {
             }
             shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) -> {
                 MaterialAlertDialogBuilder(context)
-                    .setTitle("Allow permission?")
-                    .setMessage("YSports need location permission to access location")
+                    .setTitle(getString(R.string.request_title_allow_permission))
+                    .setMessage(getString(R.string.request_message_permission_location))
                     .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
                         onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)
                     }
@@ -774,7 +734,7 @@ class WebActivity : AppCompatActivity() {
     private fun fetchLocation() {
         if (!isLocationServiceEnabled()) {
             onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)
-            Toast.makeText(context, "Please enable location services in settings", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, getString(R.string.error_disabled_location_service), Toast.LENGTH_LONG).show()
             val locationIntent = Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)
             try {
                 startActivity(locationIntent)
