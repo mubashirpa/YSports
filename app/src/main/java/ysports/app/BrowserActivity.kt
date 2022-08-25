@@ -748,7 +748,13 @@ class BrowserActivity : AppCompatActivity() {
                     addCategory(Intent.CATEGORY_OPENABLE)
                     if (allowMultiple) putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
                 }
-                activityResultLauncher.launch(chooserIntent)
+                try {
+                    activityResultLauncher.launch(chooserIntent)
+                } catch (exception: ActivityNotFoundException) {
+                    pathCallback?.onReceiveValue(null)
+                    pathCallback = null
+                    Toast.makeText(context, R.string.error_default, Toast.LENGTH_LONG).show()
+                }
             }
             return true
         }
@@ -816,14 +822,27 @@ class BrowserActivity : AppCompatActivity() {
 
         private val activityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
             if (pathCallback != null) {
-                var results: Array<Uri>? = null
+                var uris: Array<Uri>? = null
+
                 if (result.resultCode == Activity.RESULT_OK) {
-                    val dataString = result.data?.dataString
-                    if (dataString != null) {
-                        results = arrayOf(Uri.parse(dataString))
+                    val clipData = result.data?.clipData
+                    val fileCount = clipData?.itemCount
+
+                    if (clipData != null && fileCount != null) {
+                        val uriList: MutableList<Uri> = mutableListOf()
+
+                        for (i in 0 until fileCount) {
+                            val uri = clipData.getItemAt(i)?.uri
+                            if (uri != null) uriList.add(uri)
+                        }
+                        uris = uriList.toTypedArray()
+                    } else {
+                        result.data?.dataString?.also { uri ->
+                            uris = arrayOf(Uri.parse(uri))
+                        }
                     }
                 }
-                pathCallback?.onReceiveValue(results)
+                pathCallback?.onReceiveValue(uris)
                 pathCallback = null
             }
         }
