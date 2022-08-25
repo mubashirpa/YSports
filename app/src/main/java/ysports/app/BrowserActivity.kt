@@ -231,17 +231,30 @@ class BrowserActivity : AppCompatActivity() {
             .build()
 
         // Supporting Dark Theme for WebView
-        if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
-            when (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
-                Configuration.UI_MODE_NIGHT_YES -> {
-                    setForceDark(webView.settings, FORCE_DARK_ON)
+        when (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
+            Configuration.UI_MODE_NIGHT_YES -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) setAlgorithmicDarkeningAllowed(webView.settings, true)
+                } else {
+
+                    // Deprecated in Api level 33
+                    if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) setForceDark(webView.settings, FORCE_DARK_ON)
+
                 }
-                Configuration.UI_MODE_NIGHT_NO, Configuration.UI_MODE_NIGHT_UNDEFINED -> {
-                    setForceDark(webView.settings, FORCE_DARK_OFF)
+            }
+            Configuration.UI_MODE_NIGHT_NO, Configuration.UI_MODE_NIGHT_UNDEFINED -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) setAlgorithmicDarkeningAllowed(webView.settings, false)
+                } else {
+
+                    // Deprecated in Api level 33
+                    if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) setForceDark(webView.settings, FORCE_DARK_OFF)
+
                 }
             }
         }
         if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY)) {
+            // Deprecated in Api level 33
             setForceDarkStrategy(webView.settings, DARK_STRATEGY_WEB_THEME_DARKENING_ONLY)
         }
 
@@ -714,7 +727,6 @@ class BrowserActivity : AppCompatActivity() {
             customViewCallback?.onCustomViewHidden()
             customView = null
             customViewCallback = null
-
         }
 
         @Nullable
