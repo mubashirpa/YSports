@@ -12,10 +12,11 @@ import ysports.app.MainActivity
 import ysports.app.R
 import ysports.app.util.NotificationUtil
 
-class MyFirebaseMessagingService : FirebaseMessagingService() {
+class FirebaseCloudMessagingService : FirebaseMessagingService() {
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         Log.d(TAG, "From: ${remoteMessage.from}")
+
         if (remoteMessage.data.isNotEmpty()) {
             Log.d(TAG, "Message data payload: ${remoteMessage.data}")
         }
