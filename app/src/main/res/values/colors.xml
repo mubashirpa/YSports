@@ -33,4 +33,5 @@
 
     <color name="onBackgroundSecondary">#202224</color>
     <color name="onSurfaceSecondary">#202224</color>
+    <color name="popupMenuBackground">#EBEDF1</color>
 </resources>
