@@ -40,7 +40,6 @@
     </style>
 
     <style name="Theme.YSports.MainActivity" parent="Theme.YSports">
-        <item name="android:windowTranslucentStatus">true</item>
         <item name="android:navigationBarColor">@color/navigation_bar</item>
     </style>
 
@@ -66,7 +65,7 @@
     </style>
 
     <!-- Browser Activity Toolbar Theme -->
-    <style name="Widget.YSports.Toolbar" parent="Widget.Material3.Toolbar">
+    <style name="Widget.YSports.Toolbar" parent="Widget.Material3.Toolbar.Surface">
         <item name="titleTextAppearance">@style/TextAppearance.YSports.TitleLarge</item>
         <item name="subtitleTextAppearance">@style/TextAppearance.YSports.TitleMedium</item>
     </style>
