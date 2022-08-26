@@ -199,7 +199,7 @@
 
         <!-- Firebase Cloud Messaging -->
         <service
-            android:name=".fcm.MyFirebaseMessagingService"
+            android:name=".fcm.FirebaseCloudMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
