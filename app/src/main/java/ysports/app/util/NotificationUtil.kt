@@ -49,9 +49,28 @@ class NotificationUtil(val context: Context) {
         }
     }
 
-    private fun getUniqueId() = ((System.currentTimeMillis() % 10000).toInt())
+    fun sendNotification(
+        title: String,
+        message: String,
+    ) {
+        val channelId: String = context.getString(R.string.default_notification_channel_id)
+        val priority = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            NotificationManager.IMPORTANCE_DEFAULT
+        } else {
+            NotificationCompat.PRIORITY_DEFAULT
+        }
+        val builder = NotificationCompat.Builder(context, channelId)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setPriority(priority)
+            .setAutoCancel(true)
 
-    private fun areNotificationEnabled() : Boolean {
-        return true
+        with(NotificationManagerCompat.from(context)) {
+            // notificationId is a unique int for each notification that you must define
+            notify(getUniqueId(), builder.build())
+        }
     }
+
+    private fun getUniqueId() = ((System.currentTimeMillis() % 10000).toInt())
 }
