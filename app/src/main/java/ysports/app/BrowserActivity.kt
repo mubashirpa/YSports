@@ -15,6 +15,7 @@ import android.location.LocationManager
 import android.net.Uri
 import android.net.http.SslError
 import android.os.*
+import android.provider.MediaStore
 import android.text.format.Formatter
 import android.util.Log
 import android.view.View
@@ -34,6 +35,7 @@ import androidx.annotation.RestrictTo
 import androidx.annotation.UiThread
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.view.isVisible
 import androidx.webkit.*
 import androidx.webkit.WebSettingsCompat.*
@@ -48,6 +50,7 @@ import ysports.app.util.AppUtil
 import ysports.app.util.NetworkUtil
 import ysports.app.webview.AdBlocker
 import ysports.app.webview.WebAppInterface
+import java.io.File
 import java.net.URISyntaxException
 
 @Suppress("PrivatePropertyName")
@@ -60,7 +63,7 @@ class BrowserActivity : AppCompatActivity() {
     private lateinit var toolbar: MaterialToolbar
     private lateinit var WEB_URL: String
     private var handler: Handler? = null
-    private val TAG = "BrowserActivity"
+    private val TAG = "BrowserActivityTag"
     private val INTENT_SCHEME = "intent:"
     private val TORRENT_SCHEME = "magnet:"
     private val BLOB_SCHEME = "blob:"
@@ -334,13 +337,13 @@ class BrowserActivity : AppCompatActivity() {
                 .setNegativeButton(resources.getString(R.string.cancel)) { _, _ -> }
                 .setPositiveButton(resources.getString(R.string.download)) { _, _ ->
                     if (url.startsWith(BLOB_SCHEME)) {
-                        Toast.makeText(context, getString(R.string.error_unsupported_url), Toast.LENGTH_LONG).show()
-                        return@setPositiveButton
-                    }
-                    downloadReference = if (textFileName.text.isNullOrEmpty()) {
-                        startDownload(url, userAgent, mimetype, fileName)
+                        convertBlobToUri(url, mimetype, fileName)
                     } else {
-                        startDownload(url, userAgent, mimetype, textFileName.text.toString())
+                        downloadReference = if (textFileName.text.isNullOrEmpty()) {
+                            startDownload(url, userAgent, mimetype, fileName)
+                        } else {
+                            startDownload(url, userAgent, mimetype, textFileName.text.toString())
+                        }
                     }
                 }
                 .setCancelable(false)
@@ -363,7 +366,7 @@ class BrowserActivity : AppCompatActivity() {
         try {
             unregisterReceiver(downloadReceiver)
         } catch (e: Exception) {
-            Log.e(TAG, e.message.toString())
+            Log.e(TAG, e.message.toString(), e.cause)
         }
     }
 
@@ -747,6 +750,12 @@ class BrowserActivity : AppCompatActivity() {
                 val chooserIntent: Intent = fileChooserParams.createIntent().apply {
                     addCategory(Intent.CATEGORY_OPENABLE)
                     if (allowMultiple) putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+                    if (fileChooserParams.isCaptureEnabled) {
+                        val captureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+                            putExtra(MediaStore.EXTRA_OUTPUT, setImageUri())
+                        }
+                        putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf<Parcelable>(captureIntent))
+                    }
                 }
                 try {
                     activityResultLauncher.launch(chooserIntent)
@@ -845,6 +854,19 @@ class BrowserActivity : AppCompatActivity() {
                 pathCallback?.onReceiveValue(uris)
                 pathCallback = null
             }
+        }
+
+        private fun setImageUri() : Uri {
+            val folder = File("${getExternalFilesDir(Environment.DIRECTORY_DCIM)}")
+            if (!folder.exists()) folder.mkdirs()
+
+            val file = File(folder, "IMG_" + System.currentTimeMillis().toString() + ".jpg")
+            if (file.exists()) file.delete()
+            file.createNewFile()
+
+            return FileProvider.getUriForFile(
+                context, getString(R.string.file_provider_authority), file
+            )
         }
     }
 
@@ -1023,7 +1045,7 @@ class BrowserActivity : AppCompatActivity() {
             try {
                 startActivity(locationIntent)
             } catch (e: Exception) {
-                Log.e(TAG, e.message.toString())
+                Log.e(TAG, e.message.toString(), e.cause)
             }
         } else {
             onGeolocationPermissionConfirmation(geolocationOrigin, allowed = true, retain = false)
@@ -1067,5 +1089,13 @@ class BrowserActivity : AppCompatActivity() {
                 Snackbar.make(binding.contextView, getString(R.string.download_complete), Snackbar.LENGTH_LONG).show()
             }
         }
+    }
+
+    private fun convertBlobToUri(blobURL: String, mimetype: String, fileName: String) {
+        var script = assets.open("web/js/blob_converter.js").bufferedReader().use {
+            it.readText()
+        }
+        script += "blobConvert('$blobURL', '$mimetype', '$fileName');"
+        webView.evaluateJavascript(script, null)
     }
 }
