@@ -1,5 +1,6 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name" translatable="false">YSports</string>
+    <string name="file_provider_authority" translatable="false">ysports.app.file_provider</string>
 
     <!-- Notification -->
     <string name="default_notification_channel_id">default_channel</string>
@@ -51,6 +52,7 @@
     <string name="error_ssl_id_mismatch">The certificate hostname mismatch.</string>
     <string name="error_ssl_not_yet_valid">The certificate is not yet valid.</string>
     <string name="error_ssl_date_invalid">The certificate date is invalid</string>
+    <string name="error_download_failed">Download failed</string>
 
     <!-- Navigation drawer -->
     <string name="title_home_subheader">Home</string>
@@ -139,4 +141,5 @@
     <string name="access_message_location_web">%1$s wants to use your devices location</string>
     <string name="downloading_file">Downloading file</string>
     <string name="download_complete">Download complete</string>
+    <string name="downloaded_successfully">Downloaded successfully.</string>
 </resources>
