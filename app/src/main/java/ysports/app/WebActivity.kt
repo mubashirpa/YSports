@@ -18,6 +18,7 @@ import android.location.LocationManager
 import android.net.Uri
 import android.net.http.SslError
 import android.os.*
+import android.provider.MediaStore
 import android.util.Log
 import android.view.View
 import android.view.WindowInsets
@@ -36,6 +37,7 @@ import androidx.annotation.RequiresApi
 import androidx.annotation.UiThread
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.view.isVisible
 import androidx.webkit.*
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -46,6 +48,7 @@ import ysports.app.player.PlayerUtil
 import ysports.app.util.AppUtil
 import ysports.app.webview.AdBlocker
 import ysports.app.webview.WebAppInterface
+import java.io.File
 import java.net.URISyntaxException
 import java.net.URLDecoder
 
@@ -494,8 +497,13 @@ class WebActivity : AppCompatActivity() {
                 }
                 pathCallback = filePathCallback
                 val chooserIntent: Intent = fileChooserParams.createIntent().apply {
-                    addCategory(Intent.CATEGORY_OPENABLE)
                     if (allowMultiple) putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+                    if (fileChooserParams.isCaptureEnabled) {
+                        val captureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+                            putExtra(MediaStore.EXTRA_OUTPUT, setImageUri())
+                        }
+                        putExtra(Intent.EXTRA_INITIAL_INTENTS, arrayOf<Parcelable>(captureIntent))
+                    }
                 }
                 try {
                     activityResultLauncher.launch(chooserIntent)
@@ -594,6 +602,19 @@ class WebActivity : AppCompatActivity() {
                 pathCallback?.onReceiveValue(uris)
                 pathCallback = null
             }
+        }
+
+        private fun setImageUri() : Uri {
+            val folder = File("${getExternalFilesDir(Environment.DIRECTORY_DCIM)}")
+            if (!folder.exists()) folder.mkdirs()
+
+            val file = File(folder, "IMG_" + System.currentTimeMillis().toString() + ".jpg")
+            if (file.exists()) file.delete()
+            file.createNewFile()
+
+            return FileProvider.getUriForFile(
+                context, getString(R.string.file_provider_authority), file
+            )
         }
     }
 
@@ -778,7 +799,7 @@ class WebActivity : AppCompatActivity() {
             try {
                 startActivity(locationIntent)
             } catch (e: Exception) {
-                Log.e(TAG, e.message.toString())
+                Log.e(TAG, e.message.toString(), e.cause)
             }
         } else {
             onGeolocationPermissionConfirmation(geolocationOrigin, allowed = true, retain = false)
