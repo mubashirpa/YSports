@@ -106,7 +106,7 @@ class MatchesFragment : Fragment() {
     }
 
     private fun setViewPagerAdapter(arrayList: ArrayList<Fixtures>) {
-        val matchesViewPagerAdapter = MatchesViewPagerAdapter(this, arrayList, viewPager)
+        val matchesViewPagerAdapter = MatchesViewPagerAdapter(this, arrayList)
         viewPager.adapter = matchesViewPagerAdapter
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
             when (position) {

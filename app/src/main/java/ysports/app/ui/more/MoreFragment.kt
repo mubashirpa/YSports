@@ -20,7 +20,7 @@ class MoreFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         val dashboardViewModel =
-            ViewModelProvider(this).get(MoreViewModel::class.java)
+            ViewModelProvider(this)[MoreViewModel::class.java]
 
         _binding = FragmentMoreBinding.inflate(inflater, container, false)
         val root: View = binding.root

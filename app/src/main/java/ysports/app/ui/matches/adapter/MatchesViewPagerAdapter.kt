@@ -3,7 +3,6 @@ package ysports.app.ui.matches.adapter
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import androidx.viewpager2.widget.ViewPager2
 import ysports.app.api.fixture.Fixtures
 import ysports.app.ui.matches.ARG_POSITION
 import ysports.app.ui.matches.MatchesObjectFragment
@@ -12,8 +11,7 @@ private const val tabs_count = 3
 
 class MatchesViewPagerAdapter(
     fragment: Fragment,
-    private val arrayList: ArrayList<Fixtures>,
-    private val viewPager: ViewPager2
+    private val arrayList: ArrayList<Fixtures>
 ) : FragmentStateAdapter(fragment) {
 
     override fun getItemCount(): Int = tabs_count
