@@ -122,6 +122,7 @@
     <string name="allow">Allow</string>
     <string name="download">Download</string>
     <string name="play">Play</string>
+    <string name="unknown">Unknown</string>
     <string name="web_user_agent" translatable="false">Mozilla/5.0 (Linux; Android <xliff:g id="build_release">%1$s</xliff:g>; <xliff:g id="build_model">%2$s</xliff:g>) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Mobile Safari/537.36</string>
     <string name="request_message_permission_camera">YSports need camera permission to access camera</string>
     <string name="request_message_permission_mic">YSports need microphone permission to access mic</string>
@@ -142,4 +143,5 @@
     <string name="downloading_file">Downloading file</string>
     <string name="download_complete">Download complete</string>
     <string name="downloaded_successfully">Downloaded successfully.</string>
+    <string name="request_message_permission_clipboard">Allow YSports to access items in the clipboard to add copied URLs automatically?</string>
 </resources>
