@@ -24,9 +24,9 @@
                 android:id="@+id/backdrop"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:src="@drawable/bg_image_placeholder_8dp"
                 android:scaleType="fitXY"
-                android:contentDescription="@string/app_name"
-                android:background="@color/image_background_placeholder"/>
+                android:contentDescription="@string/app_name"/>
         </com.google.android.material.card.MaterialCardView>
         <TextView
             android:id="@+id/title"
