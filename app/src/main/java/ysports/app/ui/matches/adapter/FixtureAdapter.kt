@@ -30,14 +30,14 @@ class FixtureAdapter(
         holder.matchTime.text = matchTime
         holder.matchDate.text = matchDate
 
-        holder.homeTeam.text = if (!arrayList[position].homeTeam.isNullOrEmpty()) arrayList[position].homeTeam else ""
-        holder.awayTeam.text = if (!arrayList[position].awayTeam.isNullOrEmpty()) arrayList[position].awayTeam else ""
+        holder.homeTeam.text = arrayList[position].homeTeam
+        holder.awayTeam.text = arrayList[position].awayTeam
         Glide.with(context)
-            .load(arrayList[position].homeTeamLogo ?: "")
+            .load(arrayList[position].homeTeamLogo)
             .placeholder(R.drawable.img_logo_team_placeholder)
             .into(holder.homeTeamLogo)
         Glide.with(context)
-            .load(arrayList[position].awayTeamLogo ?: "")
+            .load(arrayList[position].awayTeamLogo)
             .placeholder(R.drawable.img_logo_team_placeholder)
             .into(holder.awayTeamLogo)
     }

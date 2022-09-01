@@ -28,8 +28,8 @@ class NewsAdapter(
 
     override fun onBindViewHolder(holder: NewsViewHolder, position: Int) {
         when(holder) {
-            is NewsViewHolder.NewsBannerViewHolder -> holder.bind(context, arrayList[position].imageUrl ?: "", arrayList[position].title ?: "", arrayList[position].publishedTime ?: "")
-            is NewsViewHolder.NewsItemsViewHolder -> holder.bind(context, arrayList[position].imageUrl ?: "", arrayList[position].title ?: "", arrayList[position].publishedTime ?: "")
+            is NewsViewHolder.NewsBannerViewHolder -> holder.bind(context, arrayList[position].imageUrl, arrayList[position].title, arrayList[position].publishedTime)
+            is NewsViewHolder.NewsItemsViewHolder -> holder.bind(context, arrayList[position].imageUrl, arrayList[position].title, arrayList[position].publishedTime)
         }
     }
 

@@ -132,27 +132,19 @@ class WebAppInterface(
             if (light) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     val controller = window.insetsController
-                    controller?.setSystemBarsAppearance(
-                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
-                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
-                    )
-                } else
-
-                //Deprecated in Api level 30
+                    controller?.setSystemBarsAppearance(WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS, WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS)
+                } else{
+                    //Deprecated in Api level 30
                     addFlags(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
-
+                }
             } else {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     val controller = window.insetsController
-                    controller?.setSystemBarsAppearance(
-                        0,
-                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
-                    )
-                } else
-
-                //Deprecated in Api level 30
+                    controller?.setSystemBarsAppearance(0, WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS)
+                } else {
+                    //Deprecated in Api level 30
                     clearFlags(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
-
+                }
             }
         }
     }

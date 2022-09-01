@@ -22,10 +22,12 @@ class LeaguesAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.title.text = arrayList[position].title ?: ""
+        val title = arrayList[position].title
+        val logo = arrayList[position].logo
+        holder.title.text =  title
         Glide.with(context)
-            .load(arrayList[position].logo ?: "")
-            .placeholder(R.drawable.img_logo_team_placeholder)
+            .load(logo)
+            .placeholder(R.drawable.bg_image_placeholder_circle)
             .into(holder.logo)
     }
 
