@@ -1001,7 +1001,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
     private fun initializeNotification(): PlayerNotificationManager {
         val channelId = createNotificationChannel()
         val notificationId = 101
-        val mediaDescriptionAdapter = DescriptionAdapter()
+        val mediaDescriptionAdapter = DescriptionAdapter(context)
 
         val playerNotificationManager = PlayerNotificationManager
             .Builder(context, notificationId, channelId)
