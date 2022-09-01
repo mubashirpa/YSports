@@ -38,7 +38,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.view.isVisible
 import androidx.webkit.*
-import androidx.webkit.WebSettingsCompat.*
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.progressindicator.LinearProgressIndicator
@@ -234,31 +233,23 @@ class BrowserActivity : AppCompatActivity() {
             .build()
 
         // Supporting Dark Theme for WebView
-        when (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
-            Configuration.UI_MODE_NIGHT_YES -> {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) setAlgorithmicDarkeningAllowed(webView.settings, true)
-                } else {
-
-                    // Deprecated in Api level 33
-                    if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) setForceDark(webView.settings, FORCE_DARK_ON)
-
-                }
-            }
-            Configuration.UI_MODE_NIGHT_NO, Configuration.UI_MODE_NIGHT_UNDEFINED -> {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) setAlgorithmicDarkeningAllowed(webView.settings, false)
-                } else {
-
-                    // Deprecated in Api level 33
-                    if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) setForceDark(webView.settings, FORCE_DARK_OFF)
-
-                }
-            }
-        }
-        if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY)) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING))
+                WebSettingsCompat.setAlgorithmicDarkeningAllowed(webView.settings, false)
+        } else {
             // Deprecated in Api level 33
-            setForceDarkStrategy(webView.settings, DARK_STRATEGY_WEB_THEME_DARKENING_ONLY)
+            when (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
+                Configuration.UI_MODE_NIGHT_YES -> {
+                    if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK))
+                        WebSettingsCompat.setForceDark(webView.settings, WebSettingsCompat.FORCE_DARK_ON)
+                }
+                Configuration.UI_MODE_NIGHT_NO, Configuration.UI_MODE_NIGHT_UNDEFINED -> {
+                    if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK))
+                        WebSettingsCompat.setForceDark(webView.settings, WebSettingsCompat.FORCE_DARK_OFF)
+                }
+            }
+            if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY))
+                WebSettingsCompat.setForceDarkStrategy(webView.settings, WebSettingsCompat.DARK_STRATEGY_WEB_THEME_DARKENING_ONLY)
         }
 
         // Setup debugging; See https://developers.google.com/web/tools/chrome-devtools/remote-debugging/webviews for reference
