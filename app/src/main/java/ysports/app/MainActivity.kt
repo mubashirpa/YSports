@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
@@ -59,6 +60,10 @@ class MainActivity : AppCompatActivity() {
     private val newsFragment = NewsFragment()
     private val moreFragment = MoreFragment()
     private var tablet = false
+    private var clipboardPermission = false
+    private var clipboardPermissionShow = false
+    private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var sharedPreferencesEditor: SharedPreferences.Editor
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,6 +77,8 @@ class MainActivity : AppCompatActivity() {
         navigationDrawer = binding.navigationView
         navigationBar = binding.bottomNavigation
         navigationRail = binding.navigationRail
+        sharedPreferences = getSharedPreferences("app_data", MODE_PRIVATE)
+        sharedPreferencesEditor = sharedPreferences.edit()
 
         onBackPressedDispatcher.addCallback(onBackPressedCallback)
 
@@ -124,7 +131,26 @@ class MainActivity : AppCompatActivity() {
                     changeFragmentDestination(3)
                 }
                 R.id.network_stream_item -> {
-                    networkStream()
+                    clipboardPermission = sharedPreferences.getBoolean("clipboard_permission", false)
+                    clipboardPermissionShow = sharedPreferences.getBoolean("clipboard_permission_show", false)
+                    if (!clipboardPermissionShow) {
+                        sharedPreferencesEditor.putBoolean("clipboard_permission_show", true).commit()
+                        MaterialAlertDialogBuilder(context)
+                            .setTitle(resources.getString(R.string.request_title_allow_permission))
+                            .setMessage(resources.getString(R.string.request_message_permission_clipboard))
+                            .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
+                                sharedPreferencesEditor.putBoolean("clipboard_permission", false).commit()
+                                networkStream()
+                            }
+                            .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
+                                sharedPreferencesEditor.putBoolean("clipboard_permission", true).commit()
+                                networkStream()
+                            }
+                            .setCancelable(false)
+                            .show()
+                    } else {
+                        networkStream()
+                    }
                 }
                 R.id.settings_item -> {
                     val intent = Intent(context, SettingsActivity::class.java)
@@ -354,7 +380,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun networkStream() {
         val materialAlertDialogBuilder = MaterialAlertDialogBuilder(context)
-        val clipboardURL = getFromClipboard()
+        val clipboardURL = if (clipboardPermission) getFromClipboard() else null
         val inputLayout: View = layoutInflater.inflate(R.layout.view_input_view_dialog, null)
         val textInputLayout: TextInputLayout = inputLayout.findViewById(R.id.input_layout)
         val textInputEditText: TextInputEditText = inputLayout.findViewById(R.id.input_text)
