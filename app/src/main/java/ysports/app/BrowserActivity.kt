@@ -1019,7 +1019,6 @@ class BrowserActivity : AppCompatActivity() {
         }
     }
 
-    @Suppress("SameParameterValue")
     private fun onGeolocationPermissionConfirmation(origin: String?, allowed: Boolean, retain: Boolean) {
         if (geolocationCallback != null) {
             geolocationCallback?.invoke(origin, allowed, retain)
