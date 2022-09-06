@@ -1,4 +1,4 @@
-// Last updated on 27 Jul 2022
+// Last updated on 03 Sep 2022
 // Latest commit on May 23
 
 /*
@@ -71,9 +71,9 @@ import com.google.android.exoplayer2.util.Util
 import com.google.android.material.chip.Chip
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull
 import ysports.app.databinding.ActivityPlayerBinding
-import ysports.app.ui.bottomsheet.PlayerMenuBottomSheet
 import ysports.app.player.*
 import ysports.app.player.IntentUtil.PREFER_EXTENSION_DECODERS_EXTRA
+import ysports.app.ui.bottomsheet.PlayerMenuBottomSheet
 import ysports.app.util.NotificationUtil
 import java.util.*
 import kotlin.math.abs
@@ -196,7 +196,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
             startPosition = savedInstanceState.getLong(KEY_POSITION)
             restoreServerSideAdsLoaderState(savedInstanceState)
         } else {
-            trackSelectionParameters = TrackSelectionParameters.Builder( /* context= */this).build()
+            trackSelectionParameters = TrackSelectionParameters.Builder(context).build()
             clearStartPosition()
         }
 
@@ -369,15 +369,13 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
      */
     private fun initializePlayer(): Boolean {
         if (player == null) {
-            val intent = intent
-
             mediaItems = createMediaItems(intent)
-            if (mediaItems!!.isEmpty()) {
+            if (mediaItems?.isEmpty() == true) {
                 return false
             }
 
             lastSeenTracks = Tracks.EMPTY
-            val playerBuilder = ExoPlayer.Builder( /* context= */this)
+            val playerBuilder = ExoPlayer.Builder(context)
                 .setMediaSourceFactory(createMediaSourceFactory())
                 .setSeekBackIncrementMs(10000)
                 .setSeekForwardIncrementMs(10000)
@@ -396,7 +394,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         }
         val haveStartPosition = startItemIndex != C.INDEX_UNSET
         if (haveStartPosition) {
-            player!!.seekTo(startItemIndex, startPosition)
+            player?.seekTo(startItemIndex, startPosition)
         }
         player?.setMediaItems(mediaItems!!,  /* resetPosition= */ !haveStartPosition)
         player?.prepare()
@@ -412,9 +410,9 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
     private fun createMediaSourceFactory(): MediaSource.Factory {
         val drmSessionManagerProvider = DefaultDrmSessionManagerProvider()
         drmSessionManagerProvider.setDrmHttpDataSourceFactory(
-            DemoUtil.getHttpDataSourceFactory( /* context= */this))
+            DemoUtil.getHttpDataSourceFactory(context))
         val serverSideAdLoaderBuilder =
-            ImaServerSideAdInsertionMediaSource.AdsLoader.Builder( /* context= */this, playerView!!)
+            ImaServerSideAdInsertionMediaSource.AdsLoader.Builder(context, playerView!!)
         if (serverSideAdsLoaderState != null) {
             serverSideAdLoaderBuilder.setAdsLoaderState(serverSideAdsLoaderState!!)
         }
@@ -422,8 +420,8 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         val imaServerSideAdInsertionMediaSourceFactory =
             ImaServerSideAdInsertionMediaSource.Factory(
                 serverSideAdsLoader!!,
-                DefaultMediaSourceFactory(/* context= */ this).setDataSourceFactory(dataSourceFactory!!))
-        return DefaultMediaSourceFactory(/* context= */ this)
+                DefaultMediaSourceFactory(context).setDataSourceFactory(dataSourceFactory!!))
+        return DefaultMediaSourceFactory(context)
             .setDataSourceFactory(dataSourceFactory!!)
             .setDrmSessionManagerProvider(drmSessionManagerProvider)
             .setLocalAdInsertionComponents(
@@ -434,7 +432,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
     private fun setRenderersFactory(
         playerBuilder: ExoPlayer.Builder, preferExtensionDecoders: Boolean) {
         val renderersFactory =
-            DemoUtil.buildRenderersFactory( /* context= */this, preferExtensionDecoders)
+            DemoUtil.buildRenderersFactory(context, preferExtensionDecoders)
         playerBuilder.setRenderersFactory(renderersFactory)
     }
 
@@ -451,7 +449,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
             return Collections.emptyList()
         }
         val mediaItems: List<MediaItem> =
-            createMediaItems(intent, DemoUtil.getDownloadTracker( /* context= */this))
+            createMediaItems(intent, DemoUtil.getDownloadTracker(context))
         for (i in mediaItems.indices) {
             val mediaItem = mediaItems[i]
 
@@ -460,7 +458,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
                 finish()
                 return Collections.emptyList()
             }
-            if (Util.maybeRequestReadExternalStoragePermission( /* activity= */this, mediaItem)) {
+            if (Util.maybeRequestReadExternalStoragePermission(this, mediaItem)) {
                 // The player will be reinitialized if the permission is granted.
                 return Collections.emptyList()
             }
@@ -481,7 +479,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
     private fun getClientSideAdsLoader(adsConfiguration: MediaItem.AdsConfiguration): AdsLoader {
         // The ads loader is reused for multiple playbacks, so that ad playback can resume.
         if (clientSideAdsLoader == null) {
-            clientSideAdsLoader = ImaAdsLoader.Builder( /* context= */this).build()
+            clientSideAdsLoader = ImaAdsLoader.Builder(context).build()
         }
         clientSideAdsLoader?.setPlayer(player)
         return clientSideAdsLoader!!
@@ -665,7 +663,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
                         getString(R.string.error_no_decoder, cause.mimeType)
                     }
                 } else {
-                    getString(R.string.error_instantiating_decoder, cause.codecInfo!!.name)
+                    getString(R.string.error_instantiating_decoder, cause.codecInfo?.name)
                 }
             }
             return Pair.create(0, errorString)
@@ -713,9 +711,9 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
                 override fun onReceive(p0: Context?, p1: Intent?) {
                     if (p1 != null && p1.action == ACTION_PIP_MEDIA_CONTROL && player != null) {
                         if (player!!.isPlaying) {
-                            player!!.pause()
+                            player?.pause()
                         } else {
-                            player!!.play()
+                            player?.play()
                         }
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) updatePictureInPictureParams()
                     }
@@ -766,7 +764,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
             val appOPS = getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
             val pipStatus = appOPS.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE, android.os.Process.myUid(), packageName) == AppOpsManager.MODE_ALLOWED
             if (pipStatus) {
-                this.enterPictureInPictureMode(updatePictureInPictureParams())
+                enterPictureInPictureMode(updatePictureInPictureParams())
             } else {
                 val intent = Intent("android.settings.PICTURE_IN_PICTURE_SETTINGS", Uri.parse("package:$packageName"))
                 startActivity(intent)
@@ -870,8 +868,8 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
 
     private fun lockPlayer() {
         if (playerView != null) {
-            playerView!!.hideController()
-            playerView!!.useController = false
+            playerView?.hideController()
+            playerView?.useController = false
             exoUnlock.showView()
             playerLocked = true
         }
@@ -880,8 +878,8 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
     private fun unlockPlayer() {
         if (playerView != null) {
             exoUnlock.hideView()
-            playerView!!.useController = true
-            playerView!!.showController()
+            playerView?.useController = true
+            playerView?.showController()
             playerLocked = false
         }
     }
@@ -979,7 +977,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
     private fun setScreenBrightness(value: Int) {
         val brightnessIconSrc: Int
         val brightnessConstant = 1.0f/30
-        val layoutParams = this.window.attributes
+        val layoutParams = window.attributes
         layoutParams.screenBrightness = brightnessConstant * value
         val brightnessPercentage = (value * 100) / 30
         brightnessIconSrc = when (brightnessPercentage) {
@@ -995,7 +993,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         }
         binding.brightnessIcon.setImageResource(brightnessIconSrc)
         binding.brightnessProgress.progress = brightnessPercentage
-        this.window.attributes = layoutParams
+        window.attributes = layoutParams
     }
 
     private fun initializeNotification(): PlayerNotificationManager {

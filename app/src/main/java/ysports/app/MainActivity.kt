@@ -300,12 +300,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleIntent(intent: Intent?) {
-        // TODO("Handle exo player intent")
         val appLinkAction: String? = intent?.action
         val appLinkData: Uri? = intent?.data
         if (appLinkAction == Intent.ACTION_VIEW && appLinkData != null) {
             if (appLinkData.path.toString() == "/play") {
-                Log.d(TAG, "Loading player")
                 try {
                     val videoUri = Uri.parse(appLinkData.getQueryParameter("url"))
                     playerUtil.loadPlayer(context, videoUri, null, true)
