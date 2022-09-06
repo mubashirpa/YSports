@@ -136,7 +136,7 @@
     <string name="js_dialog_title">%1$s says</string>
     <string name="request_message_permission_camera_web">YSports need camera permission for this site</string>
     <string name="request_message_permission_mic_web">YSports need microphone permission for this site</string>
-    <string name="request_message_permission_location_web">YSports need microphone permission for this site</string>
+    <string name="request_message_permission_location_web">YSports need location permission for this site</string>
     <string name="access_message_camera_web">%1$s wants to use your camera</string>
     <string name="access_message_mic_web">%1$s wants to use your microphone</string>
     <string name="access_message_location_web">%1$s wants to use your devices location</string>
