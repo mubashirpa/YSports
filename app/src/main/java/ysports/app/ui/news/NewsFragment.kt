@@ -18,6 +18,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import ysports.app.BrowserActivity
+import ysports.app.BuildConfig
 import ysports.app.R
 import ysports.app.api.newsapi.org.Articles
 import ysports.app.api.newsapi.org.NewsApi
@@ -88,7 +89,7 @@ class NewsFragment : Fragment() {
 
     private fun readNewsDB() {
         val isTablet = AppUtil(requireContext()).isTablet()
-        newsApi = NewsApi.create().getNews("top-headlines", getString(R.string.news_api_v2), "sports", "in")
+        newsApi = NewsApi.create().getNews("top-headlines", BuildConfig.news_api_v2, "sports", "in")
         newsApi!!.enqueue(object : Callback<NewsResponse> {
             override fun onResponse(call: Call<NewsResponse>, response: Response<NewsResponse>) {
                 if (!response.isSuccessful) {
