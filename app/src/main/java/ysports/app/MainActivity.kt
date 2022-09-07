@@ -21,11 +21,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.navigationrail.NavigationRailView
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.database.DataSnapshot
@@ -34,6 +36,8 @@ import com.google.firebase.database.GenericTypeIndicator
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import ysports.app.databinding.ActivityMainBinding
 import ysports.app.player.PlayerUtil
 import ysports.app.ui.leagues.LeaguesFragment
@@ -41,6 +45,8 @@ import ysports.app.ui.matches.MatchesFragment
 import ysports.app.ui.more.MoreFragment
 import ysports.app.ui.news.NewsFragment
 import ysports.app.util.AppUtil
+import ysports.app.connectivity.ConnectivityObserver
+import ysports.app.connectivity.NetworkConnectivityObserver
 import ysports.app.util.NotificationUtil
 
 @Suppress("PrivatePropertyName")
@@ -209,6 +215,18 @@ class MainActivity : AppCompatActivity() {
         handleIntent(intent)
         checkUpdate()
         initializeNotification()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            val connectivityObserver = NetworkConnectivityObserver(context)
+            connectivityObserver.observe().onEach {
+                Log.d(TAG, it.toString())
+                if (it == ConnectivityObserver.Status.Lost) {
+                    val  snackBar = Snackbar.make(binding.frameLayout, "Connection lost", Snackbar.LENGTH_LONG)
+                    snackBar.anchorView = navigationBar
+                    snackBar.show()
+                }
+            }.launchIn(lifecycleScope)
+        }
     }
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
