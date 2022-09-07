@@ -13,7 +13,6 @@ import android.content.pm.PackageManager.MATCH_DEFAULT_ONLY
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Color
 import android.location.LocationManager
 import android.net.Uri
 import android.net.http.SslError
@@ -58,26 +57,25 @@ class WebActivity : AppCompatActivity() {
     private lateinit var binding: ActivityWebBinding
     private lateinit var context: Context
     private lateinit var webView: WebView
-    private var WEB_URL: String = ""
     private lateinit var webViewProgressIndicator: CircularProgressIndicator
+    private lateinit var errorView: View
+    private lateinit var errorTextView: TextView
+    private lateinit var retryButton: Button
+    private lateinit var WEB_URL: String
     private val TAG: String = "WebActivity"
     private val CHROME_SCHEME = "chrome:"
     private val VIDEO_SCHEME = "video:"
     private val INTENT_SCHEME = "intent:"
     private val TORRENT_SCHEME = "magnet:"
-    private lateinit var errorView: View
-    private lateinit var errorTextView: TextView
-    private lateinit var retryButton: Button
+    private val LOCATION_PERMISSION_REQUEST_CODE = 101
+    private val CAMERA_PERMISSION_REQUEST_CODE = 102
+    private val MIC_PERMISSION_REQUEST_CODE = 103
     private var handler: Handler? = null
     private val playerUtil = PlayerUtil()
-    private var LOCATION_PERMISSION_REQUEST_CODE = 101
-    private var CAMERA_PERMISSION_REQUEST_CODE = 102
-    private var MIC_PERMISSION_REQUEST_CODE = 103
     private var permissionRequest: PermissionRequest? = null
     private var geolocationCallback: GeolocationPermissions.Callback? = null
     private var geolocationOrigin: String? = null
 
-    @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -92,7 +90,6 @@ class WebActivity : AppCompatActivity() {
         retryButton = binding.errorView.buttonRetry
         WEB_URL = intent.getStringExtra("WEB_URL") ?: resources.getString(R.string.url_404_error)
 
-        webView.setBackgroundColor(Color.TRANSPARENT)
         AdBlocker.init(context)
         onBackPressedDispatcher.addCallback(onBackPressedCallback)
 
@@ -110,7 +107,6 @@ class WebActivity : AppCompatActivity() {
             .addPathHandler("/res/", WebViewAssetLoader.ResourcesPathHandler(this))
             .build()
 
-        // Supporting Dark Theme for WebView
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING))
                 WebSettingsCompat.setAlgorithmicDarkeningAllowed(webView.settings, false)
@@ -134,7 +130,6 @@ class WebActivity : AppCompatActivity() {
             WebView.setWebContentsDebuggingEnabled(false)
         }
 
-        // WebView settings
         webView.settings.apply {
             allowContentAccess = true
             allowFileAccess = true
@@ -166,7 +161,6 @@ class WebActivity : AppCompatActivity() {
         webView.isLongClickable = true
         webView.requestFocusFromTouch()
 
-        // Renderer Importance API
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             webView.setRendererPriorityPolicy(RENDERER_PRIORITY_BOUND, true)
         }
@@ -390,20 +384,10 @@ class WebActivity : AppCompatActivity() {
                     Log.d(TAG, "Permission request: $reqResources")
                     when (reqResources) {
                         PermissionRequest.RESOURCE_VIDEO_CAPTURE -> {
-                            requestWebViewPermission(
-                                Manifest.permission.CAMERA,
-                                CAMERA_PERMISSION_REQUEST_CODE,
-                                getString(R.string.request_message_permission_camera),
-                                arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE)
-                            )
+                            requestWebViewPermission(Manifest.permission.CAMERA, CAMERA_PERMISSION_REQUEST_CODE, getString(R.string.request_message_permission_camera), arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE))
                         }
                         PermissionRequest.RESOURCE_AUDIO_CAPTURE -> {
-                            requestWebViewPermission(
-                                Manifest.permission.RECORD_AUDIO,
-                                MIC_PERMISSION_REQUEST_CODE,
-                                getString(R.string.request_message_permission_mic),
-                                arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE)
-                            )
+                            requestWebViewPermission(Manifest.permission.RECORD_AUDIO, MIC_PERMISSION_REQUEST_CODE, getString(R.string.request_message_permission_mic), arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE))
                         }
                         else -> {
                             onPermissionRequestConfirmation(false, arrayOf(""))

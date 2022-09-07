@@ -61,17 +61,17 @@ class BrowserActivity : AppCompatActivity() {
     private lateinit var progressBar: LinearProgressIndicator
     private lateinit var toolbar: MaterialToolbar
     private lateinit var WEB_URL: String
-    private var handler: Handler? = null
     private val TAG = "BrowserActivityTag"
     private val INTENT_SCHEME = "intent:"
     private val TORRENT_SCHEME = "magnet:"
     private val BLOB_SCHEME = "blob:"
+    private val LOCATION_PERMISSION_REQUEST_CODE = 101
+    private val CAMERA_PERMISSION_REQUEST_CODE = 102
+    private val MIC_PERMISSION_REQUEST_CODE = 103
     private var errorDescription: String = "Unknown"
     private var errorCode: Int = 0
     private var urlHost = "YSports"
-    private var LOCATION_PERMISSION_REQUEST_CODE = 101
-    private var CAMERA_PERMISSION_REQUEST_CODE = 102
-    private var MIC_PERMISSION_REQUEST_CODE = 103
+    private var handler: Handler? = null
     private var permissionRequest: PermissionRequest? = null
     private var geolocationCallback: GeolocationPermissions.Callback? = null
     private var geolocationOrigin: String? = null
@@ -82,7 +82,6 @@ class BrowserActivity : AppCompatActivity() {
     private lateinit var downloadManager: DownloadManager
     private var downloadReference: Long? = null
 
-    @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -95,12 +94,12 @@ class BrowserActivity : AppCompatActivity() {
         progressBar = binding.progressBar
         WEB_URL = intent.getStringExtra("WEB_URL") ?: resources.getString(R.string.url_404_error)
         downloadManager = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+        urlHost = Uri.parse(WEB_URL).host.toString()
+        toolbar.subtitle = if (urlHost == "null") WEB_URL else urlHost
         val filter = IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
 
         registerReceiver(downloadReceiver, filter)
         AdBlocker.init(context)
-        urlHost = Uri.parse(WEB_URL).host.toString()
-        toolbar.subtitle = if (urlHost == "null") WEB_URL else urlHost
         onBackPressedDispatcher.addCallback(onBackPressedCallback)
 
         toolbar.setNavigationOnClickListener {
@@ -215,7 +214,7 @@ class BrowserActivity : AppCompatActivity() {
             if (enableSafeBrowsing) {
                 WebViewCompat.startSafeBrowsing(this) { success ->
                     if (success) {
-                        Log.e(TAG, "Initialized Safe Browsing")
+                        Log.i(TAG, "Initialized Safe Browsing")
                     } else {
                         Log.e(TAG, "Unable to initialize Safe Browsing!")
                     }
@@ -516,6 +515,10 @@ class BrowserActivity : AppCompatActivity() {
             super.doUpdateVisitedHistory(view, url, isReload)
             onBackPressedCallback.isEnabled = webView.canGoBack()
         }
+
+        override fun onFormResubmission(view: WebView?, dontResend: Message?, resend: Message?) {
+            super.onFormResubmission(view, dontResend, resend)
+        }
     }
 
     inner class CustomWebChromeClient : WebChromeClient() {
@@ -628,12 +631,7 @@ class BrowserActivity : AppCompatActivity() {
                                     onPermissionRequestConfirmation(false, arrayOf(""))
                                 }
                                 .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
-                                    requestWebViewPermission(
-                                        Manifest.permission.CAMERA,
-                                        CAMERA_PERMISSION_REQUEST_CODE,
-                                        getString(R.string.request_message_permission_camera_web),
-                                        arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE)
-                                    )
+                                    requestWebViewPermission(Manifest.permission.CAMERA, CAMERA_PERMISSION_REQUEST_CODE, getString(R.string.request_message_permission_camera_web), arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE))
                                 }
                                 .setOnCancelListener {
                                     onPermissionRequestConfirmation(false, arrayOf(""))
@@ -647,12 +645,7 @@ class BrowserActivity : AppCompatActivity() {
                                     onPermissionRequestConfirmation(false, arrayOf(""))
                                 }
                                 .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
-                                    requestWebViewPermission(
-                                        Manifest.permission.RECORD_AUDIO,
-                                        MIC_PERMISSION_REQUEST_CODE,
-                                        getString(R.string.request_message_permission_mic_web),
-                                        arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE)
-                                    )
+                                    requestWebViewPermission(Manifest.permission.RECORD_AUDIO, MIC_PERMISSION_REQUEST_CODE, getString(R.string.request_message_permission_mic_web), arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE))
                                 }
                                 .setOnCancelListener {
                                     onPermissionRequestConfirmation(false, arrayOf(""))
@@ -723,7 +716,6 @@ class BrowserActivity : AppCompatActivity() {
             customViewCallback = null
         }
 
-        @Nullable
         override fun getDefaultVideoPoster(): Bitmap? {
             return if (super.getDefaultVideoPoster() == null) {
                 BitmapFactory.decodeResource(resources, R.drawable.img_poster_horizontal)
@@ -933,15 +925,6 @@ class BrowserActivity : AppCompatActivity() {
         if (this.isVisible) this.visibility = View.GONE
     }
 
-    @Suppress("unused")
-    private fun fetchJavaScript(url: String?) {
-        // JavaScript code to fetch() content from the same origin
-        val jsCode = "fetch('$url')" +
-                ".then(resp => resp.json())" +
-                ".then(data => console.log(data));"
-        webView.evaluateJavascript(jsCode, null)
-    }
-
     private fun isPermissionGranted(permission: String) : Boolean {
         return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
     }
@@ -1055,7 +1038,7 @@ class BrowserActivity : AppCompatActivity() {
         request.addRequestHeader("User-Agent", userAgent)
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
         request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
-        Snackbar.make(binding.contextView, "Downloading file", Snackbar.LENGTH_LONG).show()
+        Snackbar.make(binding.contextView, getString(R.string.downloading_file), Snackbar.LENGTH_LONG).show()
         return downloadManager.enqueue(request)
     }
 
