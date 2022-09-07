@@ -77,12 +77,20 @@
     <string name="label_activity_settings">Settings</string>
 
     <!-- Preference screen -->
-    <string name="title_theme">Theme</string>
+    <string name="title_category_general">General</string>
+    <string name="title_category_about">About</string>
     <string name="title_notifications">Notifications</string>
+    <string name="title_theme">Theme</string>
+    <string name="title_clear_cache">Clear cache</string>
+    <string name="title_about">About YSports</string>
+    <string name="title_oss">Open-source licenses</string>
+    <string name="title_version">YSports version</string>
+    <string name="summary_notifications">Manage notification settings</string>
     <string name="summary_theme_system_default">Turn on dark theme when your devices dark theme or Battery saver is on</string>
     <string name="summary_theme_light">Light</string>
     <string name="summary_theme_dark">Dark</string>
-    <string name="summary_notifications">Manage notification settings</string>
+    <string name="summary_oss">License details for open-source software</string>
+    <string name="summary_version">Version: %1$s</string>
 
     <!-- Toolbar title -->
     <string name="title_activity_settings">Settings</string>
@@ -107,6 +115,7 @@
     <string name="_0">0</string>
     <string name="playback_speed">Playback speed</string>
     <string name="url_404_error">https://ysports.app/assets/web/error_404/index.html</string>
+    <string name="url_about">https://ysportsapp.blogspot.com/p/about-ysports.html</string>
     <string name="previous">Previous</string>
     <string name="today">Today</string>
     <string name="upcoming">Upcoming</string>
@@ -144,4 +153,5 @@
     <string name="download_complete">Download complete</string>
     <string name="downloaded_successfully">Downloaded successfully.</string>
     <string name="request_message_permission_clipboard">Allow YSports to access items in the clipboard to add copied URLs automatically?</string>
+    <string name="cache_cleared">Cache cleared</string>
 </resources>
