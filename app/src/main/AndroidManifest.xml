@@ -200,6 +200,13 @@
             android:exported="true"
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize" />
+        <!-- OSS Licenses plugin -->
+        <activity
+            android:name="com.google.android.gms.oss.licenses.OssLicensesMenuActivity"
+            android:theme="@style/Theme.YSports.OssLicensesActivity" />
+        <activity
+            android:name="com.google.android.gms.oss.licenses.OssLicensesActivity"
+            android:theme="@style/Theme.YSports.OssLicensesActivity" />
 
         <!-- Android WebView -->
         <meta-data
