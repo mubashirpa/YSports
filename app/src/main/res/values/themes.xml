@@ -64,8 +64,26 @@
         <item name="postSplashScreenTheme">@style/Theme.YSports</item>
     </style>
 
+    <!-- OSS Licenses plugin activity theme -->
+    <style name="Theme.YSports.OssLicensesActivity" parent="Theme.Material3.DayNight">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorOnPrimary">@color/onPrimary</item>
+        <item name="colorPrimaryContainer">@color/primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/onPrimaryContainer</item>
+
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:navigationBarColor">@color/background</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">?attr/isLightTheme</item>
+
+        <item name="colorOnBackground">@color/onBackground</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/onSurface</item>
+        <item name="android:windowBackground">@color/background</item>
+    </style>
+
     <!-- Browser Activity Toolbar Theme -->
-    <style name="Widget.YSports.Toolbar" parent="Widget.Material3.Toolbar.Surface">
+    <style name="Widget.YSports.Toolbar" parent="Widget.Material3.Toolbar">
         <item name="titleTextAppearance">@style/TextAppearance.YSports.TitleLarge</item>
         <item name="subtitleTextAppearance">@style/TextAppearance.YSports.TitleMedium</item>
     </style>
