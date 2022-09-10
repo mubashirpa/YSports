@@ -38,6 +38,8 @@ import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import ysports.app.connectivity.ConnectivityObserver
+import ysports.app.connectivity.NetworkConnectivityObserver
 import ysports.app.databinding.ActivityMainBinding
 import ysports.app.player.PlayerUtil
 import ysports.app.ui.leagues.LeaguesFragment
@@ -45,8 +47,6 @@ import ysports.app.ui.matches.MatchesFragment
 import ysports.app.ui.more.MoreFragment
 import ysports.app.ui.news.NewsFragment
 import ysports.app.util.AppUtil
-import ysports.app.connectivity.ConnectivityObserver
-import ysports.app.connectivity.NetworkConnectivityObserver
 import ysports.app.util.NotificationUtil
 
 @Suppress("PrivatePropertyName")
