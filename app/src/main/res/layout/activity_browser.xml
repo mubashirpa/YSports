@@ -6,17 +6,20 @@
     android:id="@+id/context_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     tools:context=".BrowserActivity">
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:fitsSystemWindows="true"
+        app:liftOnScroll="false">
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/material_toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:menu="@menu/browser_activity"
             app:navigationIcon="@drawable/ic_baseline_close_24"
-            style="@style/Widget.YSports.Toolbar"/>
+            style="@style/Widget.YSports.Toolbar" />
     </com.google.android.material.appbar.AppBarLayout>
     <LinearLayout
         android:layout_width="match_parent"
