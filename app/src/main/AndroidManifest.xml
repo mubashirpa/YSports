@@ -133,7 +133,7 @@
             android:label="@string/label_activity_main"
             android:theme="@style/Theme.YSports.MainActivity"
             android:windowSoftInputMode="adjustPan">
-            <intent-filter>
+            <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
@@ -141,7 +141,9 @@
 
                 <data
                     android:host="ysports.page.link"
-                    android:pathPrefix="/play"
+                    android:scheme="http" />
+                <data
+                    android:host="ysports.page.link"
                     android:scheme="https" />
             </intent-filter>
         </activity>
