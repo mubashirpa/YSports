@@ -59,6 +59,7 @@
     <string name="title_labels_subheader">More</string>
     <string name="title_network_stream">Network stream</string>
     <string name="title_settings">Settings</string>
+    <string name="title_share">Share app</string>
     <string name="title_matches">Matches</string>
     <string name="title_leagues">Leagues</string>
     <string name="title_news">News</string>
@@ -116,6 +117,8 @@
     <string name="playback_speed">Playback speed</string>
     <string name="url_404_error">https://ysports.app/assets/web/error_404/index.html</string>
     <string name="url_about">https://ysportsapp.blogspot.com/p/about-ysports.html</string>
+    <string name="url_download_app">https://ysports.page.link/download</string>
+    <string name="dynamic_link_url_prefix">https://ysports.page.link</string>
     <string name="previous">Previous</string>
     <string name="today">Today</string>
     <string name="upcoming">Upcoming</string>
@@ -154,4 +157,6 @@
     <string name="downloaded_successfully">Downloaded successfully.</string>
     <string name="request_message_permission_clipboard">Allow YSports to access items in the clipboard to add copied URLs automatically?</string>
     <string name="cache_cleared">Cache cleared</string>
+    <string name="share_app_using">Share app using</string>
+    <string name="add_to_calendar">Add to calendar</string>
 </resources>
