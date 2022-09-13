@@ -30,6 +30,7 @@
     <color name="image_background_placeholder">#3C4043</color>
     <color name="watermark">#AAAAAA</color>
     <color name="navigation_bar">#EAECF1</color>
+    <color name="transparent_50">#80000000</color>
 
     <color name="onBackgroundSecondary">#202224</color>
     <color name="onSurfaceSecondary">#202224</color>
