@@ -34,7 +34,12 @@
         <item name="colorOnSurfaceVariant">@color/onSurfaceVariant</item>
         <item name="colorOutline">@color/outline</item>
         <item name="android:windowBackground">@color/background</item>
+        <!-- For overflow menu -->
         <item name="popupMenuBackground">@drawable/bg_popup_menu</item>
+        <!-- For popup menu -->
+        <item name="popupMenuStyle">@style/Widget.YSports.PopupMenu</item>
+        <item name="android:popupMenuStyle">@style/Widget.YSports.PopupMenu</item>
+        <!-- For alert dialog -->
         <item name="alertDialogTheme">@style/ThemeOverlay.YSports.AlertDialog</item>
         <item name="android:alertDialogTheme">@style/ThemeOverlay.YSports.AlertDialog</item>
     </style>
@@ -72,7 +77,7 @@
         <item name="colorPrimaryContainer">@color/primaryContainer</item>
         <item name="colorOnPrimaryContainer">@color/onPrimaryContainer</item>
 
-        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:statusBarColor">@color/transparent_50</item>
         <item name="android:navigationBarColor">@color/background</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">?attr/isLightTheme</item>
 
@@ -101,5 +106,9 @@
         <item name="windowNoTitle">false</item>
         <item name="dialogCornerRadius">28dp</item>
         <item name="android:colorBackground">@color/surface</item>
+    </style>
+
+    <style name="Widget.YSports.PopupMenu" parent="Widget.Material3.PopupMenu">
+        <item name="android:popupBackground">@drawable/bg_popup_menu</item>
     </style>
 </resources>
