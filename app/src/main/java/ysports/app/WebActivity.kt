@@ -13,6 +13,7 @@ import android.content.pm.PackageManager.MATCH_DEFAULT_ONLY
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.location.LocationManager
 import android.net.Uri
 import android.net.http.SslError
@@ -90,6 +91,7 @@ class WebActivity : AppCompatActivity() {
         retryButton = binding.errorView.buttonRetry
         WEB_URL = intent.getStringExtra("WEB_URL") ?: resources.getString(R.string.url_404_error)
 
+        webView.setBackgroundColor(Color.TRANSPARENT)
         AdBlocker.init(context)
         onBackPressedDispatcher.addCallback(onBackPressedCallback)
 
