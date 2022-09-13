@@ -3,9 +3,14 @@ package ysports.app.ui.matches
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.provider.CalendarContract
+import android.text.format.DateUtils
+import android.util.Log
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.PopupMenu
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DefaultItemAnimator
@@ -45,12 +50,14 @@ class MatchesObjectFragment() : Fragment() {
     private lateinit var errorLayout: View
     private var filteredList: List<Fixtures> = ArrayList()
     private var arrayList: ArrayList<Fixtures> = ArrayList()
-    private val dateFormat = SimpleDateFormat("dd MM yyyy", Locale.getDefault())
+    private val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+    private val calendar: Calendar = Calendar.getInstance()
     private val currentDate = Date()
     private val playerUtil = PlayerUtil()
     private val CHROME_SCHEME = "chrome:"
     private val VIDEO_SCHEME = "video:"
     private val MEDIA_SCHEME = "media:"
+    private val TAG = "LogMatchesObjectFragment"
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -79,8 +86,10 @@ class MatchesObjectFragment() : Fragment() {
             addOnItemTouchListener(
                 ItemTouchListener(context, fixtureRecyclerView, object : ItemTouchListener.ClickListener {
                     override fun onClick(view: View, position: Int) {
-                        if (!filteredList[position].url.isNullOrEmpty()) {
-                            val url: String = filteredList[position].url!!
+                        val url = filteredList[position].url
+                        val mediaList: ArrayList<Media> = filteredList[position].media ?: ArrayList()
+
+                        if (!url.isNullOrEmpty()) {
                             when {
                                 url.startsWith(CHROME_SCHEME) -> {
                                     val replacedURL = URLDecoder.decode(url.substring(CHROME_SCHEME.length), "UTF-8")
@@ -110,8 +119,7 @@ class MatchesObjectFragment() : Fragment() {
                                     startActivity(intent)
                                 }
                             }
-                        } else if (!filteredList[position].media.isNullOrEmpty()) {
-                            val mediaList: ArrayList<Media> = filteredList[position].media ?: ArrayList()
+                        } else if (mediaList.isNotEmpty()) {
                             val mediaItems: List<MediaItem> = playerUtil.createMediaItems(
                                 mediaList
                             )
@@ -120,6 +128,44 @@ class MatchesObjectFragment() : Fragment() {
                     }
 
                     override fun onLongClick(view: View, position: Int) {
+                        val popup = PopupMenu(context, view)
+                        popup.menuInflater.inflate(R.menu.pop_menu_matches, popup.menu)
+                        popup.setOnMenuItemClickListener { menuItem: MenuItem ->
+                            when (menuItem.itemId) {
+                                R.id.add_calender -> {
+                                    val timestamp = filteredList[position].timestamp
+                                    if (!timestamp.isNullOrEmpty()) {
+                                        val startTime = simpleDateFormat.parse(timestamp)
+                                        val title = "${filteredList[position].homeTeam} vs ${filteredList[position].awayTeam}"
+                                        val description = "${filteredList[position].leagueName}"
+                                        val intent = Intent(Intent.ACTION_EDIT).apply {
+                                            type = "vnd.android.cursor.item/event"
+                                            if (startTime != null) {
+                                                putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, startTime.time)
+                                                putExtra(CalendarContract.EXTRA_EVENT_END_TIME, (startTime.time + 105 * 60 * 1000))
+                                            }
+                                            putExtra(CalendarContract.Events.TITLE, title)
+                                            putExtra(CalendarContract.Events.DESCRIPTION, description)
+                                        }
+                                        startActivity(intent)
+                                    }
+                                    true
+                                }
+                                R.id.share -> {
+                                    val timestamp = filteredList[position].timestamp
+                                    var subject = ""
+                                    if (!timestamp.isNullOrEmpty()) {
+                                        val matchTime = simpleDateFormat.parse(timestamp) as Date
+                                        val timeFormatter = SimpleDateFormat("dd. LLL KK:mm aaa", Locale.getDefault())
+                                        subject = "${timeFormatter.format(matchTime)}, ${filteredList[position].homeTeam} vs ${filteredList[position].awayTeam}\n#${getString(R.string.app_name)}"
+                                    }
+                                    shareText(subject, getString(R.string.url_download_app), getString(R.string.share))
+                                    true
+                                }
+                                else -> false
+                            }
+                        }
+                        popup.show()
                     }
                 })
             )
@@ -144,7 +190,7 @@ class MatchesObjectFragment() : Fragment() {
         when (position) {
             0 -> {
                 filteredList = fixtureList.filter {
-                    !it.matchDate.isNullOrEmpty() && dateFormat.parse(it.matchDate)!! < currentDate
+                    !it.timestamp.isNullOrEmpty() && checkDate(it.timestamp) == 2
                 }
                 if (filteredList.isEmpty()) {
                     errorOccurred(R.string.error_no_matches)
@@ -154,7 +200,7 @@ class MatchesObjectFragment() : Fragment() {
             }
             1 -> {
                 filteredList = fixtureList.filter {
-                    !it.matchDate.isNullOrEmpty() && dateFormat.parse(it.matchDate)!! == currentDate
+                    !it.timestamp.isNullOrEmpty() && checkDate(it.timestamp) == 1
                 }
                 if (filteredList.isEmpty()) {
                     errorOccurred(R.string.error_no_matches_today)
@@ -164,7 +210,7 @@ class MatchesObjectFragment() : Fragment() {
             }
             2 -> {
                 filteredList = fixtureList.filter {
-                    !it.matchDate.isNullOrEmpty() && dateFormat.parse(it.matchDate)!! > currentDate
+                    !it.timestamp.isNullOrEmpty() && checkDate(it.timestamp) == 3
                 }
                 if (filteredList.isEmpty()) {
                     errorOccurred(R.string.error_no_matches)
@@ -186,5 +232,30 @@ class MatchesObjectFragment() : Fragment() {
         binding.errorLayout.stateDescription.text = getString(error)
         binding.errorLayout.buttonRetry.hideView()
         errorLayout.showView()
+    }
+
+    private fun checkDate(timestamp: String) : Int {
+        val startTime = simpleDateFormat.parse(timestamp)
+        if (startTime != null) {
+            calendar.time = startTime
+            if (DateUtils.isToday(calendar.timeInMillis)) {
+                return 1
+            } else if (calendar.time.before(currentDate)) {
+                return 2
+            } else if (calendar.time.after(currentDate)) {
+                return 3
+            }
+        }
+        Log.d(TAG, "Empty date")
+        return 0
+    }
+
+    private fun shareText(subject: String, text: String, title: String) {
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_SUBJECT, subject)
+            putExtra(Intent.EXTRA_TEXT, text)
+        }
+        startActivity(Intent.createChooser(intent, title))
     }
 }
