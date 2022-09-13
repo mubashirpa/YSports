@@ -35,6 +35,8 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.GenericTypeIndicator
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
+import com.google.firebase.dynamiclinks.PendingDynamicLinkData
+import com.google.firebase.dynamiclinks.ktx.*
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -55,14 +57,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var context: Context
     private lateinit var toolbar: MaterialToolbar
-    private val TAG: String = "MainActivity"
+    private val TAG: String = "LogMainActivity"
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var navigationDrawer: NavigationView
     private var navigationBar: BottomNavigationView? = null
     private var navigationRail: NavigationRailView? = null
-    private val playerUtil = PlayerUtil()
     private val leaguesFragment = LeaguesFragment()
-    private val matchesFragment = MatchesFragment()
+    private lateinit var matchesFragment: MatchesFragment
     private val newsFragment = NewsFragment()
     private val moreFragment = MoreFragment()
     private var tablet = false
@@ -85,6 +86,7 @@ class MainActivity : AppCompatActivity() {
         navigationRail = binding.navigationRail
         sharedPreferences = getSharedPreferences("app_data", MODE_PRIVATE)
         sharedPreferencesEditor = sharedPreferences.edit()
+        matchesFragment = MatchesFragment(binding.appBarLayout)
 
         onBackPressedDispatcher.addCallback(onBackPressedCallback)
 
@@ -162,6 +164,9 @@ class MainActivity : AppCompatActivity() {
                     val intent = Intent(context, SettingsActivity::class.java)
                     startActivity(intent)
                 }
+                R.id.share_item -> {
+                    shareLink(getString(R.string.app_name), getString(R.string.url_download_app), getString(R.string.share_app_using))
+                }
             }
             drawerLayout.close()
             true
@@ -212,14 +217,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         tablet = AppUtil(context).isTablet()
-        handleIntent(intent)
+        handleDynamicLink()
         checkUpdate()
         initializeNotification()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             val connectivityObserver = NetworkConnectivityObserver(context)
             connectivityObserver.observe().onEach {
-                Log.d(TAG, it.toString())
                 if (it == ConnectivityObserver.Status.Lost) {
                     val  snackBar = Snackbar.make(binding.frameLayout, "Connection lost", Snackbar.LENGTH_LONG)
                     snackBar.anchorView = navigationBar
@@ -317,14 +321,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun handleIntent(intent: Intent?) {
+    private fun handleDeepLink() {
         val appLinkAction: String? = intent?.action
         val appLinkData: Uri? = intent?.data
         if (appLinkAction == Intent.ACTION_VIEW && appLinkData != null) {
             if (appLinkData.path.toString() == "/play") {
                 try {
-                    val videoUri = Uri.parse(appLinkData.getQueryParameter("url"))
-                    playerUtil.loadPlayer(context, videoUri, null, true)
+                    val videoUri = appLinkData.getQueryParameter("url")
+                    if (videoUri != null) {
+                        loadPlayer(videoUri)
+                    }
                 } catch (e: NullPointerException) {
                     Log.d(TAG, "Failed to load player")
                 }
@@ -436,6 +442,47 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(context, "Invalid URL", Toast.LENGTH_LONG).show()
             return
         }
-        playerUtil.loadPlayer(context, Uri.parse(url), null, true)
+        PlayerUtil().loadPlayer(context, Uri.parse(url), null, true)
+    }
+
+    private fun generateDynamicLink(url: String, dynamicLink: (String) -> Unit = {  }) {
+        Firebase.dynamicLinks.shortLinkAsync {
+            link = Uri.parse(url)
+            domainUriPrefix = getString(R.string.dynamic_link_url_prefix)
+            androidParameters {
+                fallbackUrl = Uri.parse(getString(R.string.url_download_app))
+            }
+        }.addOnSuccessListener { (shortLink, flowChartLink) ->
+            Log.d(TAG, "Short link: $shortLink, Flow chart link: $flowChartLink")
+            dynamicLink.invoke("$shortLink")
+        }.addOnFailureListener {
+            Toast.makeText(context, getString(R.string.error_default), Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun handleDynamicLink() {
+        Firebase.dynamicLinks
+            .getDynamicLink(intent)
+            .addOnSuccessListener(this) { pendingDynamicLinkData: PendingDynamicLinkData? ->
+                val deepLink: Uri?
+                if (pendingDynamicLinkData != null) {
+                    deepLink = pendingDynamicLinkData.link
+                    Log.d(TAG, "$deepLink")
+                } else {
+                    handleDeepLink()
+                }
+            }
+            .addOnFailureListener(this) {
+                Toast.makeText(context, getString(R.string.error_default), Toast.LENGTH_LONG).show()
+            }
+    }
+
+    private fun shareLink(subject: String, link: String, title: String) {
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_SUBJECT, subject)
+            putExtra(Intent.EXTRA_TEXT, link)
+        }
+        startActivity(Intent.createChooser(intent, title))
     }
 }
