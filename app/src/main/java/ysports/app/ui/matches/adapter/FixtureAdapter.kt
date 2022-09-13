@@ -19,15 +19,26 @@ class FixtureAdapter(
     private val arrayList: ArrayList<Fixtures>
 ) : RecyclerView.Adapter<FixtureAdapter.ViewHolder>() {
 
+    private val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+    private val calendar: Calendar = Calendar.getInstance()
+    private val timeFormatter = SimpleDateFormat("KK:mm aaa", Locale.getDefault())
+    private val dateFormatter = SimpleDateFormat("dd LLL yyyy", Locale.getDefault())
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(context).inflate(R.layout.list_item_fixture, parent, false)
         return ViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val matchTime = arrayList[position].matchTime ?: context.resources.getString(R.string._00_00)
-        val matchDate = if (!arrayList[position].matchDate.isNullOrEmpty()) getDate(arrayList[position].matchDate!!) else Calendar.getInstance().get(Calendar.YEAR).toString()
-        holder.matchTime.text = matchTime
+        val timestamp = arrayList[position].timestamp
+        var matchTime = context.resources.getString(R.string._00_00)
+        var matchDate = Calendar.getInstance().get(Calendar.YEAR).toString()
+        if (!timestamp.isNullOrEmpty()) {
+            calendar.time = simpleDateFormat.parse(timestamp) as Date
+            matchTime = timeFormatter.format(calendar.time)
+            matchDate = dateFormatter.format(calendar.time)
+        }
+        holder.matchTime.text = matchTime.uppercase()
         holder.matchDate.text = matchDate
 
         holder.homeTeam.text = arrayList[position].homeTeam
@@ -53,16 +64,5 @@ class FixtureAdapter(
         val awayTeamLogo: ImageView = itemView.findViewById(R.id.away_team_logo)
         val homeTeam: TextView = itemView.findViewById(R.id.home_team)
         val awayTeam: TextView = itemView.findViewById(R.id.away_team)
-    }
-
-    private fun getDate(date: String) : String {
-        var newDate = date
-        val dateFormat = SimpleDateFormat("dd MM yyyy", Locale.getDefault())
-        val matchDate = dateFormat.parse(date)
-        val toFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-        if (matchDate != null) {
-            newDate = toFormat.format(matchDate)
-        }
-        return newDate
     }
 }
