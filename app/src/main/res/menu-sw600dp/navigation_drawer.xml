@@ -48,6 +48,12 @@
                 android:title="@string/title_settings"
                 android:checkable="false"
                 app:showAsAction="ifRoom"/>
+            <item
+                android:id="@+id/share_item"
+                android:icon="@drawable/ic_baseline_share_24"
+                android:title="@string/title_share"
+                android:checkable="false"
+                app:showAsAction="ifRoom"/>
         </menu>
     </item>
 </menu>
