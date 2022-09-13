@@ -5,9 +5,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.LinearLayout
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
@@ -24,7 +26,12 @@ import ysports.app.util.NetworkUtil
 import java.util.*
 import kotlin.concurrent.schedule
 
-class MatchesFragment : Fragment() {
+/* Empty constructor is added due to no constructor found error occurred when app restarts */
+class MatchesFragment() : Fragment() {
+
+    constructor(appBar: AppBarLayout) : this() {
+        this.appBar = appBar
+    }
 
     private var _binding: FragmentMatchesBinding? = null
     private val binding get() = _binding!!
@@ -34,6 +41,8 @@ class MatchesFragment : Fragment() {
     private lateinit var progressBar: CircularProgressIndicator
     private lateinit var errorLayout: View
     private lateinit var retryButton: Button
+    private lateinit var tabLayoutContainer: LinearLayout
+    private var appBar: AppBarLayout? = null
     private var fixtureApi: Call<FixtureResponse>? = null
     private var fixtureList: ArrayList<Fixtures> = ArrayList()
 
@@ -54,6 +63,12 @@ class MatchesFragment : Fragment() {
         progressBar = binding.progressBar
         errorLayout = binding.errorLayout.root
         retryButton = binding.errorLayout.buttonRetry
+        tabLayoutContainer = binding.tabLayoutContainer
+
+        appBar?.addLiftOnScrollListener { elevation, backgroundColor ->
+            tabLayoutContainer.elevation = elevation
+            tabLayoutContainer.setBackgroundColor(backgroundColor)
+        }
 
         retryButton.setOnClickListener {
             errorLayout.hideView()
