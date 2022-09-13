@@ -10,8 +10,7 @@ data class Fixtures(
     @SerializedName("away_team_score") val awayTeamScore: String?,
     @SerializedName("away_team_logo") val awayTeamLogo: String?,
     @SerializedName("league_name") val leagueName: String?,
-    @SerializedName("match_date") val matchDate: String?,
-    @SerializedName("match_time") val matchTime: String?,
     @SerializedName("media") val media: ArrayList<Media>?,
-    @SerializedName("url") val url: String?
+    @SerializedName("url") val url: String?,
+    @SerializedName("timestamp") val timestamp: String?
 )
