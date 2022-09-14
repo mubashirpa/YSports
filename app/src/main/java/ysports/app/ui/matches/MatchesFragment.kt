@@ -65,8 +65,7 @@ class MatchesFragment() : Fragment() {
         retryButton = binding.errorLayout.buttonRetry
         tabLayoutContainer = binding.tabLayoutContainer
 
-        appBar?.addLiftOnScrollListener { elevation, backgroundColor ->
-            tabLayoutContainer.elevation = elevation
+        appBar?.addLiftOnScrollListener { _, backgroundColor ->
             tabLayoutContainer.setBackgroundColor(backgroundColor)
         }
 
