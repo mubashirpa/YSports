@@ -131,7 +131,6 @@
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout"
             android:exported="true"
             android:label="@string/label_activity_main"
-            android:theme="@style/Theme.YSports.MainActivity"
             android:windowSoftInputMode="adjustPan">
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
