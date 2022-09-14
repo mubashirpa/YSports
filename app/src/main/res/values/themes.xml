@@ -1,11 +1,11 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
     <style name="Theme.YSports" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/primary</item>
         <item name="colorOnPrimary">@color/onPrimary</item>
         <item name="colorPrimaryContainer">@color/primaryContainer</item>
         <item name="colorOnPrimaryContainer">@color/onPrimaryContainer</item>
+        <item name="colorPrimaryInverse">@color/inversePrimary</item>
         <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/secondary</item>
         <item name="colorOnSecondary">@color/onSecondary</item>
@@ -17,6 +17,21 @@
         <item name="colorTertiaryContainer">@color/tertiaryContainer</item>
         <item name="colorOnTertiaryContainer">@color/onTertiaryContainer</item>
 
+        <item name="colorError">@color/error</item>
+        <item name="colorOnError">@color/onError</item>
+        <item name="colorErrorContainer">@color/errorContainer</item>
+        <item name="colorOnErrorContainer">@color/onErrorContainer</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/onSurface</item>
+        <item name="colorSurfaceVariant">@color/surfaceVariant</item>
+        <item name="colorOnSurfaceVariant">@color/onSurfaceVariant</item>
+        <item name="colorSurfaceInverse">@color/inverseSurface</item>
+        <item name="colorOnSurfaceInverse">@color/inverseOnSurface</item>
+        <item name="android:colorBackground">@color/background</item>
+        <item name="colorOnBackground">@color/onBackground</item>
+        <item name="colorOutline">@color/outline</item>
+        <item name="elevationOverlayColor">@color/surfaceTint</item>
+
         <!-- Customize your theme here. -->
 
         <!-- Transparent system bars for edge-to-edge. -->
@@ -26,14 +41,6 @@
         <!-- Navigation bar. -->
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">?attr/isLightTheme</item>
-
-        <item name="colorOnBackground">@color/onBackground</item>
-        <item name="colorSurface">@color/surface</item>
-        <item name="colorOnSurface">@color/onSurface</item>
-        <item name="colorSurfaceVariant">@color/surfaceVariant</item>
-        <item name="colorOnSurfaceVariant">@color/onSurfaceVariant</item>
-        <item name="colorOutline">@color/outline</item>
-        <item name="android:windowBackground">@color/background</item>
         <!-- For overflow menu -->
         <item name="popupMenuBackground">@drawable/bg_popup_menu</item>
         <!-- For popup menu -->
@@ -42,10 +49,6 @@
         <!-- For alert dialog -->
         <item name="alertDialogTheme">@style/ThemeOverlay.YSports.AlertDialog</item>
         <item name="android:alertDialogTheme">@style/ThemeOverlay.YSports.AlertDialog</item>
-    </style>
-
-    <style name="Theme.YSports.MainActivity" parent="Theme.YSports">
-        <item name="android:navigationBarColor">@color/navigation_bar</item>
     </style>
 
     <style name="Theme.YSports.PlayerActivity" parent="Theme.YSports">
@@ -81,10 +84,10 @@
         <item name="android:navigationBarColor">@color/background</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">?attr/isLightTheme</item>
 
-        <item name="colorOnBackground">@color/onBackground</item>
         <item name="colorSurface">@color/surface</item>
         <item name="colorOnSurface">@color/onSurface</item>
-        <item name="android:windowBackground">@color/background</item>
+        <item name="android:colorBackground">@color/background</item>
+        <item name="colorOnBackground">@color/onBackground</item>
     </style>
 
     <!-- Browser Activity Toolbar Theme -->
@@ -99,13 +102,13 @@
 
     <style name="ThemeOverlay.YSports.AlertDialog" parent="ThemeOverlay.AppCompat.Dialog.Alert">
         <item name="dialogCornerRadius">28dp</item>
-        <item name="android:background">@color/surface</item>
+        <item name="android:background">@color/popupBackground</item>
     </style>
 
     <style name="ThemeOverlay.YSports.TrackSelectionDialog" parent="ThemeOverlay.AppCompat.Dialog.Alert">
         <item name="windowNoTitle">false</item>
         <item name="dialogCornerRadius">28dp</item>
-        <item name="android:colorBackground">@color/surface</item>
+        <item name="android:colorBackground">@color/popupBackground</item>
     </style>
 
     <style name="Widget.YSports.PopupMenu" parent="Widget.Material3.PopupMenu">
