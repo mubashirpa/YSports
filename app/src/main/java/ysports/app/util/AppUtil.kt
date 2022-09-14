@@ -48,4 +48,9 @@ class AppUtil(val context: Context) {
     private fun dpToPx(density: Float, dps: Int): Int {
         return (dps * density + 0.5f).toInt()
     }
+
+    @Suppress("unused")
+    private fun pxToDp(density: Float, px: Int): Int {
+        return (px / density).toInt()
+    }
 }
