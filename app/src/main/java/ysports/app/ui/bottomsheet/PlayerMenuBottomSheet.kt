@@ -2,7 +2,6 @@ package ysports.app.ui.bottomsheet
 
 import android.app.Dialog
 import android.content.res.Configuration
-import android.content.res.Resources
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,17 +10,18 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import ysports.app.databinding.ViewSettingsPlayerBinding
+import ysports.app.util.AppUtil
 
 class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
 
     private var _binding: ViewSettingsPlayerBinding? = null
     private val binding get() = _binding!!
+    private var screenWidth: Int = 0
     var videoTrackClickListener: View.OnClickListener? = null
     var audioTrackClickListener: View.OnClickListener? = null
     var subTrackClickListener: View.OnClickListener? = null
     var settingsClickListener: View.OnClickListener? = null
     var playbackSpeedClickListener: View.OnClickListener? = null
-    private val displayDensity = Resources.getSystem().displayMetrics.density
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -50,17 +50,17 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
         binding.subtitles.setOnClickListener(subTrackClickListener)
         binding.settings.setOnClickListener(settingsClickListener)
         binding.playbackSpeed.setOnClickListener(playbackSpeedClickListener)
+
+        screenWidth = AppUtil(requireContext()).minScreenWidth()
     }
 
     override fun onResume() {
         super.onResume()
         val configuration = requireActivity().resources.configuration
-        if (dialog != null) {
-            if (configuration.screenWidthDp > 470) {
-                dialog!!.window?.setLayout(dpToPx(displayDensity, 450), -1)
-            } else {
-                dialog!!.window?.setLayout(-1, -1)
-            }
+        if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            dialog?.window?.setLayout(screenWidth, -1)
+        } else {
+            dialog?.window?.setLayout(-1, -1)
         }
     }
 
@@ -71,22 +71,10 @@ class PlayerMenuBottomSheet : BottomSheetDialogFragment() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        if (dialog != null) {
-            if (newConfig.screenWidthDp > 470) {
-                dialog!!.window?.setLayout(dpToPx(displayDensity, 450), -1)
-            } else {
-                dialog!!.window?.setLayout(-1, -1)
-            }
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            dialog?.window?.setLayout(screenWidth, -1)
+        } else {
+            dialog?.window?.setLayout(-1, -1)
         }
-    }
-
-    @Suppress("SameParameterValue")
-    private fun dpToPx(density: Float, dps: Int): Int {
-        return (dps * density + 0.5f).toInt()
-    }
-
-    @Suppress("unused")
-    private fun pxToDp(density: Float, px: Int): Int {
-        return (px / density).toInt()
     }
 }
