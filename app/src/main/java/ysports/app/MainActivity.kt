@@ -7,6 +7,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -87,6 +89,10 @@ class MainActivity : AppCompatActivity() {
         sharedPreferences = getSharedPreferences("app_data", MODE_PRIVATE)
         sharedPreferencesEditor = sharedPreferences.edit()
         matchesFragment = MatchesFragment(binding.appBarLayout)
+
+        if (navigationBar != null) {
+            window.navigationBarColor = getColor(R.color.navigation_bar)
+        }
 
         onBackPressedDispatcher.addCallback(onBackPressedCallback)
 
@@ -230,6 +236,10 @@ class MainActivity : AppCompatActivity() {
                     snackBar.show()
                 }
             }.launchIn(lifecycleScope)
+        }
+
+        binding.appBarLayout.addLiftOnScrollListener { _, backgroundColor ->
+            navigationRail?.setBackgroundColor(backgroundColor)
         }
     }
 
@@ -485,4 +495,6 @@ class MainActivity : AppCompatActivity() {
         }
         startActivity(Intent.createChooser(intent, title))
     }
+
+    private fun View.getBackgroundColor() = (background as? ColorDrawable?)?.color ?: Color.TRANSPARENT
 }
