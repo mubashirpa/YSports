@@ -15,6 +15,7 @@
             android:id="@+id/track_selection_dialog_tab_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@drawable/bg_tabs_main"
             app:tabMode="fixed"
             app:tabGravity="fill"
             app:tabMaxWidth="0dp"/>
