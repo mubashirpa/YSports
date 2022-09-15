@@ -77,6 +77,7 @@
          preserveLegacyExternalStorage - Preserve the legacy storage model for Android 11
          requestLegacyExternalStorage - Opt out of scoped storage for Android 10 -->
     <application
+        android:name=".YSports"
         android:allowBackup="true"
         android:banner="@drawable/img_poster_horizontal"
         android:dataExtractionRules="@xml/data_extraction_rules"
