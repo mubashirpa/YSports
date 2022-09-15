@@ -7,8 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -91,7 +89,7 @@ class MainActivity : AppCompatActivity() {
         matchesFragment = MatchesFragment(binding.appBarLayout)
 
         if (navigationBar != null) {
-            window.navigationBarColor = getColor(R.color.navigation_bar)
+            window.navigationBarColor = getColor(R.color.surface2_overlay)
         }
 
         onBackPressedDispatcher.addCallback(onBackPressedCallback)
@@ -495,6 +493,4 @@ class MainActivity : AppCompatActivity() {
         }
         startActivity(Intent.createChooser(intent, title))
     }
-
-    private fun View.getBackgroundColor() = (background as? ColorDrawable?)?.color ?: Color.TRANSPARENT
 }
