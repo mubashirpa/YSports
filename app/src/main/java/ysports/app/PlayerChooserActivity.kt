@@ -188,12 +188,12 @@ class PlayerChooserActivity : AppCompatActivity(), OnChildClickListener {
         listViewAdapter.setPlaylistGroups(groups)
 
         val preferences = getPreferences(MODE_PRIVATE)
-        val groupPosition = preferences.getInt(GROUP_POSITION_PREFERENCE_KEY,  /* defValue= */-1)
-        val childPosition = preferences.getInt(CHILD_POSITION_PREFERENCE_KEY,  /* defValue= */-1)
+        val groupPosition = preferences.getInt(GROUP_POSITION_PREFERENCE_KEY, -1)
+        val childPosition = preferences.getInt(CHILD_POSITION_PREFERENCE_KEY, -1)
         // Clear the group and child position if either are unset or if either are out of bounds.
         if (groupPosition != -1 && childPosition != -1 && groupPosition < groups.size && childPosition < groups[groupPosition].playlists.size) {
             expandableListView.expandGroup(groupPosition) // shouldExpandGroup does not work without this.
-            expandableListView.setSelectedChild(groupPosition, childPosition,  /* shouldExpandGroup= */true)
+            expandableListView.setSelectedChild(groupPosition, childPosition, true)
         }
 
         loadComplete(groups.isEmpty())
@@ -245,7 +245,7 @@ class PlayerChooserActivity : AppCompatActivity(), OnChildClickListener {
                     reader.endArray()
                 }
                 "_comment" -> reader.nextString() // Ignore.
-                else -> throw IOException("Unsupported name: $name",  /* cause= */null)
+                else -> throw IOException("Unsupported name: $name", null)
             }
         }
         reader.endObject()
@@ -307,7 +307,7 @@ class PlayerChooserActivity : AppCompatActivity(), OnChildClickListener {
                     }
                     reader.endArray()
                 }
-                else -> throw IOException("Unsupported attribute name: $name",  /* cause= */null)
+                else -> throw IOException("Unsupported attribute name: $name", null)
             }
         }
         reader.endObject()
