@@ -11,6 +11,7 @@
     <style name="Widget.YSports.BottomSheet.Modal" parent="Widget.Material3.BottomSheet.Modal">
         <item name="android:backgroundTint">@android:color/transparent</item>
         <item name="android:elevation">0dp</item>
+        <item name="android:padding">10dp</item>
     </style>
 
     <style name="Theme.YSports.TitleLarge">

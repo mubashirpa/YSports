@@ -49,6 +49,8 @@
         <!-- For alert dialog -->
         <item name="alertDialogTheme">@style/ThemeOverlay.YSports.AlertDialog</item> <!-- For preference dialog -->
         <item name="android:alertDialogTheme">@style/ThemeOverlay.YSports.AlertDialog</item>
+        <!-- For ModalBottomSheet -->
+        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.YSports.BottomSheetDialog</item>
     </style>
 
     <style name="Theme.YSports.PlayerActivity" parent="Theme.YSports">
@@ -56,7 +58,6 @@
         <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="o_mr1">shortEdges</item>
         <item name="android:windowTranslucentStatus">true</item>
         <item name="android:windowTranslucentNavigation">true</item>
-        <item name="bottomSheetDialogTheme">@style/ThemeOverlay.YSports.BottomSheetDialog</item>
     </style>
 
     <style name="Theme.YSports.YouTubePlayerActivity" parent="Theme.YSports">
