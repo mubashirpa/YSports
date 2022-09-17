@@ -21,7 +21,6 @@ class FirebaseCloudMessagingService : FirebaseMessagingService() {
             Log.d(TAG, "Message data payload: ${remoteMessage.data}")
         }
 
-        // Check if message contains a notification payload.
         remoteMessage.notification?.let {
             sendNotification(it.title, it.body)
         }
