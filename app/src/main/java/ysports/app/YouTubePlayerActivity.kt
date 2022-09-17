@@ -94,6 +94,7 @@ class YouTubePlayerActivity : YouTubeBaseActivity() {
         }
     }
 
+    @Suppress("SameParameterValue")
     @RequiresApi(Build.VERSION_CODES.R)
     private fun controlWindowInsets(hide: Boolean) {
         // WindowInsetsController can hide or show specified system bars.
