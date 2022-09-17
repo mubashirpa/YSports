@@ -32,7 +32,6 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.Nullable
 import androidx.annotation.RequiresApi
 import androidx.annotation.UiThread
 import androidx.appcompat.app.AppCompatActivity
@@ -252,7 +251,6 @@ class WebActivity : AppCompatActivity() {
             return false
         }
 
-        @Nullable
         override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
             return assetLoader.shouldInterceptRequest(request.url)
         }
@@ -444,7 +442,6 @@ class WebActivity : AppCompatActivity() {
             customViewCallback = null
         }
 
-        @Nullable
         override fun getDefaultVideoPoster(): Bitmap? {
             return if (super.getDefaultVideoPoster() == null) {
                 BitmapFactory.decodeResource(resources, R.drawable.img_poster_transparent)

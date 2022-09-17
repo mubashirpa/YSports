@@ -29,7 +29,6 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.Nullable
 import androidx.annotation.RequiresApi
 import androidx.annotation.RestrictTo
 import androidx.annotation.UiThread
@@ -441,7 +440,6 @@ class BrowserActivity : AppCompatActivity() {
             return false
         }
 
-        @Nullable
         override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
             if (!enableAdBlocker) return assetLoader.shouldInterceptRequest(request.url)
             val loadedUrls: MutableMap<String, Boolean> = HashMap()
@@ -1002,6 +1000,7 @@ class BrowserActivity : AppCompatActivity() {
         }
     }
 
+    @Suppress("SameParameterValue")
     private fun onGeolocationPermissionConfirmation(origin: String?, allowed: Boolean, retain: Boolean) {
         if (geolocationCallback != null) {
             geolocationCallback?.invoke(origin, allowed, retain)
