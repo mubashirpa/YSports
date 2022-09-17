@@ -4,17 +4,13 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.CalendarContract
-import android.text.Spannable
-import android.text.SpannableString
 import android.text.format.DateUtils
-import android.text.style.ForegroundColorSpan
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
-import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DefaultItemAnimator
@@ -135,16 +131,11 @@ class MatchesObjectFragment() : Fragment() {
                         val popup = PopupMenu(context, view)
                         popup.menuInflater.inflate(R.menu.pop_menu_matches, popup.menu)
 
-                        val spannable = SpannableString("${filteredList[position].homeTeam} vs ${filteredList[position].awayTeam}")
-                        spannable.setSpan(ForegroundColorSpan(ContextCompat.getColor(context, R.color.primary)), 0, spannable.length, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
-                        popup.menu.getItem(0).title = spannable
-                        popup.menu.getItem(0).isEnabled = false
-
                         val timestamp = filteredList[position].timestamp
                         if (!timestamp.isNullOrEmpty()) {
                             val startTime = simpleDateFormat.parse(timestamp)
                             if (startTime != null && startTime.before(currentDate)) {
-                                popup.menu.getItem(1).isEnabled = false
+                                popup.menu.getItem(0).isEnabled = false
                             }
                         }
 
