@@ -8,8 +8,8 @@ plugins {
 }
 
 android {
-    compileSdk 33
     namespace 'ysports.app'
+    compileSdk 33
 
     defaultConfig {
         applicationId "ysports.app"
@@ -75,7 +75,7 @@ dependencies {
     implementation files('libs/YouTubeAndroidPlayerApi.jar')
 
     // Import the BoM for the Firebase platform
-    implementation platform('com.google.firebase:firebase-bom:30.4.1')
+    implementation platform('com.google.firebase:firebase-bom:30.5.0')
     // Declare the dependencies for the desired Firebase products without specifying versions
     implementation 'com.google.firebase:firebase-analytics-ktx'
     implementation 'com.google.firebase:firebase-database-ktx'
