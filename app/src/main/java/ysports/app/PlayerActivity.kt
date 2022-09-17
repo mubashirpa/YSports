@@ -1,4 +1,4 @@
-// Last updated on 03 Sep 2022
+// Last updated on 17 Sep 2022
 // Latest commit on May 23
 
 /*
@@ -41,7 +41,6 @@ import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.annotation.NonNull
 import androidx.annotation.Nullable
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -73,11 +72,12 @@ import org.checkerframework.checker.nullness.qual.MonotonicNonNull
 import ysports.app.databinding.ActivityPlayerBinding
 import ysports.app.player.*
 import ysports.app.player.IntentUtil.PREFER_EXTENSION_DECODERS_EXTRA
-import ysports.app.ui.bottomsheet.PlayerMenuBottomSheet
+import ysports.app.ui.bottomsheet.menu.BottomSheetMenu
 import ysports.app.util.NotificationUtil
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
+
 
 @Suppress("PrivatePropertyName")
 class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.ControllerVisibilityListener,
@@ -385,7 +385,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
             player?.trackSelectionParameters = trackSelectionParameters!!
             player?.addListener(PlayerEventListener())
             player?.addAnalyticsListener(EventLogger())
-            player?.setAudioAttributes(AudioAttributes.DEFAULT,  /* handleAudioFocus= */true)
+            player?.setAudioAttributes(AudioAttributes.DEFAULT, true)
             player?.playWhenReady = startAutoPlay
             playerView?.player = player
             configurePlayerWithServerSideAdsLoader()
@@ -396,7 +396,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         if (haveStartPosition) {
             player?.seekTo(startItemIndex, startPosition)
         }
-        player?.setMediaItems(mediaItems!!,  /* resetPosition= */ !haveStartPosition)
+        player?.setMediaItems(mediaItems!!, !haveStartPosition)
         player?.prepare()
         updateButtonVisibility()
 
@@ -425,7 +425,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
             .setDataSourceFactory(dataSourceFactory!!)
             .setDrmSessionManagerProvider(drmSessionManagerProvider)
             .setLocalAdInsertionComponents(
-                this::getClientSideAdsLoader, /* adViewProvider= */ playerView!!)
+                this::getClientSideAdsLoader, playerView!!)
             .setServerSideAdInsertionMediaSourceFactory(imaServerSideAdInsertionMediaSourceFactory)
     }
 
@@ -581,7 +581,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
             updateButtonVisibility()
         }
 
-        override fun onPlayerError(@NonNull error: PlaybackException) {
+        override fun onPlayerError(error: PlaybackException) {
             if (error.errorCode == PlaybackException.ERROR_CODE_BEHIND_LIVE_WINDOW) {
                 player?.seekToDefaultPosition()
                 player?.prepare()
@@ -597,11 +597,11 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
                 return
             }
             if (tracks.containsType(C.TRACK_TYPE_VIDEO)
-                && !tracks.isTypeSupported(C.TRACK_TYPE_VIDEO,  /* allowExceedsCapabilities= */true)) {
+                && !tracks.isTypeSupported(C.TRACK_TYPE_VIDEO, true)) {
                 showToast(R.string.error_unsupported_video)
             }
             if (tracks.containsType(C.TRACK_TYPE_AUDIO)
-                && !tracks.isTypeSupported(C.TRACK_TYPE_AUDIO,  /* allowExceedsCapabilities= */true)) {
+                && !tracks.isTypeSupported(C.TRACK_TYPE_AUDIO, true)) {
                 showToast(R.string.error_unsupported_audio)
             }
             lastSeenTracks = tracks
@@ -678,7 +678,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         return mediaItems
     }
 
-    private fun maybeSetDownloadProperties(item: MediaItem, @Nullable downloadRequest: DownloadRequest?) : MediaItem {
+    private fun maybeSetDownloadProperties(item: MediaItem, downloadRequest: DownloadRequest?) : MediaItem {
         if (downloadRequest == null) {
             return item
         }
@@ -836,34 +836,71 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
     }
 
     private fun openSettings() {
-        val playerMenuBottomSheet = PlayerMenuBottomSheet()
-        playerMenuBottomSheet.videoTrackClickListener = OnClickListener {
-            playerMenuBottomSheet.dismiss()
-            playerUtil.selectVideoTrack(context, player)
-        }
-        playerMenuBottomSheet.audioTrackClickListener = OnClickListener {
-            playerMenuBottomSheet.dismiss()
-            playerUtil.selectAudioTrack(context, player)
-        }
-        playerMenuBottomSheet.subTrackClickListener = OnClickListener {
-            playerMenuBottomSheet.dismiss()
-            playerUtil.selectSubTrack(context, player)
-        }
-        playerMenuBottomSheet.settingsClickListener = OnClickListener {
-            playerMenuBottomSheet.dismiss()
-            if (!isShowingTrackSelectionDialog && TrackSelectionDialog.willHaveContent(player)) {
-                isShowingTrackSelectionDialog = true
-                val trackSelectionDialog = TrackSelectionDialog.createForPlayer(player) /* onDismissListener= */ {
-                    isShowingTrackSelectionDialog = false
+        val tracks = player?.currentTracks
+        var selectedVideoTrack: String? = null
+        var selectedAudioTrack: String? = null
+        var selectedSubtitleTrack: String? = null
+        val playbackSpeed = "${player?.playbackParameters?.speed}x"
+        var videoTracksSelected = 0
+
+        if (tracks != null) {
+            for (trackGroup in tracks.groups) {
+                val trackType: Int = trackGroup.type
+                for (i in 0 until trackGroup.length) {
+                    val isSelected = trackGroup.isTrackSelected(i)
+                    val trackFormat = trackGroup.getTrackFormat(i)
+                    if (isSelected) {
+                        if (trackType == C.TRACK_TYPE_VIDEO) {
+                            videoTracksSelected += 1
+                            selectedVideoTrack = if (videoTracksSelected > 1) {
+                                "Auto"
+                            } else {
+                                "${trackFormat.width}x${trackFormat.height}"
+                            }
+                        }
+                        if (trackType == C.TRACK_TYPE_AUDIO) {
+                            selectedAudioTrack = Locale(trackFormat.language.toString()).displayLanguage
+                            if (selectedAudioTrack == "und") selectedAudioTrack = null
+                        }
+                        if (trackType == C.TRACK_TYPE_TEXT) {
+                            selectedSubtitleTrack = Locale(trackFormat.language.toString()).displayLanguage
+                        }
+                    }
                 }
-                trackSelectionDialog.show(supportFragmentManager,  /* tag= */null)
             }
         }
-        playerMenuBottomSheet.playbackSpeedClickListener = OnClickListener {
-            playerMenuBottomSheet.dismiss()
-            playerUtil.setPlaybackSpeed(context, player)
+
+        val bottomSheetMenu = BottomSheetMenu()
+        bottomSheetMenu.setMenuItem(getString(R.string.quality), selectedVideoTrack, R.drawable.ic_baseline_hd_24)
+        bottomSheetMenu.setMenuItem(getString(R.string.audio), selectedAudioTrack, R.drawable.ic_baseline_audiotrack_24)
+        bottomSheetMenu.setMenuItem(getString(R.string.subtitles), selectedSubtitleTrack, R.drawable.ic_baseline_subtitles_24)
+        if (playbackSpeed == "1.0x") {
+            bottomSheetMenu.setMenuItem(getString(R.string.playback_speed), "Normal", R.drawable.ic_baseline_slow_motion_video_24)
+        } else if (playbackSpeed != "nullx") {
+            bottomSheetMenu.setMenuItem(getString(R.string.playback_speed), playbackSpeed, R.drawable.ic_baseline_slow_motion_video_24)
+        } else {
+            bottomSheetMenu.setMenuItem(getString(R.string.playback_speed), R.drawable.ic_baseline_slow_motion_video_24)
         }
-        playerMenuBottomSheet.show(supportFragmentManager, PlayerMenuBottomSheet.TAG)
+        bottomSheetMenu.setAdapter(context)
+        bottomSheetMenu.setOnItemClickListener { _, _, position, _ ->
+            when(position) {
+                0 -> playerUtil.selectVideoTrack(context, player)
+                1 -> playerUtil.selectAudioTrack(context, player)
+                2 -> playerUtil.selectSubTrack(context, player)
+                3 -> playerUtil.setPlaybackSpeed(context, player)
+                4 -> {
+                    if (!isShowingTrackSelectionDialog && TrackSelectionDialog.willHaveContent(player)) {
+                        isShowingTrackSelectionDialog = true
+                        val trackSelectionDialog = TrackSelectionDialog.createForPlayer(player) /* onDismissListener= */ {
+                            isShowingTrackSelectionDialog = false
+                        }
+                        trackSelectionDialog.show(supportFragmentManager,  /* tag = */null)
+                    }
+                }
+            }
+            bottomSheetMenu.dismiss()
+        }
+        bottomSheetMenu.show(supportFragmentManager, BottomSheetMenu.TAG)
     }
 
     private fun lockPlayer() {
