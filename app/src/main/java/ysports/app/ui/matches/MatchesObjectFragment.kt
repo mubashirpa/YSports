@@ -160,13 +160,15 @@ class MatchesObjectFragment() : Fragment() {
                                     true
                                 }
                                 R.id.share -> {
-                                    var subject = ""
-                                    if (!timestamp.isNullOrEmpty()) {
+                                    val title = "${filteredList[position].homeTeam} vs ${filteredList[position].awayTeam}"
+                                    val subject = if (!timestamp.isNullOrEmpty()) {
                                         val matchTime = simpleDateFormat.parse(timestamp) as Date
                                         val timeFormatter = SimpleDateFormat("dd. LLL KK:mm aaa", Locale.getDefault())
-                                        subject = "${timeFormatter.format(matchTime)}, ${filteredList[position].homeTeam} vs ${filteredList[position].awayTeam}\n#${getString(R.string.app_name)}"
+                                        "${timeFormatter.format(matchTime)}, ${filteredList[position].homeTeam} vs ${filteredList[position].awayTeam}\n#${getString(R.string.app_name)}"
+                                    } else {
+                                        "${filteredList[position].homeTeam} vs ${filteredList[position].awayTeam}\n#${getString(R.string.app_name)}"
                                     }
-                                    shareText(subject, getString(R.string.url_download_app), getString(R.string.share))
+                                    shareText(subject, getString(R.string.url_download_app), title)
                                     true
                                 }
                                 else -> false
