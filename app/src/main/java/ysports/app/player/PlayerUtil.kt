@@ -349,13 +349,20 @@ class PlayerUtil {
                         selectedVideoPosition = 1
                         selectedVideoChoice = 1
                     }
-                    var bitrate = ""
+                    /*
+                    bit to byte = * 0.000001
+                    bit to MB = * 0.000000125
+                    bit to GB = * 0.000000000125
+                    MB to GB = * 0.001
+                    */
+                    var dataUsage = 0.0
                     if (trackFormat.bitrate != -1) {
-                        bitrate = String.format("- %.2f Mbps", trackFormat.bitrate * 0.000001)
+                        dataUsage = (trackFormat.bitrate * 0.000000000125) * 3600
                     }
+                    val dataUsageMessage = if (dataUsage != 0.0) String.format("(up to %.2f GB per hour)", dataUsage) else ""
                     val width = trackFormat.width
                     val height = trackFormat.height
-                    val list = if (isSupported) "${width}x$height $bitrate" else "${width}x$height $bitrate (Unsupported)"
+                    val list = if (isSupported) "${getResolution("${width}x${height}")} $dataUsageMessage" else "${getResolution("${width}x${height}")} (Unsupported)"
 
                     videoList.add(list)
                 }
@@ -432,5 +439,29 @@ class PlayerUtil {
                 selectedSpeedChoice = position
             }
             .show()
+    }
+
+    private fun getResolution(aspectRatio: String) : String {
+        return when(aspectRatio) {
+            // 16:9 aspect ratio
+            "426x240" -> "240p"
+            "640x360" -> "360p"
+            "854x480" -> "480p"
+            "1280x720" -> "720p"
+            "1920x1080" -> "1080p HD"
+            "2560x1440" -> "1440p QHD"
+            "3840x2160" -> "2160p 4K"
+            "7680x4320" -> "4320p 8K"
+            // More
+            "256x144" -> "144p"
+            "480x360" -> "360p"
+            "640x480" -> "480p"
+            "960x540" -> "540p"
+            "3072x1728" -> "3K"
+            "2880x1620" -> "3K UHD"
+            "5120x2880" -> "2880p 5K"
+            "6144x3456" -> "6k"
+            else -> aspectRatio
+        }
     }
 }
