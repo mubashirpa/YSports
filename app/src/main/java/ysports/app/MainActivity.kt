@@ -169,7 +169,7 @@ class MainActivity : AppCompatActivity() {
                     startActivity(intent)
                 }
                 R.id.share_item -> {
-                    shareLink(getString(R.string.app_name), getString(R.string.url_download_app), getString(R.string.share_app_using))
+                    shareLink(getString(R.string.app_name), getString(R.string.url_share_app), getString(R.string.share_app_using))
                 }
             }
             drawerLayout.close()
