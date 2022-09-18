@@ -855,15 +855,16 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
                             selectedVideoTrack = if (videoTracksSelected > 1) {
                                 "Auto"
                             } else {
-                                "${trackFormat.width}x${trackFormat.height}"
+                                getResolution("${trackFormat.width}x${trackFormat.height}", trackFormat.width, trackFormat.height)
                             }
                         }
                         if (trackType == C.TRACK_TYPE_AUDIO) {
                             selectedAudioTrack = Locale(trackFormat.language.toString()).displayLanguage
-                            if (selectedAudioTrack == "und") selectedAudioTrack = null
+                            if (selectedAudioTrack == "und" || selectedAudioTrack == "null") selectedAudioTrack = null
                         }
                         if (trackType == C.TRACK_TYPE_TEXT) {
                             selectedSubtitleTrack = Locale(trackFormat.language.toString()).displayLanguage
+                            if (selectedSubtitleTrack == "und" || selectedSubtitleTrack == "null") selectedSubtitleTrack = null
                         }
                     }
                 }
@@ -1066,5 +1067,42 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
             NotificationUtil(context).createNotificationChannel(channelName, channelDescription, channelId, NotificationManager.IMPORTANCE_LOW)
         }
         return channelId
+    }
+
+    private fun getResolution(aspectRatio: String, width: Int, height: Int) : String {
+        return when(aspectRatio) {
+            // 16:9 aspect ratio
+            "426x240" -> "240p"
+            "640x360" -> "360p"
+            "854x480" -> "480p"
+            "1280x720" -> "720p"
+            "1920x1080" -> "1080p (HD)"
+            "2560x1440" -> "1440p (QHD)"
+            "3840x2160" -> "2160p (4K)"
+            "7680x4320" -> "4320p (8K)"
+            // More
+            "256x144" -> "144p"
+            "480x360" -> "360p"
+            "640x480" -> "480p"
+            "960x540" -> "540p"
+            "3072x1728" -> "3K"
+            "2880x1620" -> "3K UHD"
+            "5120x2880" -> "2880p (5K)"
+            "6144x3456" -> "6k"
+            else -> getResolution(width, height)
+        }
+    }
+
+    private fun getResolution(width: Int, height: Int) : String {
+        if ((width == 1280 && height in 525..720) || (width in 576..1080 && height == 720)) return "720p" // 1280x720
+        if ((width == 1920 && height in 787..1080) || (width in 864..1920 && height == 1080)) return "1080p" // 1920x1080
+        if (width == 1998 && height == 1080) return "2K"
+        if ((width == 2048 && height in 838..1152) || (width in 922..2048 && height == 1152)) return "2K" // 2048x1152
+        if (width == 3996 && height == 2160) return "4K"
+        if ((width == 4096 && height in 1679..2304) || (width in 1843..4096 && height == 2304)) return "4K" // 4096x2304
+        if ((width == 3840 && height in 1574..2160) || (width in 1728..3840 && height == 2160)) return "4K UHD" // 3840x2160
+        if ((width == 8192 && height in 3357..4608) || (width in 3686..8192 && height == 4608)) return "8K" // 8192x4608
+        if ((width == 7680 && height in 3148..4320) || (width in 2765..7200 && height == 3456)) return "8K UHD" // 7680x4320
+        return "${width}x${height}"
     }
 }
