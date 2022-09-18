@@ -73,7 +73,7 @@
 
     <!-- Activity labels -->
     <string name="label_activity_main">YSports</string>
-    <string name="label_activity_player">Play</string>
+    <string name="label_activity_player">Player</string>
     <string name="label_activity_player_chooser">Open</string>
     <string name="label_activity_settings">Settings</string>
 
@@ -118,6 +118,7 @@
     <string name="url_404_error">https://ysports.app/assets/web/error_404/index.html</string>
     <string name="url_about">https://ysportsapp.blogspot.com/p/about-ysports.html</string>
     <string name="url_download_app">https://ysports.page.link/download</string>
+    <string name="url_share_app">https://ysports.page.link/share</string>
     <string name="dynamic_link_url_prefix">https://ysports.page.link</string>
     <string name="previous">Previous</string>
     <string name="today">Today</string>
