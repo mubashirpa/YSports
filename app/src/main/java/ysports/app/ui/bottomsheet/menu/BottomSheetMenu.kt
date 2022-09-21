@@ -8,10 +8,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import ysports.app.R
 import ysports.app.databinding.ViewBottomSheetMenuBinding
 import ysports.app.util.AppUtil
+
 
 class BottomSheetMenu : BottomSheetDialogFragment() {
 
@@ -29,7 +31,10 @@ class BottomSheetMenu : BottomSheetDialogFragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = ViewBottomSheetMenuBinding.inflate(inflater, container, false)
-        return binding.root
+        val view = binding.root
+        val sheetBehavior = BottomSheetBehavior.from(view.parent as View)
+        sheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+        return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
