@@ -29,7 +29,7 @@ class YouTubePlayerActivity : YouTubeBaseActivity() {
 
         context = this
         youTubePlayer = binding.youtubePlayer
-        API_KEY = BuildConfig.youtube_data_api_v3
+        API_KEY = BuildConfig.youtube_api
         var videoID = intent.getStringExtra("VIDEO_URL") ?: ""
 
         if (videoID.isEmpty()) {

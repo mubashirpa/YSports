@@ -89,7 +89,7 @@ class NewsFragment : Fragment() {
 
     private fun readNewsDB() {
         val isTablet = AppUtil(requireContext()).isTablet()
-        newsApi = NewsApi.create().getNews("top-headlines", BuildConfig.news_api_v2, "sports", "in")
+        newsApi = NewsApi.create().getNews("top-headlines", BuildConfig.youtube_api, "sports", "in")
         newsApi!!.enqueue(object : Callback<NewsResponse> {
             override fun onResponse(call: Call<NewsResponse>, response: Response<NewsResponse>) {
                 if (!response.isSuccessful) {
