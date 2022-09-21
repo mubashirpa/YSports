@@ -23,9 +23,8 @@ android {
         // Fetch api keys form local.properties
         Properties properties = new Properties()
         properties.load(project.rootProject.file("local.properties").newDataInputStream())
-        // datatype, var name in BuildConfig, var name in local.properties
-        buildConfigField "String", "news_api_v2", "\"${properties.getProperty("news_api_v2")}\""
-        buildConfigField "String", "youtube_data_api_v3", "\"${properties.getProperty("youtube_data_api_v3")}\""
+        buildConfigField "String", "news_api", "\"${properties.getProperty("news_api_v2")}\""
+        buildConfigField "String", "youtube_api", "\"${properties.getProperty("youtube_data_api_v3")}\""
     }
 
     buildTypes {
@@ -40,6 +39,12 @@ android {
     }
     kotlinOptions {
         jvmTarget = '1.8'
+    }
+    externalNativeBuild {
+        cmake {
+            path file('src/main/cpp/CMakeLists.txt')
+            version '3.22.1'
+        }
     }
     buildFeatures {
         viewBinding true
