@@ -53,6 +53,7 @@
     <string name="error_ssl_not_yet_valid">The certificate is not yet valid.</string>
     <string name="error_ssl_date_invalid">The certificate date is invalid</string>
     <string name="error_download_failed">Download failed</string>
+    <string name="error_list_load_failed">One or more lists failed to load</string>
 
     <!-- Navigation drawer -->
     <string name="title_home_subheader">Home</string>
@@ -160,4 +161,5 @@
     <string name="cache_cleared">Cache cleared</string>
     <string name="share_app_using">Share app using</string>
     <string name="add_to_calendar">Add to calendar</string>
+    <string name="video_zoom">Video zoom</string>
 </resources>
