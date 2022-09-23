@@ -15,6 +15,7 @@ import com.google.android.material.progressindicator.CircularProgressIndicator
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import ysports.app.PrivateKeys
 import ysports.app.R
 import ysports.app.WebActivity
 import ysports.app.api.JsonApi
@@ -112,7 +113,7 @@ class LeaguesFragment : Fragment() {
     }
 
     private fun readDatabase() {
-        leaguesApi = JsonApi.create("https://api.npoint.io/").getLeagues("ef26b2579a1e6fba29fe")
+        leaguesApi = JsonApi.create("https://api.npoint.io/").getLeagues(PrivateKeys().leaguesUrlPath())
         leaguesApi?.enqueue(object : Callback<LeaguesResponse> {
             override fun onResponse(call: Call<LeaguesResponse>, response: Response<LeaguesResponse>) {
                 if (!response.isSuccessful) {

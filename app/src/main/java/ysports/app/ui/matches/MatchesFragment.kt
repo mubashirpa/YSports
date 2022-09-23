@@ -16,6 +16,7 @@ import com.google.android.material.tabs.TabLayoutMediator
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import ysports.app.PrivateKeys
 import ysports.app.R
 import ysports.app.api.JsonApi
 import ysports.app.api.fixture.FixtureResponse
@@ -95,7 +96,7 @@ class MatchesFragment() : Fragment() {
     }
 
     private fun readDatabase() {
-        fixtureApi = JsonApi.create("https://api.npoint.io/").getFixture("831085549ee2af13a198")
+        fixtureApi = JsonApi.create("https://api.npoint.io/").getFixture(PrivateKeys().matchesUrlPath())
         fixtureApi?.enqueue(object : Callback<FixtureResponse> {
             override fun onResponse(call: Call<FixtureResponse>, response: Response<FixtureResponse>) {
                 if (!response.isSuccessful) {
