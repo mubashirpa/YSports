@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.TextUtils
 import android.util.JsonReader
 import android.view.View
@@ -28,6 +30,7 @@ import com.google.android.exoplayer2.upstream.DataSpec
 import com.google.android.exoplayer2.util.Log
 import com.google.android.exoplayer2.util.Util
 import com.google.android.material.progressindicator.CircularProgressIndicator
+import com.google.android.material.snackbar.Snackbar
 import com.google.common.base.Objects
 import com.google.common.base.Preconditions.*
 import com.google.common.collect.ImmutableList
@@ -50,7 +53,7 @@ class PlayerChooserActivity : AppCompatActivity(), OnChildClickListener {
     private lateinit var binding: ActivityPlayerChooserBinding
     private lateinit var context: Context
 
-    private val TAG = "ChooserActivity"
+    private val TAG = "LogChooserActivity"
     private val GROUP_POSITION_PREFERENCE_KEY = "chooser_group_position"
     private val CHILD_POSITION_PREFERENCE_KEY = "chooser_child_position"
 
@@ -59,6 +62,7 @@ class PlayerChooserActivity : AppCompatActivity(), OnChildClickListener {
     private lateinit var expandableListView: ExpandableListView
     private lateinit var progressBar: CircularProgressIndicator
     private lateinit var errorView: View
+    private var handler: Handler? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -89,12 +93,29 @@ class PlayerChooserActivity : AppCompatActivity(), OnChildClickListener {
             }
         }
 
+        binding.errorView.buttonRetry.setOnClickListener {
+            errorView.hideView()
+            progressBar.showView()
+            // Using timer to avoid multiple clicking on retry
+            handler = Handler(Looper.getMainLooper())
+            handler?.postDelayed({
+                if (!isDestroyed) {
+                    loadSample()
+                }
+            }, 300)
+        }
+
         loadSample()
     }
 
     override fun onStart() {
         super.onStart()
         listViewAdapter.notifyDataSetChanged()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        handler?.removeCallbacksAndMessages(null)
     }
 
     private val onBackPressedCallback = object : OnBackPressedCallback(true) {
@@ -182,9 +203,16 @@ class PlayerChooserActivity : AppCompatActivity(), OnChildClickListener {
     }
 
     private fun onPlaylistGroups(groups: MutableList<PlaylistGroup>, sawError: Boolean) {
-        if (sawError) {
-            Toast.makeText(applicationContext, "One or more lists failed to load", Toast.LENGTH_LONG).show()
+        if (sawError && groups.isNotEmpty()) {
+            Snackbar.make(binding.contextView, R.string.error_list_load_failed, Snackbar.LENGTH_LONG)
+                .setAction(R.string.retry) {
+                    progressBar.showView()
+                    loadSample()
+                }
+                .show()
         }
+        loadComplete(groups.isEmpty())
+
         listViewAdapter.setPlaylistGroups(groups)
 
         val preferences = getPreferences(MODE_PRIVATE)
@@ -195,14 +223,11 @@ class PlayerChooserActivity : AppCompatActivity(), OnChildClickListener {
             expandableListView.expandGroup(groupPosition) // shouldExpandGroup does not work without this.
             expandableListView.setSelectedChild(groupPosition, childPosition, true)
         }
-
-        loadComplete(groups.isEmpty())
     }
 
     private fun loadComplete(isEmpty: Boolean) {
         if (isEmpty) {
             progressBar.hideView()
-            binding.errorView.buttonRetry.hideView()
             binding.errorView.stateDescription.text = getString(R.string.error_no_list_found)
             errorView.showView()
         } else {
