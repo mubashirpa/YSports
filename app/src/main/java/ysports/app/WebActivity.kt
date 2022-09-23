@@ -67,6 +67,7 @@ class WebActivity : AppCompatActivity() {
     private val VIDEO_SCHEME = "video:"
     private val INTENT_SCHEME = "intent:"
     private val TORRENT_SCHEME = "magnet:"
+    private val MEDIA_SCHEME = "media:"
     private val LOCATION_PERMISSION_REQUEST_CODE = 101
     private val CAMERA_PERMISSION_REQUEST_CODE = 102
     private val MIC_PERMISSION_REQUEST_CODE = 103
@@ -76,6 +77,7 @@ class WebActivity : AppCompatActivity() {
     private var geolocationCallback: GeolocationPermissions.Callback? = null
     private var geolocationOrigin: String? = null
 
+    @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -619,6 +621,13 @@ class WebActivity : AppCompatActivity() {
                     } catch (uriSyntaxException: URISyntaxException) {
                         Toast.makeText(context, getString(R.string.error_url_load_fail), Toast.LENGTH_LONG).show()
                     }
+                }
+                url?.startsWith(MEDIA_SCHEME) == true -> {
+                    val replacedURL = URLDecoder.decode(url.substring(MEDIA_SCHEME.length), "UTF-8")
+                    val intent = Intent(context, PlayerChooserActivity::class.java).apply {
+                        putExtra("JSON_URL", replacedURL)
+                    }
+                    startActivity(intent)
                 }
                 else -> {
                     try {
