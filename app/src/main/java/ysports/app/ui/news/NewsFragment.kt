@@ -89,8 +89,8 @@ class NewsFragment : Fragment() {
 
     private fun readNewsDB() {
         val isTablet = AppUtil(requireContext()).isTablet()
-        newsApi = NewsApi.create().getNews("top-headlines", BuildConfig.youtube_api, "sports", "in")
-        newsApi!!.enqueue(object : Callback<NewsResponse> {
+        newsApi = NewsApi.create().getNews("top-headlines", BuildConfig.news_api, "sports", "in")
+        newsApi?.enqueue(object : Callback<NewsResponse> {
             override fun onResponse(call: Call<NewsResponse>, response: Response<NewsResponse>) {
                 if (!response.isSuccessful) {
                     errorOccurred(R.string.error_retrofit_response, true)
