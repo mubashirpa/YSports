@@ -157,6 +157,7 @@
             android:exported="false"
             android:hardwareAccelerated="true"
             android:launchMode="singleTop"
+            android:screenOrientation="sensor"
             android:theme="@style/Theme.YSports.YouTubePlayerActivity" />
         <activity
             android:name=".PlayerActivity"
@@ -167,6 +168,7 @@
             android:launchMode="singleTask"
             android:resizeableActivity="true"
             android:supportsPictureInPicture="true"
+            android:screenOrientation="sensor"
             android:theme="@style/Theme.YSports.PlayerActivity">
             <intent-filter>
                 <action android:name="com.google.android.exoplayer.demo.action.VIEW" />
