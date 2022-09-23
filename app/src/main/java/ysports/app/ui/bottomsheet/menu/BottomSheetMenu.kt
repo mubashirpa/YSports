@@ -14,7 +14,6 @@ import ysports.app.R
 import ysports.app.databinding.ViewBottomSheetMenuBinding
 import ysports.app.util.AppUtil
 
-
 class BottomSheetMenu : BottomSheetDialogFragment() {
 
     private var _binding: ViewBottomSheetMenuBinding? = null
@@ -31,14 +30,13 @@ class BottomSheetMenu : BottomSheetDialogFragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = ViewBottomSheetMenuBinding.inflate(inflater, container, false)
-        val view = binding.root
-        val sheetBehavior = BottomSheetBehavior.from(view.parent as View)
-        sheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
-        return view
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val sheetBehavior = BottomSheetBehavior.from(view.parent as View)
+        sheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
         val maxScreenWidth = dpToPx(640)
         screenWidth = AppUtil(requireContext()).minScreenWidth()
         if (screenWidth > maxScreenWidth) screenWidth = maxScreenWidth
