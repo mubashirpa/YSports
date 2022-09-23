@@ -60,7 +60,7 @@ class BrowserActivity : AppCompatActivity() {
     private lateinit var progressBar: LinearProgressIndicator
     private lateinit var toolbar: MaterialToolbar
     private lateinit var WEB_URL: String
-    private val TAG = "BrowserActivityTag"
+    private val TAG = "LogBrowserActivity"
     private val INTENT_SCHEME = "intent:"
     private val TORRENT_SCHEME = "magnet:"
     private val BLOB_SCHEME = "blob:"
@@ -551,7 +551,7 @@ class BrowserActivity : AppCompatActivity() {
         }
 
         override fun onReceivedTitle(view: WebView?, title: String?) {
-            if (!title.isNullOrEmpty()) toolbar.title = title
+            if (title != null && !URLUtil.isNetworkUrl(title) && title != "Webpage not available") toolbar.title = title
         }
 
         override fun onJsAlert(view: WebView?, url: String?, message: String?, result: JsResult?): Boolean {
