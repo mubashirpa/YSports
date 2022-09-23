@@ -24,6 +24,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.content.res.Resources
@@ -34,7 +35,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Pair
-import android.util.Rational
 import android.view.*
 import android.view.View.OnClickListener
 import android.widget.ImageButton
@@ -68,6 +68,7 @@ import com.google.android.exoplayer2.util.ErrorMessageProvider
 import com.google.android.exoplayer2.util.EventLogger
 import com.google.android.exoplayer2.util.Util
 import com.google.android.material.chip.Chip
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull
 import ysports.app.databinding.ActivityPlayerBinding
 import ysports.app.player.*
@@ -77,7 +78,6 @@ import ysports.app.util.NotificationUtil
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
-
 
 @Suppress("PrivatePropertyName")
 class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.ControllerVisibilityListener,
@@ -212,8 +212,28 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
             }
         }
 
-        playerView?.setOnClickListener {
-            if (playerLocked) exoUnlock.showView()
+        playerView?.setOnClickListener(this)
+
+        changeAspectRatioButton.setOnLongClickListener {
+            val videoZoomItems = arrayOf("Fit to screen", "Stretch", "Crop", "Fixed height", "Fixed width")
+            var checkedItem: Int = when(playerView?.resizeMode) {
+                AspectRatioFrameLayout.RESIZE_MODE_FILL -> 1
+                AspectRatioFrameLayout.RESIZE_MODE_ZOOM -> 2
+                AspectRatioFrameLayout.RESIZE_MODE_FIXED_HEIGHT -> 3
+                AspectRatioFrameLayout.RESIZE_MODE_FIXED_WIDTH -> 4
+                else -> 0
+            }
+            MaterialAlertDialogBuilder(context)
+                .setTitle(resources.getString(R.string.video_zoom))
+                .setNeutralButton(resources.getString(R.string.cancel)) { _, _ -> }
+                .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
+                    setVideoZoom(checkedItem)
+                }
+                .setSingleChoiceItems(videoZoomItems, checkedItem) { _, position ->
+                    checkedItem = position
+                }
+                .show()
+            true
         }
     }
 
@@ -230,7 +250,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         if (Util.SDK_INT > 23) {
             initializePlayer()
             if (playerView != null) {
-                playerView!!.onResume()
+                playerView?.onResume()
             }
         }
     }
@@ -240,7 +260,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         if (Util.SDK_INT <= 23 || player == null) {
             initializePlayer()
             if (playerView != null) {
-                playerView!!.onResume()
+                playerView?.onResume()
             }
         }
 
@@ -251,7 +271,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         super.onPause()
         if (Util.SDK_INT <= 23) {
             if (playerView != null) {
-                playerView!!.onPause()
+                playerView?.onPause()
             }
             releasePlayer()
         }
@@ -261,7 +281,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         super.onStop()
         if (Util.SDK_INT > 23) {
             if (playerView != null) {
-                playerView!!.onPause()
+                playerView?.onPause()
             }
             releasePlayer()
         }
@@ -290,7 +310,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
 
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
-        if (player?.isPlaying == true) enterPictureInPicture()
+        if (player?.isPlaying == true) enterPictureInPicture(false)
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -323,7 +343,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
 
     override fun dispatchKeyEvent(event: KeyEvent?): Boolean {
         // See whether the player view wants to handle media or DPAD keys events.
-        return playerView!!.dispatchKeyEvent(event!!) || super.dispatchKeyEvent(event)
+        return playerView?.dispatchKeyEvent(event!!) == true || super.dispatchKeyEvent(event)
     }
 
     // OnClickListener methods
@@ -332,22 +352,25 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         when (v) {
             selectTracksButton -> openSettings()
             navigationButton -> onBackPressedCallback.handleOnBackPressed()
-            exoPIP -> enterPictureInPicture()
+            exoPIP -> enterPictureInPicture(true)
             changeAspectRatioButton -> {
-                if (playerView!!.resizeMode != AspectRatioFrameLayout.RESIZE_MODE_FILL) {
-                    playerView!!.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
-                } else {
-                    playerView!!.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                when(playerView?.resizeMode) {
+                    AspectRatioFrameLayout.RESIZE_MODE_FIT -> setVideoZoom(1)
+                    AspectRatioFrameLayout.RESIZE_MODE_FILL -> setVideoZoom(2)
+                    AspectRatioFrameLayout.RESIZE_MODE_ZOOM -> setVideoZoom(3)
+                    AspectRatioFrameLayout.RESIZE_MODE_FIXED_HEIGHT -> setVideoZoom(4)
+                    else -> setVideoZoom(0)
                 }
             }
             liveIndicator -> {
-                if (player?.isCurrentMediaItemLive!! && player?.isCurrentMediaItemDynamic!!) {
+                if (player?.isCurrentMediaItemLive == true && player?.isCurrentMediaItemDynamic == true) {
                     player?.seekToDefaultPosition()
                     liveIndicator.text = resources.getString(R.string.live_caps)
                 }
             }
             exoLock -> lockPlayer()
             exoUnlock -> unlockPlayer()
+            playerView -> if (playerLocked) exoUnlock.showView()
         }
     }
 
@@ -542,9 +565,9 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
 
     private fun updateStartPosition() {
         if (player != null) {
-            startAutoPlay = player!!.playWhenReady
-            startItemIndex = player!!.currentMediaItemIndex
-            startPosition = max(0, player!!.contentPosition)
+            startAutoPlay = player?.playWhenReady == true
+            startItemIndex = player?.currentMediaItemIndex!!
+            startPosition = max(0, player?.contentPosition!!)
         }
     }
 
@@ -626,8 +649,8 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
             } else {
                 liveIndicator.hideView()
             }
-            exoPosition.isVisible = !player?.isCurrentMediaItemDynamic!!
-            exoDuration.isVisible = !player?.isCurrentMediaItemDynamic!!
+            exoPosition.isVisible = player?.isCurrentMediaItemDynamic != true
+            exoDuration.isVisible = player?.isCurrentMediaItemDynamic != true
 
             if (player?.mediaItemCount!! > 1) {
                 exoNext.isEnabled = player?.hasNextMediaItem() == true
@@ -699,23 +722,24 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
 
     /* End */
 
+    /*Picture-in-Picture */
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         if (isInPictureInPictureMode) {
             playerView?.hideController()
-            if (!player?.isPlaying!!) player?.play()
             if (playerLocked) exoUnlock.hideView()
 
             broadcastReceiver = object : BroadcastReceiver() {
                 override fun onReceive(p0: Context?, p1: Intent?) {
                     if (p1 != null && p1.action == ACTION_PIP_MEDIA_CONTROL && player != null) {
-                        if (player!!.isPlaying) {
+                        if (player?.isPlaying == true) {
                             player?.pause()
                         } else {
                             player?.play()
                         }
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) updatePictureInPictureParams()
+                        updatePictureInPictureParams()
                     }
                 }
             }
@@ -723,53 +747,46 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         } else {
             unregisterReceiver(broadcastReceiver)
             broadcastReceiver = null
-            if (player != null && !player!!.isPlaying && !playerLocked) playerView?.showController()
+            if (player != null && player?.isPlaying != true && !playerLocked) playerView?.showController()
             if (playerLocked) exoUnlock.showView()
         }
         binding.appName.isVisible = !isInPictureInPictureMode
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun updatePictureInPictureParams() : PictureInPictureParams {
-        val paramsBuilder: PictureInPictureParams.Builder = PictureInPictureParams.Builder()
-        val actions: ArrayList<RemoteAction> = ArrayList()
-        val aspectRatio = Rational(playerView!!.width, playerView!!.height)
-        val sourceRectHint = Rect()
-        playerView?.getGlobalVisibleRect(sourceRectHint)
-
-        val actionIntent = Intent(ACTION_PIP_MEDIA_CONTROL)
-        val pendingIntent =
-            PendingIntent.getBroadcast(context, PIP_REQUEST_CODE, actionIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-        PIP_ACTION_ICON_ID = if (player?.isPlaying == true) R.drawable.ic_baseline_pause_24 else R.drawable.ic_baseline_play_arrow_24
-        val icon: Icon = Icon.createWithResource(context, PIP_ACTION_ICON_ID)
-
-        actions.add(RemoteAction(
-            icon,
-            "Play/Pause",
-            "Play/Pause Video",
-            pendingIntent
-        ))
-
-        paramsBuilder.setAspectRatio(aspectRatio)
-            .setSourceRectHint(sourceRectHint)
-            .setActions(actions)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) paramsBuilder.setAutoEnterEnabled(true)
-        val pictureInPictureParams = paramsBuilder.build()
-        setPictureInPictureParams(pictureInPictureParams)
-        return pictureInPictureParams
-    }
-
-    private fun enterPictureInPicture() {
+    private fun enterPictureInPicture(openSettings: Boolean) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val appOPS = getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
-            val pipStatus = appOPS.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE, android.os.Process.myUid(), packageName) == AppOpsManager.MODE_ALLOWED
-            if (pipStatus) {
+            val pipAvailable = appOPS.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE, android.os.Process.myUid(), packageName) == AppOpsManager.MODE_ALLOWED
+            if (pipAvailable) {
+                if (player?.isPlaying != true) player?.play()
                 enterPictureInPictureMode(updatePictureInPictureParams())
-            } else {
+            } else if (openSettings) {
                 val intent = Intent("android.settings.PICTURE_IN_PICTURE_SETTINGS", Uri.parse("package:$packageName"))
                 startActivity(intent)
             }
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun updatePictureInPictureParams() : PictureInPictureParams {
+        val paramsBuilder: PictureInPictureParams.Builder = PictureInPictureParams.Builder()
+
+        val sourceRectHint = Rect()
+        playerView?.getGlobalVisibleRect(sourceRectHint)
+
+        val actions: ArrayList<RemoteAction> = ArrayList()
+        val actionIntent = Intent(ACTION_PIP_MEDIA_CONTROL)
+        val pendingIntent = PendingIntent.getBroadcast(context, PIP_REQUEST_CODE, actionIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        PIP_ACTION_ICON_ID = if (player?.isPlaying == true) R.drawable.ic_baseline_pause_24 else R.drawable.ic_baseline_play_arrow_24
+        val icon: Icon = Icon.createWithResource(context, PIP_ACTION_ICON_ID)
+        actions.add(RemoteAction(icon, "Play/Pause", "Play/Pause Video", pendingIntent))
+
+        paramsBuilder.setSourceRectHint(sourceRectHint).setActions(actions)
+        // When setAutoEnterEnabled is enabled, you don’t need to explicitly call enterPictureInPictureMode in onUserLeaveHint.
+        // if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) paramsBuilder.setAutoEnterEnabled(true)
+        val pictureInPictureParams = paramsBuilder.build()
+        setPictureInPictureParams(pictureInPictureParams)
+        return pictureInPictureParams
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -908,6 +925,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         if (playerView != null) {
             playerView?.hideController()
             playerView?.useController = false
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LOCKED
             exoUnlock.showView()
             playerLocked = true
         }
@@ -915,14 +933,13 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
 
     private fun unlockPlayer() {
         if (playerView != null) {
-            exoUnlock.hideView()
             playerView?.useController = true
             playerView?.showController()
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
+            exoUnlock.hideView()
             playerLocked = false
         }
     }
-
-    /* Experimental */
 
     override fun onDown(p0: MotionEvent): Boolean {
         minSwipeY = 0f
@@ -1002,13 +1019,12 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
     private fun initializeSwipeControl() {
         playerView?.setOnTouchListener { _, motionEvent ->
             if (playerLocked) return@setOnTouchListener false
-
             gestureDetectorCompat.onTouchEvent(motionEvent)
             if(motionEvent.action == MotionEvent.ACTION_UP) {
                 binding.brightnessControl.hideView()
                 binding.volumeControl.hideView()
             }
-            return@setOnTouchListener false
+            false
         }
     }
 
@@ -1104,5 +1120,30 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         if ((width == 8192 && height in 3357..4608) || (width in 3686..8192 && height == 4608)) return "8K" // 8192x4608
         if ((width == 7680 && height in 3148..4320) || (width in 2765..7200 && height == 3456)) return "8K UHD" // 7680x4320
         return "${width}x${height}"
+    }
+
+    private fun setVideoZoom(type: Int) {
+        when(type) {
+            1 -> {
+                playerView?.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
+                Toast.makeText(context, "Stretch", Toast.LENGTH_SHORT).show()
+            }
+            2 -> {
+                playerView?.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+                Toast.makeText(context, "Crop", Toast.LENGTH_SHORT).show()
+            }
+            3 -> {
+                playerView?.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIXED_HEIGHT
+                Toast.makeText(context, "Fixed height", Toast.LENGTH_SHORT).show()
+            }
+            4 -> {
+                playerView?.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIXED_WIDTH
+                Toast.makeText(context, "Fixed width", Toast.LENGTH_SHORT).show()
+            }
+            else -> {
+                playerView?.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                Toast.makeText(context, "Fit to screen", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 }
