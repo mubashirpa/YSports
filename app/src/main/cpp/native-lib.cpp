@@ -2,17 +2,17 @@
 #include <string>
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_ysports_app_PrivateKeys_newsApiKey(
+Java_ysports_app_PrivateKeys_matchesUrlPath(
         JNIEnv* env,
         jobject /* this */) {
-    std::string key = "5e19afc5fd374c9481de96b5676f3a05";
+    std::string key = "831085549ee2af13a198";
     return env->NewStringUTF(key.c_str());
 }
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_ysports_app_PrivateKeys_youtubeApiKey(
+Java_ysports_app_PrivateKeys_leaguesUrlPath(
         JNIEnv* env,
 jobject /* this */) {
-std::string key = "AIzaSyBxhTZehuwMgVUdVtvI4f76FQFj-MnRPe4";
+std::string key = "ef26b2579a1e6fba29fe";
 return env->NewStringUTF(key.c_str());
 }
