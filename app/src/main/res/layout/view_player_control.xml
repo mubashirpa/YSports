@@ -124,7 +124,7 @@
             android:id="@+id/exo_change_aspect_ratio"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:src="@drawable/ic_baseline_fullscreen_24"
+            android:src="@drawable/ic_baseline_aspect_ratio_24"
             android:background="?selectableItemBackgroundBorderless"
             android:contentDescription="@string/app_name"
             app:tint="@color/white"
