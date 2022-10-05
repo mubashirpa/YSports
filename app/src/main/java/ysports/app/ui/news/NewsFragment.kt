@@ -20,7 +20,7 @@ import retrofit2.Response
 import ysports.app.BrowserActivity
 import ysports.app.BuildConfig
 import ysports.app.R
-import ysports.app.api.newsapi.org.Articles
+import ysports.app.api.newsapi.org.Article
 import ysports.app.api.newsapi.org.NewsApi
 import ysports.app.api.newsapi.org.NewsResponse
 import ysports.app.databinding.FragmentNewsBinding
@@ -96,7 +96,7 @@ class NewsFragment : Fragment() {
                     errorOccurred(R.string.error_retrofit_response, true)
                     return
                 }
-                val newsList: ArrayList<Articles> = response.body()?.articles ?: ArrayList()
+                val newsList: List<Article> = response.body()?.articles ?: ArrayList()
                 if (newsList.isEmpty()) {
                     errorOccurred(R.string.error_empty_response, false)
                     return
@@ -120,12 +120,10 @@ class NewsFragment : Fragment() {
                     addOnItemTouchListener(
                         ItemTouchListener(context, recyclerView, object : ItemTouchListener.ClickListener {
                             override fun onClick(view: View, position: Int) {
-                                if (!newsList[position].url.isNullOrEmpty()) {
-                                    val intent = Intent(context, BrowserActivity::class.java).apply {
-                                        putExtra("WEB_URL", newsList[position].url)
-                                    }
-                                    startActivity(intent)
+                                val intent = Intent(context, BrowserActivity::class.java).apply {
+                                    putExtra("WEB_URL", newsList[position].url)
                                 }
+                                startActivity(intent)
                             }
 
                             override fun onLongClick(view: View, position: Int) {

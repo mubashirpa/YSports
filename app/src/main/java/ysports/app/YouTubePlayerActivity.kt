@@ -13,6 +13,7 @@ import com.google.android.youtube.player.YouTubeInitializationResult
 import com.google.android.youtube.player.YouTubePlayer
 import com.google.android.youtube.player.YouTubePlayerView
 import ysports.app.databinding.ActivityYoutubePlayerBinding
+import java.net.URLDecoder
 
 @Suppress("PrivatePropertyName")
 class YouTubePlayerActivity : YouTubeBaseActivity() {
@@ -21,6 +22,7 @@ class YouTubePlayerActivity : YouTubeBaseActivity() {
     private lateinit var context: Context
     private lateinit var youTubePlayer: YouTubePlayerView
     private lateinit var API_KEY: String
+    private val YOUTUBE_SCHEME = "https://youtu.be/"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,14 +32,15 @@ class YouTubePlayerActivity : YouTubeBaseActivity() {
         context = this
         youTubePlayer = binding.youtubePlayer
         API_KEY = BuildConfig.youtube_api
-        var videoID = intent.getStringExtra("VIDEO_URL") ?: ""
+        var videoID = intent.getStringExtra("VIDEO_URL")
 
-        if (videoID.isEmpty()) {
+        if (videoID == null) {
             Toast.makeText(context, getString(R.string.error_empty_url), Toast.LENGTH_LONG).show()
             finish()
+            return
         }
-        if (videoID.contains("https://youtu.be/")) {
-            videoID = videoID.replace("https://youtu.be/", "")
+        if (videoID.startsWith(YOUTUBE_SCHEME)) {
+            videoID = URLDecoder.decode(videoID.substring(YOUTUBE_SCHEME.length), "UTF-8")
         }
 
         youTubePlayer.initialize(API_KEY, object : YouTubePlayer.OnInitializedListener {

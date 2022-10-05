@@ -5,13 +5,13 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import ysports.app.R
-import ysports.app.api.newsapi.org.Articles
+import ysports.app.api.newsapi.org.Article
 import ysports.app.databinding.ListItemNewsBannerBinding
 import ysports.app.databinding.ListItemNewsBinding
 
 class NewsAdapter(
     private val context: Context,
-    private val arrayList: ArrayList<Articles>
+    private val arrayList: List<Article>
 ) : RecyclerView.Adapter<NewsViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NewsViewHolder {
@@ -28,8 +28,8 @@ class NewsAdapter(
 
     override fun onBindViewHolder(holder: NewsViewHolder, position: Int) {
         when(holder) {
-            is NewsViewHolder.NewsBannerViewHolder -> holder.bind(context, arrayList[position].imageUrl, arrayList[position].title, arrayList[position].publishedTime)
-            is NewsViewHolder.NewsItemsViewHolder -> holder.bind(context, arrayList[position].imageUrl, arrayList[position].title, arrayList[position].publishedTime)
+            is NewsViewHolder.NewsBannerViewHolder -> holder.bind(context, arrayList[position].urlToImage, arrayList[position].title, arrayList[position].publishedAt)
+            is NewsViewHolder.NewsItemsViewHolder -> holder.bind(context, arrayList[position].urlToImage, arrayList[position].title, arrayList[position].publishedAt)
         }
     }
 

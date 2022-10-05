@@ -13,7 +13,7 @@ import ysports.app.api.leagues.Leagues
 
 class LeaguesAdapter(
     private val context: Context,
-    private val arrayList: ArrayList<Leagues>
+    private val list: List<Leagues>
 ) : RecyclerView.Adapter<LeaguesAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -22,8 +22,8 @@ class LeaguesAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val title = arrayList[position].title
-        val logo = arrayList[position].logo
+        val title = list[position].leagueTitle
+        val logo = list[position].leagueLogo
         holder.title.text =  title
         Glide.with(context)
             .load(logo)
@@ -32,7 +32,7 @@ class LeaguesAdapter(
     }
 
     override fun getItemCount(): Int {
-        return arrayList.size
+        return list.size
     }
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

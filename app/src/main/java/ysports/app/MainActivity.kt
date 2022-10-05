@@ -57,7 +57,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var context: Context
     private lateinit var toolbar: MaterialToolbar
-    private val TAG: String = "LogMainActivity"
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var navigationDrawer: NavigationView
     private var navigationBar: BottomNavigationView? = null
@@ -71,6 +70,8 @@ class MainActivity : AppCompatActivity() {
     private var clipboardPermissionShow = false
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var sharedPreferencesEditor: SharedPreferences.Editor
+    private val TAG: String = "LogMainActivity"
+    private val YOUTUBE_SCHEME = "https://youtu.be/"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -441,6 +442,7 @@ class MainActivity : AppCompatActivity() {
         materialAlertDialogBuilder.create().show()
     }
 
+    @Suppress("LocalVariableName")
     private fun loadPlayer(url: String) {
         if (url.isEmpty() || url.isBlank()) {
             Toast.makeText(context, "Empty URL", Toast.LENGTH_LONG).show()
@@ -450,21 +452,13 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(context, "Invalid URL", Toast.LENGTH_LONG).show()
             return
         }
-        PlayerUtil().loadPlayer(context, Uri.parse(url), null, true)
-    }
-
-    private fun generateDynamicLink(url: String, dynamicLink: (String) -> Unit = {  }) {
-        Firebase.dynamicLinks.shortLinkAsync {
-            link = Uri.parse(url)
-            domainUriPrefix = getString(R.string.dynamic_link_url_prefix)
-            androidParameters {
-                fallbackUrl = Uri.parse(getString(R.string.url_download_app))
+        if (url.startsWith(YOUTUBE_SCHEME)) {
+            val intent = Intent(context, YouTubePlayerActivity::class.java).apply {
+                putExtra("VIDEO_URL", url)
             }
-        }.addOnSuccessListener { (shortLink, flowChartLink) ->
-            Log.d(TAG, "Short link: $shortLink, Flow chart link: $flowChartLink")
-            dynamicLink.invoke("$shortLink")
-        }.addOnFailureListener {
-            Toast.makeText(context, getString(R.string.error_default), Toast.LENGTH_LONG).show()
+            startActivity(intent)
+        } else {
+            PlayerUtil().loadPlayer(context, Uri.parse(url), null, true)
         }
     }
 

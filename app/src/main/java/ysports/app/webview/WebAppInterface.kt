@@ -35,6 +35,7 @@ class WebAppInterface(
 
     private val TAG = "WebAppInterface"
     private val BASE64_SCHEME = "data:"
+    private val YOUTUBE_SCHEME = "https://youtu.be/"
 
     @JavascriptInterface
     fun finish() {

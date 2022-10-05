@@ -16,11 +16,11 @@ import com.google.android.material.tabs.TabLayoutMediator
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import ysports.app.PrivateKeys
+import ysports.app.util.PrivateKeys
 import ysports.app.R
 import ysports.app.api.JsonApi
-import ysports.app.api.fixture.FixtureResponse
-import ysports.app.api.fixture.Fixtures
+import ysports.app.api.matches.Matches
+import ysports.app.api.matches.MatchesResponse
 import ysports.app.databinding.FragmentMatchesBinding
 import ysports.app.ui.matches.adapter.MatchesViewPagerAdapter
 import ysports.app.util.NetworkUtil
@@ -44,8 +44,8 @@ class MatchesFragment() : Fragment() {
     private lateinit var retryButton: Button
     private lateinit var tabLayoutContainer: LinearLayout
     private var appBar: AppBarLayout? = null
-    private var fixtureApi: Call<FixtureResponse>? = null
-    private var fixtureList: ArrayList<Fixtures> = ArrayList()
+    private var matchesApi: Call<MatchesResponse>? = null
+    private var matchesList: List<Matches> = ArrayList()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -84,7 +84,7 @@ class MatchesFragment() : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-        fixtureApi?.cancel()
+        matchesApi?.cancel()
     }
 
     private fun View.showView() {
@@ -96,22 +96,22 @@ class MatchesFragment() : Fragment() {
     }
 
     private fun readDatabase() {
-        fixtureApi = JsonApi.create("https://api.npoint.io/").getFixture(PrivateKeys().matchesUrlPath())
-        fixtureApi?.enqueue(object : Callback<FixtureResponse> {
-            override fun onResponse(call: Call<FixtureResponse>, response: Response<FixtureResponse>) {
+        matchesApi = JsonApi.create("https://api.npoint.io/").getMatches(PrivateKeys().matchesUrlPath())
+        matchesApi?.enqueue(object : Callback<MatchesResponse> {
+            override fun onResponse(call: Call<MatchesResponse>, response: Response<MatchesResponse>) {
                 if (!response.isSuccessful) {
                     errorOccurred(R.string.error_retrofit_response, true)
                     return
                 }
-                fixtureList = response.body()?.fixtures ?: ArrayList()
-                if (fixtureList.isEmpty()) {
+                matchesList = response.body()?.matches ?: ArrayList()
+                if (matchesList.isEmpty()) {
                     errorOccurred(R.string.error_no_matches, false)
                     return
                 }
-                setViewPagerAdapter(fixtureList)
+                setViewPagerAdapter(matchesList)
             }
 
-            override fun onFailure(call: Call<FixtureResponse>, t: Throwable) {
+            override fun onFailure(call: Call<MatchesResponse>, t: Throwable) {
                 if (isAdded) {
                     val error = if (NetworkUtil().isOnline(context)) R.string.error_failed_to_load_content else R.string.error_no_network
                     errorOccurred(error, true)
@@ -120,7 +120,7 @@ class MatchesFragment() : Fragment() {
         })
     }
 
-    private fun setViewPagerAdapter(arrayList: ArrayList<Fixtures>) {
+    private fun setViewPagerAdapter(arrayList: List<Matches>) {
         val matchesViewPagerAdapter = MatchesViewPagerAdapter(this, arrayList)
         viewPager.adapter = matchesViewPagerAdapter
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->

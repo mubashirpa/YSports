@@ -68,6 +68,7 @@ class WebActivity : AppCompatActivity() {
     private val INTENT_SCHEME = "intent:"
     private val TORRENT_SCHEME = "magnet:"
     private val MEDIA_SCHEME = "media:"
+    private val YOUTUBE_SCHEME = "https://youtu.be/"
     private val LOCATION_PERMISSION_REQUEST_CODE = 101
     private val CAMERA_PERMISSION_REQUEST_CODE = 102
     private val MIC_PERMISSION_REQUEST_CODE = 103
@@ -591,7 +592,7 @@ class WebActivity : AppCompatActivity() {
                 }
                 url?.startsWith(VIDEO_SCHEME) == true -> {
                     val replacedURL = URLDecoder.decode(url.substring(VIDEO_SCHEME.length), "UTF-8")
-                    if (replacedURL.startsWith("https://youtu.be/")) {
+                    if (replacedURL.startsWith(YOUTUBE_SCHEME)) {
                         val intent = Intent(context, YouTubePlayerActivity::class.java).apply {
                             putExtra("VIDEO_URL", replacedURL)
                         }

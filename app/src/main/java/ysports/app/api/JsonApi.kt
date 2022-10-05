@@ -7,8 +7,8 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Url
-import ysports.app.api.fixture.FixtureResponse
 import ysports.app.api.leagues.LeaguesResponse
+import ysports.app.api.matches.MatchesResponse
 
 interface JsonApi {
 
@@ -16,7 +16,7 @@ interface JsonApi {
     fun getLeagues(@Url path: String): Call<LeaguesResponse>
 
     @GET
-    fun getFixture(@Url path: String): Call<FixtureResponse>
+    fun getMatches(@Url path: String): Call<MatchesResponse>
 
     companion object {
         fun create(BASE_URL: String) : JsonApi {

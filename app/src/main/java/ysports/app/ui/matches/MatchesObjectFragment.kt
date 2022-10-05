@@ -20,11 +20,10 @@ import ysports.app.PlayerChooserActivity
 import ysports.app.R
 import ysports.app.WebActivity
 import ysports.app.YouTubePlayerActivity
-import ysports.app.api.fixture.Fixtures
-import ysports.app.api.fixture.Media
+import ysports.app.api.matches.Matches
 import ysports.app.databinding.FragmentMatchesObjectBinding
 import ysports.app.player.PlayerUtil
-import ysports.app.ui.matches.adapter.FixtureAdapter
+import ysports.app.ui.matches.adapter.MatchesAdapter
 import ysports.app.util.AppUtil
 import ysports.app.widgets.recyclerview.ItemTouchListener
 import ysports.app.widgets.recyclerview.VerticalSpacingItemDecoration
@@ -38,8 +37,8 @@ const val ARG_POSITION = "position"
 @Suppress("PrivatePropertyName")
 class MatchesObjectFragment() : Fragment() {
 
-    constructor(arrayList: ArrayList<Fixtures>) : this() {
-        this.arrayList = arrayList
+    constructor(list: List<Matches>) : this() {
+        this.list = list
     }
 
     private var _binding: FragmentMatchesObjectBinding? = null
@@ -48,8 +47,8 @@ class MatchesObjectFragment() : Fragment() {
     private lateinit var fixtureRecyclerView: RecyclerView
     private lateinit var itemDecoration: VerticalSpacingItemDecoration
     private lateinit var errorLayout: View
-    private var filteredList: List<Fixtures> = ArrayList()
-    private var arrayList: ArrayList<Fixtures> = ArrayList()
+    private var filteredList: List<Matches> = listOf()
+    private var list: List<Matches> = listOf()
     private val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
     private val calendar: Calendar = Calendar.getInstance()
     private val currentDate = Date()
@@ -57,6 +56,7 @@ class MatchesObjectFragment() : Fragment() {
     private val CHROME_SCHEME = "chrome:"
     private val VIDEO_SCHEME = "video:"
     private val MEDIA_SCHEME = "media:"
+    private val YOUTUBE_SCHEME = "https://youtu.be/"
     private val TAG = "LogMatchesObjectFragment"
 
     override fun onCreateView(
@@ -77,7 +77,7 @@ class MatchesObjectFragment() : Fragment() {
 
         arguments?.takeIf { it.containsKey(ARG_POSITION) }?.apply {
             val position = getInt(ARG_POSITION)
-            filterRecyclerView(position, arrayList)
+            filterRecyclerView(position, list)
         }
 
         fixtureRecyclerView.apply {
@@ -87,23 +87,25 @@ class MatchesObjectFragment() : Fragment() {
                 ItemTouchListener(context, fixtureRecyclerView, object : ItemTouchListener.ClickListener {
                     override fun onClick(view: View, position: Int) {
                         val url = filteredList[position].url
-                        val mediaList: ArrayList<Media> = filteredList[position].media ?: ArrayList()
+                        val media = filteredList[position].media
 
-                        if (!url.isNullOrEmpty()) {
+                        if (url != null) {
                             when {
                                 url.startsWith(CHROME_SCHEME) -> {
                                     val replacedURL = URLDecoder.decode(url.substring(CHROME_SCHEME.length), "UTF-8")
                                     AppUtil(context).openCustomTabs(replacedURL)
                                 }
                                 url.startsWith(VIDEO_SCHEME) -> {
-                                    val title = "${filteredList[position].homeTeam} vs ${filteredList[position].awayTeam} (${filteredList[position].leagueName})"
                                     val replacedURL = URLDecoder.decode(url.substring(VIDEO_SCHEME.length), "UTF-8")
-                                    if (replacedURL.startsWith("https://youtu.be/")) {
+                                    if (replacedURL.startsWith(YOUTUBE_SCHEME)) {
                                         val intent = Intent(context, YouTubePlayerActivity::class.java).apply {
                                             putExtra("VIDEO_URL", replacedURL)
                                         }
                                         startActivity(intent)
-                                    } else playerUtil.loadPlayer(context, Uri.parse(replacedURL), title, true)
+                                    } else {
+                                        val title = "${filteredList[position].homeTeam} vs ${filteredList[position].awayTeam} (${filteredList[position].leagueName})"
+                                        playerUtil.loadPlayer(context, Uri.parse(replacedURL), title, true)
+                                    }
                                 }
                                 url.startsWith(MEDIA_SCHEME) -> {
                                     val replacedURL = URLDecoder.decode(url.substring(MEDIA_SCHEME.length), "UTF-8")
@@ -119,9 +121,9 @@ class MatchesObjectFragment() : Fragment() {
                                     startActivity(intent)
                                 }
                             }
-                        } else if (mediaList.isNotEmpty()) {
+                        } else if (media != null) {
                             val mediaItems: List<MediaItem> = playerUtil.createMediaItems(
-                                mediaList
+                                media
                             )
                             playerUtil.loadPlayer(context, mediaItems, true)
                         }
@@ -132,7 +134,7 @@ class MatchesObjectFragment() : Fragment() {
                         popup.menuInflater.inflate(R.menu.pop_menu_matches, popup.menu)
 
                         val timestamp = filteredList[position].timestamp
-                        if (!timestamp.isNullOrEmpty()) {
+                        if (timestamp.isNotEmpty()) {
                             val startTime = simpleDateFormat.parse(timestamp)
                             if (startTime != null && startTime.before(currentDate)) {
                                 popup.menu.getItem(0).isEnabled = false
@@ -142,10 +144,10 @@ class MatchesObjectFragment() : Fragment() {
                         popup.setOnMenuItemClickListener { menuItem: MenuItem ->
                             when (menuItem.itemId) {
                                 R.id.add_calender -> {
-                                    if (!timestamp.isNullOrEmpty()) {
+                                    if (timestamp.isNotEmpty()) {
                                         val startTime = simpleDateFormat.parse(timestamp)
                                         val title = "${filteredList[position].homeTeam} vs ${filteredList[position].awayTeam}"
-                                        val description = "${filteredList[position].leagueName}"
+                                        val description = filteredList[position].leagueName
                                         val intent = Intent(Intent.ACTION_EDIT).apply {
                                             type = "vnd.android.cursor.item/event"
                                             if (startTime != null) {
@@ -161,7 +163,7 @@ class MatchesObjectFragment() : Fragment() {
                                 }
                                 R.id.share -> {
                                     val title = "${filteredList[position].homeTeam} vs ${filteredList[position].awayTeam}"
-                                    val subject = if (!timestamp.isNullOrEmpty()) {
+                                    val subject = if (timestamp.isNotEmpty()) {
                                         val matchTime = simpleDateFormat.parse(timestamp) as Date
                                         val timeFormatter = SimpleDateFormat("dd. LLL KK:mm aaa", Locale.getDefault())
                                         "${timeFormatter.format(matchTime)}, ${filteredList[position].homeTeam} vs ${filteredList[position].awayTeam}\n#${getString(R.string.app_name)}"
@@ -194,44 +196,44 @@ class MatchesObjectFragment() : Fragment() {
         if (this.isVisible) this.visibility = View.GONE
     }
 
-    private fun filterRecyclerView(position: Int, fixtureList: ArrayList<Fixtures>) {
+    private fun filterRecyclerView(position: Int, fixtureList: List<Matches>) {
         if (fixtureList.isEmpty()) return
         when (position) {
             0 -> {
                 filteredList = fixtureList.filter {
-                    !it.timestamp.isNullOrEmpty() && checkDate(it.timestamp) == 2
+                    it.timestamp.isNotEmpty() && checkDate(it.timestamp) == 2
                 }
                 if (filteredList.isEmpty()) {
                     errorOccurred(R.string.error_no_matches)
                     return
                 }
-                setRecyclerAdapter(filteredList as ArrayList<Fixtures>)
+                setRecyclerAdapter(filteredList)
             }
             1 -> {
                 filteredList = fixtureList.filter {
-                    !it.timestamp.isNullOrEmpty() && checkDate(it.timestamp) == 1
+                    it.timestamp.isNotEmpty() && checkDate(it.timestamp) == 1
                 }
                 if (filteredList.isEmpty()) {
                     errorOccurred(R.string.error_no_matches_today)
                     return
                 }
-                setRecyclerAdapter(filteredList as ArrayList<Fixtures>)
+                setRecyclerAdapter(filteredList)
             }
             2 -> {
                 filteredList = fixtureList.filter {
-                    !it.timestamp.isNullOrEmpty() && checkDate(it.timestamp) == 3
+                    it.timestamp.isNotEmpty() && checkDate(it.timestamp) == 3
                 }
                 if (filteredList.isEmpty()) {
                     errorOccurred(R.string.error_no_matches)
                     return
                 }
-                setRecyclerAdapter(filteredList as ArrayList<Fixtures>)
+                setRecyclerAdapter(filteredList)
             }
         }
     }
 
-    private fun setRecyclerAdapter(arrayList: ArrayList<Fixtures>) {
-        val fixtureAdapter = FixtureAdapter(requireContext(), arrayList)
+    private fun setRecyclerAdapter(list: List<Matches>) {
+        val fixtureAdapter = MatchesAdapter(requireContext(), list)
         fixtureRecyclerView.adapter = fixtureAdapter
         fixtureRecyclerView.showView()
     }

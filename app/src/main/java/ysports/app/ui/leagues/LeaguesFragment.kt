@@ -15,7 +15,7 @@ import com.google.android.material.progressindicator.CircularProgressIndicator
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import ysports.app.PrivateKeys
+import ysports.app.util.PrivateKeys
 import ysports.app.R
 import ysports.app.WebActivity
 import ysports.app.api.JsonApi
@@ -41,7 +41,7 @@ class LeaguesFragment : Fragment() {
     private lateinit var stateDescription: TextView
     private lateinit var itemDecoration: GridSpacingItemDecoration
     private var leaguesApi: Call<LeaguesResponse>? = null
-    private var leaguesList: ArrayList<Leagues> = ArrayList()
+    private var leaguesList: List<Leagues> = emptyList()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -78,13 +78,11 @@ class LeaguesFragment : Fragment() {
             addOnItemTouchListener(
                 ItemTouchListener(context, recyclerView, object : ItemTouchListener.ClickListener {
                     override fun onClick(view: View, position: Int) {
-                        if (!leaguesList[position].url.isNullOrEmpty()) {
-                            val url: String = leaguesList[position].url!!
-                            val intent = Intent(context, WebActivity::class.java).apply {
-                                putExtra("WEB_URL", url)
-                            }
-                            startActivity(intent)
+                        val url = leaguesList[position].url
+                        val intent = Intent(context, WebActivity::class.java).apply {
+                            putExtra("WEB_URL", url)
                         }
+                        startActivity(intent)
                     }
 
                     override fun onLongClick(view: View, position: Int) {
@@ -120,7 +118,7 @@ class LeaguesFragment : Fragment() {
                     errorOccurred(R.string.error_retrofit_response, true)
                     return
                 }
-                leaguesList = response.body()?.leagues ?: ArrayList()
+                leaguesList = response.body()?.leagues ?: emptyList()
                 if (leaguesList.isEmpty()) {
                     errorOccurred(R.string.error_no_leagues, false)
                     return
@@ -137,9 +135,9 @@ class LeaguesFragment : Fragment() {
         })
     }
 
-    private fun setRecyclerAdapter(arrayList: ArrayList<Leagues>) {
+    private fun setRecyclerAdapter(list: List<Leagues>) {
         errorView.hideView()
-        val leaguesAdapter = LeaguesAdapter(requireContext(), arrayList)
+        val leaguesAdapter = LeaguesAdapter(requireContext(), list)
         recyclerView.adapter = leaguesAdapter
         progressBar.hideView()
         recyclerView.showView()
