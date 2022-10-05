@@ -1,4 +1,4 @@
-package ysports.app
+package ysports.app.util
 
 class PrivateKeys {
 
