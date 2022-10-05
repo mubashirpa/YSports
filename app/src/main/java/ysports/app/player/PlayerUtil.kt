@@ -16,7 +16,7 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import ysports.app.PlayerActivity
 import ysports.app.R
-import ysports.app.api.fixture.Media
+import ysports.app.api.matches.Media
 import java.util.*
 
 class PlayerUtil {
@@ -52,56 +52,37 @@ class PlayerUtil {
         context.startActivity(intent)
     }
 
-    fun createMediaItems(mediaList: ArrayList<Media>) : List<MediaItem> {
-        if (mediaList.isEmpty()) return Collections.emptyList()
-
-        var uri: Uri?
-        var extension: String?
-        var title: String?
-        var subtitleUri: Uri? = null
-        var subtitleMimeType: String?
-        var subtitleLanguage: String?
-        var drmUuid: UUID? = null
-        var drmLicenseUri: String? = null
-        val drmLicenseRequestHeaders: ImmutableMap<String, String> = ImmutableMap.of()
-        var drmSessionForClearContent: Boolean
-        var drmMultiSession: Boolean
-        var drmForceDefaultLicenseUri: Boolean
-        var clippingConfiguration = MediaItem.ClippingConfiguration.Builder()
-
+    fun createMediaItems(media: Media) : List<MediaItem> {
         val mediaItems: MutableList<MediaItem> = ArrayList()
         val mediaItem = MediaItem.Builder()
+        val clippingConfiguration = MediaItem.ClippingConfiguration.Builder()
 
-        for (i in 0 until mediaList.size) {
-            title = mediaList[i].name
-            uri = Uri.parse(mediaList[i].uri)
-            extension = mediaList[i].extension
-            val clipStartPositionMs = mediaList[i].clipStartPositionMs
-            if (clipStartPositionMs != null)
-                clippingConfiguration.setStartPositionMs(clipStartPositionMs)
-            val clipEndPositionMs = mediaList[i].clipEndPositionMs
-            if (clipEndPositionMs != null)
-                clippingConfiguration.setEndPositionMs(clipEndPositionMs)
-            val adTagUri = mediaList[i].adTagUri
-            if (adTagUri != null)
-                mediaItem.setAdsConfiguration(MediaItem.AdsConfiguration.Builder(Uri.parse(adTagUri)).build())
-            val drmScheme = mediaList[i].drmScheme
-            if (drmScheme != null)
-                drmUuid = Util.getDrmUuid(drmScheme)
-            val licenseUri = mediaList[i].drmLicenseUri
-            val licenseUrl = mediaList[i].drmLicenseUrl
-            if (licenseUri != null)
-                drmLicenseUri = licenseUri
-            else if (licenseUrl != null)
-                drmLicenseUri = licenseUrl
-            drmSessionForClearContent = mediaList[i].drmSessionForClearContent == true
-            drmMultiSession = mediaList[i].drmMultiSession == true
-            drmForceDefaultLicenseUri = mediaList[i].drmForceDefaultLicenseUri == true
-            val subtitle = mediaList[i].subtitleUri
-            if (subtitle != null)
-                subtitleUri = Uri.parse(subtitle)
-            subtitleMimeType = mediaList[i].subtitleMimeType
-            subtitleLanguage = mediaList[i].subtitleLanguage
+        val url = media.uri
+        val playlist = media.playlist
+
+        if (url != null) {
+
+            val title: String? = media.name
+            val uri: Uri = Uri.parse(url)
+            val extension: String? = media.extension
+            val clipStartPositionMs = media.clipStartPositionMs
+            if (clipStartPositionMs != null) clippingConfiguration.setStartPositionMs(clipStartPositionMs)
+            val clipEndPositionMs = media.clipEndPositionMs
+            if (clipEndPositionMs != null) clippingConfiguration.setEndPositionMs(clipEndPositionMs)
+            val adTagUri = media.adTagUri
+            if (adTagUri != null) mediaItem.setAdsConfiguration(MediaItem.AdsConfiguration.Builder(Uri.parse(adTagUri)).build())
+            val drmScheme = media.drmScheme
+            val drmUuid: UUID? = if (drmScheme != null) Util.getDrmUuid(drmScheme) else null
+            val drmLicenseUri = media.drmLicenseUri ?: media.drmLicenseUrl
+            val drmLicenseRequestHeaders: ImmutableMap<String, String> = ImmutableMap.of()
+            // drm_key_request_properties
+            val drmSessionForClearContent: Boolean = media.drmSessionForClearContent == true
+            val drmMultiSession: Boolean = media.drmMultiSession == true
+            val drmForceDefaultLicenseUri: Boolean = media.drmForceDefaultLicenseUri == true
+            val subtitle = media.subtitleUri
+            val subtitleUri: Uri? = if (subtitle != null) Uri.parse(subtitle) else null
+            val subtitleMimeType: String? = media.subtitleMimeType
+            val subtitleLanguage: String? = media.subtitleLanguage
 
             @Nullable val adaptiveMimeType = Util.getAdaptiveMimeTypeForContentType(
                 if (TextUtils.isEmpty(extension)) Util.inferContentType(uri) else Util.inferContentTypeForExtension(extension!!)
@@ -151,13 +132,34 @@ class PlayerUtil {
                     .build()
                 mediaItem.setSubtitleConfigurations(ImmutableList.of(subtitleConfiguration))
             }
-
             mediaItems.add(mediaItem.build())
 
-            subtitleUri = null
-            drmUuid = null
-            drmLicenseUri = null
-            clippingConfiguration = MediaItem.ClippingConfiguration.Builder()
+        } else if (playlist != null) {
+
+            for (i in playlist.indices) {
+                val uri: Uri = Uri.parse(playlist[i].uri)
+                val clipStartPositionMs = playlist[i].clipStartPositionMs
+                if (clipStartPositionMs != null) clippingConfiguration.setStartPositionMs(clipStartPositionMs)
+                val clipEndPositionMs = playlist[i].clipEndPositionMs
+                if (clipEndPositionMs != null) clippingConfiguration.setEndPositionMs(clipEndPositionMs)
+                val adTagUri = playlist[i].adTagUri
+                if (adTagUri != null) mediaItem.setAdsConfiguration(MediaItem.AdsConfiguration.Builder(Uri.parse(adTagUri)).build())
+                val drmScheme = playlist[i].drmScheme
+                val drmUuid: UUID? = if (drmScheme != null) Util.getDrmUuid(drmScheme) else null
+                val drmLicenseUri = playlist[i].drmLicenseUri
+
+                mediaItem
+                    .setUri(uri)
+                    .setClippingConfiguration(clippingConfiguration.build())
+                if (drmUuid != null) {
+                    mediaItem
+                        .setDrmConfiguration(MediaItem.DrmConfiguration.Builder(drmUuid)
+                            .setLicenseUri(drmLicenseUri)
+                            .build())
+                }
+                mediaItems.add(mediaItem.build())
+            }
+
         }
         return mediaItems
     }
