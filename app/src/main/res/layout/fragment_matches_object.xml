@@ -13,7 +13,7 @@
         android:paddingHorizontal="10dp"
         android:orientation="vertical"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        tools:listitem="@layout/list_item_fixture" />
+        tools:listitem="@layout/list_item_matches" />
     <include
         android:id="@+id/error_layout"
         android:layout_width="match_parent"
