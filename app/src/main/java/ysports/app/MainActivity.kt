@@ -15,6 +15,7 @@ import android.util.Log
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.webkit.URLUtil
+import android.widget.ImageButton
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
@@ -88,6 +89,8 @@ class MainActivity : AppCompatActivity() {
         sharedPreferences = getSharedPreferences("app_data", MODE_PRIVATE)
         sharedPreferencesEditor = sharedPreferences.edit()
         matchesFragment = MatchesFragment(binding.appBarLayout)
+        val railHeader = navigationRail?.headerView
+        val railNavigationIcon: ImageButton? = railHeader?.findViewById(R.id.nav_button)
 
         if (navigationBar != null) {
             window.navigationBarColor = getColor(R.color.surface2_overlay)
@@ -107,11 +110,16 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // Add first fragment
         supportFragmentManager.beginTransaction().apply {
             add(R.id.frame_layout, matchesFragment)
         }.commit()
 
         toolbar.setNavigationOnClickListener {
+            drawerLayout.open()
+        }
+
+        railNavigationIcon?.setOnClickListener {
             drawerLayout.open()
         }
 
