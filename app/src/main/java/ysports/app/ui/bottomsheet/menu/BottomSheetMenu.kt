@@ -37,9 +37,8 @@ class BottomSheetMenu : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         val sheetBehavior = BottomSheetBehavior.from(view.parent as View)
         sheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
-        val maxScreenWidth = dpToPx(640)
         screenWidth = AppUtil(requireContext()).minScreenWidth()
-        if (screenWidth > maxScreenWidth) screenWidth = maxScreenWidth
+        if (screenWidth > 640) screenWidth = 640
         listView = binding.listView
         if (listViewAdapter != null) {
             listView.adapter = listViewAdapter
@@ -58,7 +57,7 @@ class BottomSheetMenu : BottomSheetDialogFragment() {
         super.onResume()
         val configuration = requireActivity().resources.configuration
         if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            dialog?.window?.setLayout(screenWidth, -1)
+            dialog?.window?.setLayout(dpToPx(screenWidth), -1)
         } else {
             dialog?.window?.setLayout(-1, -1)
         }
@@ -67,7 +66,7 @@ class BottomSheetMenu : BottomSheetDialogFragment() {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            dialog?.window?.setLayout(screenWidth, -1)
+            dialog?.window?.setLayout(dpToPx(screenWidth), -1)
         } else {
             dialog?.window?.setLayout(-1, -1)
         }
