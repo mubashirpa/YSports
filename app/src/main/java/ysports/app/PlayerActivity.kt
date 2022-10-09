@@ -75,6 +75,7 @@ import ysports.app.player.*
 import ysports.app.player.IntentUtil.PREFER_EXTENSION_DECODERS_EXTRA
 import ysports.app.ui.bottomsheet.menu.BottomSheetMenu
 import ysports.app.util.NotificationUtil
+import ysports.app.widgets.AutoHideTextView
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
@@ -133,6 +134,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
     private lateinit var changeAspectRatioButton: ImageButton
     private lateinit var exoPosition: TextView
     private lateinit var exoDuration: TextView
+    private lateinit var aspectRatioText: AutoHideTextView
 
     private lateinit var gestureDetectorCompat: GestureDetectorCompat
     private var playerNotificationManager: PlayerNotificationManager? = null
@@ -171,6 +173,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         changeAspectRatioButton = findViewById(R.id.exo_change_aspect_ratio)
         exoPosition = findViewById(R.id.exo_position)
         exoDuration = findViewById(R.id.exo_duration)
+        aspectRatioText = binding.aspectRatioText
 
         exoUnlock.setOnClickListener(this)
         navigationButton.setOnClickListener(this)
@@ -215,7 +218,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         playerView?.setOnClickListener(this)
 
         changeAspectRatioButton.setOnLongClickListener {
-            val videoZoomItems = arrayOf("Fit to screen", "Stretch", "Crop", "Fixed height", "Fixed width")
+            val videoZoomItems = resources.getStringArray(R.array.player_resize_mode)
             var checkedItem: Int = when(playerView?.resizeMode) {
                 AspectRatioFrameLayout.RESIZE_MODE_FILL -> 1
                 AspectRatioFrameLayout.RESIZE_MODE_ZOOM -> 2
@@ -1123,27 +1126,28 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
     }
 
     private fun setVideoZoom(type: Int) {
-        when(type) {
+        aspectRatioText.text = when(type) {
             1 -> {
                 playerView?.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
-                Toast.makeText(context, "Stretch", Toast.LENGTH_SHORT).show()
+                getString(R.string.stretch)
             }
             2 -> {
                 playerView?.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
-                Toast.makeText(context, "Crop", Toast.LENGTH_SHORT).show()
+                getString(R.string.crop)
             }
             3 -> {
                 playerView?.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIXED_HEIGHT
-                Toast.makeText(context, "Fixed height", Toast.LENGTH_SHORT).show()
+                getString(R.string.fixed_height)
             }
             4 -> {
                 playerView?.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIXED_WIDTH
-                Toast.makeText(context, "Fixed width", Toast.LENGTH_SHORT).show()
+                getString(R.string.fixed_width)
             }
             else -> {
                 playerView?.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
-                Toast.makeText(context, "Fit to screen", Toast.LENGTH_SHORT).show()
+                getString(R.string.fit_to_screen)
             }
         }
+        aspectRatioText.showView()
     }
 }

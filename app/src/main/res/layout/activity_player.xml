@@ -72,6 +72,18 @@
             app:tint="@color/white" />
     </LinearLayout>
 
+    <ysports.app.widgets.AutoHideTextView
+        android:id="@+id/aspect_ratio_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:padding="14dp"
+        android:background="@drawable/bg_player_ratio_notifier"
+        android:textSize="22sp"
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        android:visibility="gone"/>
+
     <TextView
         android:id="@+id/app_name"
         android:layout_width="wrap_content"
