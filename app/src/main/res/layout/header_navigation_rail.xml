@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="8dp"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:clipToPadding="false"
+    android:clipChildren="false">
+    <ImageButton
+        android:id="@+id/nav_button"
+        style="?attr/borderlessButtonStyle"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="start"
+        android:background="?attr/actionBarItemBackground"
+        android:src="@drawable/ic_baseline_menu_24"
+        android:contentDescription="@string/app_name" />
+</LinearLayout>
