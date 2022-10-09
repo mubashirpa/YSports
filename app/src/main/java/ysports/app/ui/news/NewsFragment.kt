@@ -1,6 +1,7 @@
 package ysports.app.ui.news
 
 import android.content.Intent
+import android.content.res.Resources
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -70,7 +71,7 @@ class NewsFragment : Fragment() {
             }
         }
 
-        if (isTablet) binding.recyclerContainer.maxWidth = appUtil.minScreenWidth()
+        if (isTablet) binding.recyclerContainer.maxWidth = dpToPx(appUtil.minScreenWidth())
         readNewsDB()
     }
 
@@ -151,5 +152,10 @@ class NewsFragment : Fragment() {
         stateDescription.text = activity?.resources?.getString(error)
         retryButton.isVisible = showButton
         errorView.showView()
+    }
+
+    private fun dpToPx(dps: Int): Int {
+        val density = Resources.getSystem().displayMetrics.density
+        return (dps * density + 0.5f).toInt()
     }
 }

@@ -1,6 +1,7 @@
 package ysports.app.ui.leagues
 
 import android.content.Intent
+import android.content.res.Resources
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -15,7 +16,6 @@ import com.google.android.material.progressindicator.CircularProgressIndicator
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import ysports.app.util.PrivateKeys
 import ysports.app.R
 import ysports.app.WebActivity
 import ysports.app.api.JsonApi
@@ -24,6 +24,7 @@ import ysports.app.api.leagues.LeaguesResponse
 import ysports.app.databinding.FragmentLeaguesBinding
 import ysports.app.util.AppUtil
 import ysports.app.util.NetworkUtil
+import ysports.app.util.PrivateKeys
 import ysports.app.widgets.recyclerview.GridSpacingItemDecoration
 import ysports.app.widgets.recyclerview.ItemTouchListener
 import java.util.*
@@ -92,7 +93,7 @@ class LeaguesFragment : Fragment() {
             )
         }
 
-        if (isTablet) binding.recyclerContainer.maxWidth = appUtil.minScreenWidth()
+        if (isTablet) binding.recyclerContainer.maxWidth = dpToPx(appUtil.minScreenWidth())
         readDatabase()
     }
 
@@ -149,5 +150,10 @@ class LeaguesFragment : Fragment() {
         stateDescription.text = getString(error)
         retryButton.isVisible = showButton
         errorView.showView()
+    }
+
+    private fun dpToPx(dps: Int): Int {
+        val density = Resources.getSystem().displayMetrics.density
+        return (dps * density + 0.5f).toInt()
     }
 }
