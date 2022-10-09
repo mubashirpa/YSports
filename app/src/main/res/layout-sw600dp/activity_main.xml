@@ -8,46 +8,46 @@
     android:layout_height="match_parent"
     tools:openDrawer="start"
     tools:context=".MainActivity">
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fitsSystemWindows="true">
-        <com.google.android.material.appbar.AppBarLayout
-            android:id="@+id/app_bar_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fitsSystemWindows="true"
-            app:elevation="0dp">
-            <com.google.android.material.appbar.MaterialToolbar
-                android:id="@+id/material_toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                app:title="@string/app_name"
-                app:titleCentered="true"
-                app:menu="@menu/main_activity"
-                app:navigationIcon="@drawable/ic_baseline_menu_24"/>
-        </com.google.android.material.appbar.AppBarLayout>
-
-        <!-- Screen content -->
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <com.google.android.material.navigationrail.NavigationRailView
+            android:id="@+id/navigation_rail"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+            app:menu="@menu/navigation_rail_menu"
+            app:headerLayout="@layout/header_navigation_rail"
+            app:layout_constraintLeft_toLeftOf="parent"/>
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:fitsSystemWindows="true"
+            app:layout_constraintLeft_toRightOf="@+id/navigation_rail"
+            app:layout_constraintRight_toRightOf="parent">
+            <com.google.android.material.appbar.AppBarLayout
+                android:id="@+id/app_bar_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fitsSystemWindows="true"
+                app:elevation="0dp">
+                <com.google.android.material.appbar.MaterialToolbar
+                    android:id="@+id/material_toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    app:title="@string/app_name"
+                    app:titleCentered="true"
+                    app:menu="@menu/main_activity"/>
+            </com.google.android.material.appbar.AppBarLayout>
+
+            <!-- Screen content -->
             <FrameLayout
                 android:id="@+id/frame_layout"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                app:layout_constraintLeft_toRightOf="@+id/navigation_rail"
-                app:layout_constraintRight_toRightOf="parent"/>
-            <com.google.android.material.navigationrail.NavigationRailView
-                android:id="@+id/navigation_rail"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                app:menu="@menu/navigation_rail_menu"
-                app:layout_constraintLeft_toLeftOf="parent"/>
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
 
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/navigationView"
         android:layout_width="wrap_content"
