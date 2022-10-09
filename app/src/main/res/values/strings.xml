@@ -162,4 +162,9 @@
     <string name="share_app_using">Share app using</string>
     <string name="add_to_calendar">Add to calendar</string>
     <string name="video_zoom">Video zoom</string>
+    <string name="stretch">Stretch</string>
+    <string name="crop">Crop</string>
+    <string name="fixed_height">Fixed height</string>
+    <string name="fixed_width">Fixed width</string>
+    <string name="fit_to_screen">Fit to screen</string>
 </resources>
