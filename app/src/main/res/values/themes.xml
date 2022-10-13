@@ -42,7 +42,7 @@
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">?attr/isLightTheme</item>
         <!-- For overflow menu -->
-        <item name="popupMenuBackground">@drawable/bg_popup_menu</item>
+        <item name="popupMenuBackground">@drawable/bg_popupmenu</item>
         <!-- For popup menu -->
         <item name="popupMenuStyle">@style/Widget.YSports.PopupMenu</item>
         <item name="android:popupMenuStyle">@style/Widget.YSports.PopupMenu</item>
@@ -109,6 +109,6 @@
     </style>
 
     <style name="Widget.YSports.PopupMenu" parent="Widget.Material3.PopupMenu">
-        <item name="android:popupBackground">@drawable/bg_popup_menu</item>
+        <item name="android:popupBackground">@drawable/bg_popupmenu</item>
     </style>
 </resources>
