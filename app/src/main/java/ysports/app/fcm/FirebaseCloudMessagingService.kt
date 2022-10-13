@@ -35,17 +35,7 @@ class FirebaseCloudMessagingService : FirebaseMessagingService() {
         Log.d(TAG, "sendRegistrationTokenToServer($token)")
     }
 
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channelId: String = getString(R.string.default_notification_channel_id)
-            val channelName: String = getString(R.string.default_notification_channel_name)
-            val channelDescription = getString(R.string.default_notification_channel_description)
-            NotificationUtil(this).createNotificationChannel(channelName, channelDescription, channelId, NotificationManager.IMPORTANCE_HIGH)
-        }
-    }
-
     private fun sendNotification(messageTitle: String?, messageBody: String?) {
-        createNotificationChannel()
         val channelId: String = getString(R.string.default_notification_channel_id)
         // Create an explicit intent for an Activity in your app
         val intent = Intent(this, MainActivity::class.java).apply {
