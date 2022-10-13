@@ -2,13 +2,13 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape>
-            <solid android:color="@color/surface"/>
+            <solid android:color="?attr/colorSurface"/>
             <corners android:radius="16dp"/>
         </shape>
     </item>
     <item>
         <shape>
-            <solid android:color="@color/surface2_overlay"/>
+            <solid android:color="@color/popupmenu_overlay_color"/>
             <corners android:radius="16dp"/>
             <padding
                 android:bottom="8dp"
