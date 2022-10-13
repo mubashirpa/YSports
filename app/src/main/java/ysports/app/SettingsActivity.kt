@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.SwitchPreferenceCompat
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
 import ysports.app.databinding.ActivitySettingsBinding
 import ysports.app.util.FileUtil
@@ -50,6 +51,7 @@ class SettingsActivity : AppCompatActivity() {
 
             val notificationsPreference: Preference? = findPreference("notifications")
             val themePreference: ListPreference? = findPreference("theme")
+            val dynamicColorPreference: SwitchPreferenceCompat? = findPreference("dynamic_color")
             val cachePreference: Preference? = findPreference("clear_cache")
             val aboutPreference: Preference? = findPreference("about")
             val licensesPreference: Preference? = findPreference("licenses")
@@ -96,6 +98,11 @@ class SettingsActivity : AppCompatActivity() {
                         }
                     }
                 }
+                true
+            }
+
+            dynamicColorPreference?.setOnPreferenceChangeListener { _, _ ->
+                Toast.makeText(context, getString(R.string.restart_app_to_apply), Toast.LENGTH_LONG).show()
                 true
             }
 
