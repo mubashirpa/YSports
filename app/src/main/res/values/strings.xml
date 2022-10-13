@@ -83,6 +83,7 @@
     <string name="title_category_about">About</string>
     <string name="title_notifications">Notifications</string>
     <string name="title_theme">Theme</string>
+    <string name="title_dynamic_color">Dynamic color</string>
     <string name="title_clear_cache">Clear cache</string>
     <string name="title_about">About YSports</string>
     <string name="title_oss">Open-source licenses</string>
@@ -91,6 +92,7 @@
     <string name="summary_theme_system_default">Turn on dark theme when your devices dark theme or Battery saver is on</string>
     <string name="summary_theme_light">Light</string>
     <string name="summary_theme_dark">Dark</string>
+    <string name="summary_dynamic_color">Changes app color dynamically</string>
     <string name="summary_oss">License details for open-source software</string>
     <string name="summary_version">Version: %1$s</string>
 
@@ -167,4 +169,5 @@
     <string name="fixed_height">Fixed height</string>
     <string name="fixed_width">Fixed width</string>
     <string name="fit_to_screen">Fit to screen</string>
+    <string name="restart_app_to_apply">Restart app to apply</string>
 </resources>
