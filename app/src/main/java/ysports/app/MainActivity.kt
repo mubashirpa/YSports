@@ -1,7 +1,6 @@
 package ysports.app
 
 import android.Manifest
-import android.app.NotificationManager
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
@@ -37,7 +36,7 @@ import com.google.firebase.database.GenericTypeIndicator
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.dynamiclinks.PendingDynamicLinkData
-import com.google.firebase.dynamiclinks.ktx.*
+import com.google.firebase.dynamiclinks.ktx.dynamicLinks
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -50,7 +49,6 @@ import ysports.app.ui.matches.MatchesFragment
 import ysports.app.ui.more.MoreFragment
 import ysports.app.ui.news.NewsFragment
 import ysports.app.util.AppUtil
-import ysports.app.util.NotificationUtil
 
 @Suppress("PrivatePropertyName")
 class MainActivity : AppCompatActivity() {
@@ -93,7 +91,7 @@ class MainActivity : AppCompatActivity() {
         val railNavigationIcon: ImageButton? = railHeader?.findViewById(R.id.nav_button)
 
         if (navigationBar != null) {
-            window.navigationBarColor = getColor(R.color.surface2_overlay)
+            window.navigationBarColor = getColor(R.color.navigation_bar_overlay_color)
         }
 
         onBackPressedDispatcher.addCallback(onBackPressedCallback)
@@ -290,13 +288,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initializeNotification() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channelId: String = getString(R.string.default_notification_channel_id)
-            val channelName: String = getString(R.string.default_notification_channel_name)
-            val channelDescription = getString(R.string.default_notification_channel_description)
-            NotificationUtil(context).createNotificationChannel(channelName, channelDescription, channelId, NotificationManager.IMPORTANCE_DEFAULT)
-        }
-
         if (Build.VERSION.SDK_INT >= 33) {
             val notificationPermission = Manifest.permission.POST_NOTIFICATIONS
             when {
