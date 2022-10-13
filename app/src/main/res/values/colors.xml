@@ -36,10 +36,6 @@
 
     <color name="onBackgroundSecondary">#27262B</color>
     <color name="onSurfaceSecondary">#27262B</color>
-    <color name="surface1_overlay">#0D6750A4</color>
-    <color name="surface2_overlay">#146750A4</color>
-    <color name="surface3_overlay">#1C6750A4</color>
-    <color name="surface4_overlay">#1F6750A4</color>
     <color name="alertDialogBackground">#EEE8F4</color>
 
     <color name="black">#FF000000</color>
