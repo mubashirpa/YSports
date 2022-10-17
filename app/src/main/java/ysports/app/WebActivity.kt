@@ -541,30 +541,28 @@ class WebActivity : AppCompatActivity() {
         }
 
         private val activityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
-            if (pathCallback != null) {
-                var uris: Array<Uri>? = null
+            var uris: Array<Uri>? = null
 
-                if (result.resultCode == Activity.RESULT_OK) {
-                    val clipData = result.data?.clipData
-                    val fileCount = clipData?.itemCount
+            if (result.resultCode == Activity.RESULT_OK) {
+                val clipData = result.data?.clipData
+                val fileCount = clipData?.itemCount
 
-                    if (clipData != null && fileCount != null) {
-                        val uriList: MutableList<Uri> = mutableListOf()
+                if (clipData != null && fileCount != null) {
+                    val uriList: MutableList<Uri> = mutableListOf()
 
-                        for (i in 0 until fileCount) {
-                            val uri = clipData.getItemAt(i)?.uri
-                            if (uri != null) uriList.add(uri)
-                        }
-                        uris = uriList.toTypedArray()
-                    } else {
-                        result.data?.dataString?.also { uri ->
-                            uris = arrayOf(Uri.parse(uri))
-                        }
+                    for (i in 0 until fileCount) {
+                        val uri = clipData.getItemAt(i)?.uri
+                        if (uri != null) uriList.add(uri)
+                    }
+                    uris = uriList.toTypedArray()
+                } else {
+                    result.data?.dataString?.also { uri ->
+                        uris = arrayOf(Uri.parse(uri))
                     }
                 }
-                pathCallback?.onReceiveValue(uris)
-                pathCallback = null
             }
+            pathCallback?.onReceiveValue(uris)
+            pathCallback = null
         }
 
         private fun setImageUri() : Uri {

@@ -81,6 +81,7 @@ class BrowserActivity : AppCompatActivity() {
     private lateinit var downloadManager: DownloadManager
     private var downloadReference: Long? = null
 
+    @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -722,16 +723,18 @@ class BrowserActivity : AppCompatActivity() {
 
         override fun onShowFileChooser(webView: WebView?, filePathCallback: ValueCallback<Array<Uri>>?, fileChooserParams: FileChooserParams?): Boolean {
             if (fileChooserParams != null) {
-                val allowMultiple: Boolean = fileChooserParams.mode == FileChooserParams.MODE_OPEN_MULTIPLE
                 if (pathCallback != null) {
                     pathCallback?.onReceiveValue(null)
                     pathCallback = null
                 }
                 pathCallback = filePathCallback
+                val allowMultiple = fileChooserParams.mode == FileChooserParams.MODE_OPEN_MULTIPLE
+                val captureEnabled = fileChooserParams.isCaptureEnabled
+
                 val chooserIntent: Intent = fileChooserParams.createIntent().apply {
                     addCategory(Intent.CATEGORY_OPENABLE)
                     if (allowMultiple) putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-                    if (fileChooserParams.isCaptureEnabled) {
+                    if (captureEnabled) {
                         val captureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
                             putExtra(MediaStore.EXTRA_OUTPUT, setImageUri())
                         }
@@ -811,30 +814,28 @@ class BrowserActivity : AppCompatActivity() {
         }
 
         private val activityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
-            if (pathCallback != null) {
-                var uris: Array<Uri>? = null
+            var uris: Array<Uri>? = null
 
-                if (result.resultCode == Activity.RESULT_OK) {
-                    val clipData = result.data?.clipData
-                    val fileCount = clipData?.itemCount
+            if (result.resultCode == Activity.RESULT_OK) {
+                val clipData = result.data?.clipData
+                val fileCount = clipData?.itemCount
 
-                    if (clipData != null && fileCount != null) {
-                        val uriList: MutableList<Uri> = mutableListOf()
+                if (clipData != null && fileCount != null) {
+                    val uriList: MutableList<Uri> = mutableListOf()
 
-                        for (i in 0 until fileCount) {
-                            val uri = clipData.getItemAt(i)?.uri
-                            if (uri != null) uriList.add(uri)
-                        }
-                        uris = uriList.toTypedArray()
-                    } else {
-                        result.data?.dataString?.also { uri ->
-                            uris = arrayOf(Uri.parse(uri))
-                        }
+                    for (i in 0 until fileCount) {
+                        val uri = clipData.getItemAt(i)?.uri
+                        if (uri != null) uriList.add(uri)
+                    }
+                    uris = uriList.toTypedArray()
+                } else {
+                    result.data?.dataString?.also { uri ->
+                        uris = arrayOf(Uri.parse(uri))
                     }
                 }
-                pathCallback?.onReceiveValue(uris)
-                pathCallback = null
             }
+            pathCallback?.onReceiveValue(uris)
+            pathCallback = null
         }
 
         private fun setImageUri() : Uri {
