@@ -902,7 +902,6 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         } else {
             bottomSheetMenu.setMenuItem(getString(R.string.playback_speed), R.drawable.ic_baseline_slow_motion_video_24)
         }
-        bottomSheetMenu.setAdapter(context)
         bottomSheetMenu.setOnItemClickListener { _, _, position, _ ->
             when(position) {
                 0 -> playerUtil.selectVideoTrack(context, player)
