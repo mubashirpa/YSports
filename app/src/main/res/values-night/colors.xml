@@ -34,7 +34,5 @@
     <color name="surfaceTint">#D0BCFF</color>
     <color name="surfaceTintColor">#D0BCFF</color>
 
-    <color name="onBackgroundSecondary">#D8CED6</color>
-    <color name="onSurfaceSecondary">#D8CED6</color>
     <color name="alertDialogBackground">#2F2C36</color>
 </resources>
