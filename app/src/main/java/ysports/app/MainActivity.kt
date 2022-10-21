@@ -176,7 +176,7 @@ class MainActivity : AppCompatActivity() {
                     startActivity(intent)
                 }
                 R.id.share_item -> {
-                    shareLink(getString(R.string.app_name), getString(R.string.url_share_app), getString(R.string.share_app_using))
+                    shareText(getString(R.string.share_app_using), getString(R.string.app_name), getString(R.string.url_share_app))
                 }
             }
             drawerLayout.close()
@@ -478,12 +478,15 @@ class MainActivity : AppCompatActivity() {
             }
     }
 
-    private fun shareLink(subject: String, link: String, title: String) {
-        val intent = Intent(Intent.ACTION_SEND).apply {
+    private fun shareText(title: String?, subject: String?, text: String) {
+        val sendIntent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_SUBJECT, subject)
-            putExtra(Intent.EXTRA_TEXT, link)
+            putExtra(Intent.EXTRA_TEXT, text)
         }
-        startActivity(Intent.createChooser(intent, title))
+        val chooser: Intent = Intent.createChooser(sendIntent, title)
+        if (sendIntent.resolveActivity(packageManager) != null) {
+            startActivity(chooser)
+        }
     }
 }
