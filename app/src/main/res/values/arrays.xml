@@ -20,4 +20,28 @@
         <item>Fixed height</item>
         <item>Fixed width</item>
     </string-array>
+
+    <string-array name="web_src_anchor_type_items">
+        <item>Open in Browser</item>
+        <item>Copy link address</item>
+        <item>Copy link text</item>
+        <item>Share link</item>
+    </string-array>
+
+    <string-array name="web_image_anchor_type_items">
+        <item>Open in Browser</item>
+        <item>Open image</item>
+        <item>Download image</item>
+        <item>Share image</item>
+    </string-array>
+
+    <string-array name="web_src_image_anchor_type_items">
+        <item>Open in Browser</item>
+        <item>Copy link address</item>
+        <item>Share link</item>
+        <!-- Image -->
+        <item>Open image</item>
+        <item>Download image</item>
+        <item>Share image</item>
+    </string-array>
 </resources>
