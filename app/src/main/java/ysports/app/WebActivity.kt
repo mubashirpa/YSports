@@ -453,15 +453,18 @@ class WebActivity : AppCompatActivity() {
 
         override fun onShowFileChooser(webView: WebView?, filePathCallback: ValueCallback<Array<Uri>>?, fileChooserParams: FileChooserParams?): Boolean {
             if (fileChooserParams != null) {
-                val allowMultiple: Boolean = fileChooserParams.mode == FileChooserParams.MODE_OPEN_MULTIPLE
                 if (pathCallback != null) {
                     pathCallback?.onReceiveValue(null)
                     pathCallback = null
                 }
                 pathCallback = filePathCallback
+                val allowMultiple = fileChooserParams.mode == FileChooserParams.MODE_OPEN_MULTIPLE
+                val captureEnabled = fileChooserParams.isCaptureEnabled
+
                 val chooserIntent: Intent = fileChooserParams.createIntent().apply {
+                    addCategory(Intent.CATEGORY_OPENABLE)
                     if (allowMultiple) putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-                    if (fileChooserParams.isCaptureEnabled) {
+                    if (captureEnabled) {
                         val captureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
                             putExtra(MediaStore.EXTRA_OUTPUT, setImageUri())
                         }
@@ -603,10 +606,9 @@ class WebActivity : AppCompatActivity() {
                     try {
                         val handlerIntent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
                         if (handlerIntent != null) {
-                            val packageManager = context.packageManager
                             val info = packageManager.resolveActivity(handlerIntent, MATCH_DEFAULT_ONLY)
                             if (info != null) {
-                                context.startActivity(handlerIntent)
+                                startActivity(handlerIntent)
                             } else {
                                 val marketIntent = Intent(Intent.ACTION_VIEW)
                                 marketIntent.data = Uri.parse("market://details?id=" + handlerIntent.getPackage())
@@ -716,7 +718,7 @@ class WebActivity : AppCompatActivity() {
     }
 
     private fun isLocationServiceEnabled() : Boolean {
-        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
     }
 
