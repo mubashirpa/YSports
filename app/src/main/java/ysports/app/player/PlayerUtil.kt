@@ -197,7 +197,7 @@ class PlayerUtil {
                     label += if (!isSupported) " (Unsupported)" else ""
                     val list = Locale(trackFormat.language.toString()).displayLanguage + label
 
-                    if (list.contains("und") || list.contains("null")) audioList.add("Audio track #${i + 1}") else audioList.add(list)
+                    if (list.contains("und") || list.contains("null")) audioList.add("Audio track #$tempPosition") else audioList.add(list)
                 }
             }
         }
@@ -275,7 +275,7 @@ class PlayerUtil {
                     label += if (!isSupported) " (Unsupported)" else ""
                     val list = Locale(trackFormat.language.toString()).displayLanguage + label
 
-                    if (list.contains("und") || list.contains("null")) subtitlesList.add("Subtitle track #${i + 1}") else subtitlesList.add(list)
+                    if (list.contains("und") || list.contains("null")) subtitlesList.add("Subtitle track #$tempPosition") else subtitlesList.add(list)
                 }
             }
         }
