@@ -19,12 +19,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardCornerRadius="8dp"
+            app:cardElevation="0dp"
             style="?attr/materialCardViewFilledStyle">
             <ysports.app.widgets.imageview.RatioImageView
                 android:id="@+id/backdrop"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:src="@drawable/bg_image_placeholder_8dp"
                 android:scaleType="fitXY"
                 android:contentDescription="@string/app_name"
                 android:transitionName="article_image"/>
@@ -35,15 +35,14 @@
             android:layout_height="wrap_content"
             android:maxLines="2"
             android:ellipsize="end"
-            android:textColor="@color/onSurface"
-            android:textStyle="bold"
             android:layout_marginTop="18dp"
-            android:layout_marginBottom="9dp"/>
+            android:layout_marginBottom="9dp"
+            style="?attr/textAppearanceTitleMedium"/>
         <TextView
             android:id="@+id/time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:maxLines="1"
-            android:textColor="@color/onSurfaceSecondary"/>
+            style="?attr/textAppearanceLabelMedium"/>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
