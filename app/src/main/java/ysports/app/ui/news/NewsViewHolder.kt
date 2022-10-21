@@ -6,7 +6,6 @@ import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.bumptech.glide.Glide
-import ysports.app.R
 import ysports.app.databinding.ListItemNewsBannerBinding
 import ysports.app.databinding.ListItemNewsBinding
 import java.text.SimpleDateFormat
@@ -21,8 +20,7 @@ sealed class NewsViewHolder(binding: ViewBinding) : RecyclerView.ViewHolder(bind
         fun bind(context: Context, backdropPath: String?, title: String?, publishedTime: String?) {
             Glide.with(context)
                 .load(backdropPath)
-                .placeholder(R.drawable.bg_image_placeholder_8dp)
-                .into(binding.backdrop as ImageView)
+                .into(binding.backdrop)
             binding.title.text = title
             if (publishedTime?.isNotEmpty() == true) {
                 calendar.time = simpleDateFormat.parse(publishedTime) as Date
@@ -35,7 +33,6 @@ sealed class NewsViewHolder(binding: ViewBinding) : RecyclerView.ViewHolder(bind
         fun bind(context: Context, backdropPath: String?, title: String?, publishedTime: String?) {
             Glide.with(context)
                 .load(backdropPath)
-                .placeholder(R.drawable.bg_image_placeholder_8dp)
                 .into(binding.backdrop as ImageView)
             binding.title.text = title
             if (publishedTime?.isNotEmpty() == true) {
