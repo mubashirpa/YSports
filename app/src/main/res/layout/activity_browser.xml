@@ -59,27 +59,24 @@
                         android:layout_height="wrap_content"
                         android:text="@string/browser_error_title"
                         android:layout_marginBottom="@dimen/view_error_browser_space_between"
-                        style="@style/Theme.YSports.TitleLarge"/>
+                        style="?attr/textAppearanceTitleLarge"/>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="@color/onBackgroundSecondary"
                         android:text="@string/browser_error_description"
-                        style="@style/Theme.YSports.TextPrimary"/>
+                        style="?attr/textAppearanceBodyMedium"/>
                 </LinearLayout>
                 <Button
                     android:id="@+id/reloadButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/reload"
-                    android:textSize="@dimen/text_size_primary"
                     android:layout_marginVertical="@dimen/view_error_browser_space_between"/>
                 <Button
                     android:id="@+id/detailsButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/details"
-                    android:textSize="@dimen/text_size_primary"
                     style="?attr/materialButtonOutlinedStyle" />
             </LinearLayout>
 
