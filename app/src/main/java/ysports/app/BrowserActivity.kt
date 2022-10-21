@@ -24,6 +24,7 @@ import android.view.WindowInsetsController
 import android.webkit.*
 import android.webkit.WebView.RENDERER_PRIORITY_BOUND
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -37,6 +38,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.view.isVisible
 import androidx.webkit.*
+import com.bumptech.glide.Glide
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.progressindicator.LinearProgressIndicator
@@ -44,6 +46,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import ysports.app.databinding.ActivityBrowserBinding
 import ysports.app.player.PlayerUtil
+import ysports.app.ui.bottomsheet.menu.BottomSheetMenu
 import ysports.app.util.AppUtil
 import ysports.app.util.NetworkUtil
 import ysports.app.webview.AdBlocker
@@ -109,11 +112,7 @@ class BrowserActivity : AppCompatActivity() {
         toolbar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.share -> {
-                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(Intent.EXTRA_TEXT, webView.url ?: WEB_URL)
-                    }
-                    startActivity(Intent.createChooser(shareIntent, "Share Link"))
+                    shareText(getString(R.string.share_link), webView.title, webView.url ?: WEB_URL)
                     true
                 }
                 R.id.refresh -> {
@@ -124,7 +123,7 @@ class BrowserActivity : AppCompatActivity() {
                 }
                 R.id.copy -> {
                     (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("clipboard", webView.url ?: WEB_URL))
-                    Toast.makeText(context, "Link copied to clipboard", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, getString(R.string.link_copied_to_clipboard), Toast.LENGTH_SHORT).show()
                     true
                 }
                 R.id.open -> {
@@ -149,58 +148,107 @@ class BrowserActivity : AppCompatActivity() {
 
         webView.setOnLongClickListener {
             val hitTestResult = webView.hitTestResult
+            val srcExtra = hitTestResult.extra
+            val message = Handler(Looper.getMainLooper()).obtainMessage()
+            webView.requestFocusNodeHref(message)
+            val title = message.data.getString("title")?.trim()
+            val url = message.data.getString("url")
+            val menuHeader: View = layoutInflater.inflate(R.layout.header_webview_menu, null)
+            val menuIcon: ImageView = menuHeader.findViewById(R.id.icon)
+            val menuTitle: TextView = menuHeader.findViewById(R.id.title)
+            val menuSubtitle: TextView = menuHeader.findViewById(R.id.subtitle)
+
             if (hitTestResult.type == WebView.HitTestResult.SRC_ANCHOR_TYPE) {
-                val items = arrayOf("Open in Browser", "Copy URL", "Share link")
-                MaterialAlertDialogBuilder(context)
-                    .setTitle(hitTestResult.extra)
-                    .setItems(items) { _, position ->
-                        when (position) {
-                            0 -> AppUtil(context).openCustomTabs(hitTestResult.extra.toString())
-                            1 -> {
-                                (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("clipboard", hitTestResult.extra))
-                                Toast.makeText(context, "Link copied to clipboard", Toast.LENGTH_SHORT).show()
-                            }
-                            2 -> {
-                                val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                    type = "text/plain"
-                                    putExtra(Intent.EXTRA_TEXT, hitTestResult.extra)
-                                }
-                                startActivity(Intent.createChooser(shareIntent, "Share via"))
+                val items = resources.getStringArray(R.array.web_src_anchor_type_items)
+                menuIcon.setImageBitmap(webView.favicon)
+                if (title != null) {
+                    menuTitle.text = title
+                    menuTitle.visibility = View.VISIBLE
+                }
+                menuSubtitle.text = srcExtra
+                val bottomSheetMenu = showLongClickMenu(items, menuHeader)
+                bottomSheetMenu.setOnItemClickListener { _, _, position, _ ->
+                    when (position) {
+                        1 -> if (srcExtra != null) AppUtil(context).openCustomTabs(srcExtra)
+                        2 -> {
+                            if (srcExtra != null) {
+                                (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("clipboard", srcExtra))
+                                Toast.makeText(context, getString(R.string.link_copied_to_clipboard), Toast.LENGTH_SHORT).show()
                             }
                         }
+                        3 -> {
+                            if (title != null) {
+                                (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("clipboard", title))
+                                Toast.makeText(context, getString(R.string.text_copied_to_clipboard), Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                        4 -> if (srcExtra != null) shareText(getString(R.string.share_via), title, srcExtra)
                     }
-                    .show()
+                    bottomSheetMenu.dismiss()
+                }
+                bottomSheetMenu.show(supportFragmentManager, BottomSheetMenu.TAG)
             }
-            if (hitTestResult.type == WebView.HitTestResult.IMAGE_TYPE || hitTestResult.type == WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE) {
-                val items = arrayOf("Open in Browser", "Preview image", "Download image", "Copy URL", "Share link")
-                MaterialAlertDialogBuilder(context)
-                    .setTitle(hitTestResult.extra)
-                    .setItems(items) { _, position ->
-                        when (position) {
-                            0 -> AppUtil(context).openCustomTabs(hitTestResult.extra.toString())
-                            1 -> {
-                                val intent = Intent(context, BrowserActivity::class.java).apply {
-                                    putExtra("WEB_URL", hitTestResult.extra)
-                                }
-                                startActivity(intent)
+            if (hitTestResult.type == WebView.HitTestResult.IMAGE_TYPE) {
+                val items = resources.getStringArray(R.array.web_image_anchor_type_items)
+                Glide.with(context)
+                    .load(srcExtra)
+                    .into(menuIcon)
+                if (title != null) {
+                    menuTitle.text = title
+                    menuTitle.visibility = View.VISIBLE
+                }
+                menuSubtitle.text = srcExtra
+                val bottomSheetMenu = showLongClickMenu(items, menuHeader)
+                bottomSheetMenu.setOnItemClickListener { _, _, position, _ ->
+                    when (position) {
+                        1 -> if (srcExtra != null) AppUtil(context).openCustomTabs(srcExtra)
+                        2 -> {
+                            val intent = Intent(context, BrowserActivity::class.java).apply {
+                                putExtra("WEB_URL", srcExtra)
                             }
-                            2 -> {
-                                if (hitTestResult.extra != null) downloadReference = startDownload(hitTestResult.extra!!)
-                            }
-                            3 -> {
-                                (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("clipboard", hitTestResult.extra))
-                                Toast.makeText(context, "Link copied to clipboard", Toast.LENGTH_SHORT).show()
-                            }
-                            4 -> {
-                                val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                    type = "text/plain"
-                                    putExtra(Intent.EXTRA_TEXT, hitTestResult.extra)
-                                }
-                                startActivity(Intent.createChooser(shareIntent, "Share via"))
+                            startActivity(intent)
+                        }
+                        3 -> if (srcExtra != null) downloadReference = startDownload(srcExtra)
+                        4 -> if (srcExtra != null) shareText(getString(R.string.share_via), title, srcExtra)
+                    }
+                    bottomSheetMenu.dismiss()
+                }
+                bottomSheetMenu.show(supportFragmentManager, BottomSheetMenu.TAG)
+            }
+            if (hitTestResult.type == WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE) {
+                val items = resources.getStringArray(R.array.web_src_image_anchor_type_items)
+                Glide.with(context)
+                    .load(srcExtra)
+                    .into(menuIcon)
+                if (title != null) {
+                    menuTitle.text = title
+                    menuTitle.visibility = View.VISIBLE
+                }
+                menuSubtitle.text = url
+                val bottomSheetMenu = showLongClickMenu(items, menuHeader)
+                bottomSheetMenu.setOnItemClickListener { _, _, position, _ ->
+                    when (position) {
+                        1 -> if (url != null) AppUtil(context).openCustomTabs(url)
+                        2 -> {
+                            if (url != null) {
+                                (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(ClipData.newPlainText("clipboard", url))
+                                Toast.makeText(context, getString(R.string.link_copied_to_clipboard), Toast.LENGTH_SHORT).show()
                             }
                         }
+                        3 -> if (url != null) shareText(getString(R.string.share_via), null, url)
+
+                        4 -> {
+                            val intent = Intent(context, BrowserActivity::class.java).apply {
+                                putExtra("WEB_URL", srcExtra)
+                            }
+                            startActivity(intent)
+                        }
+                        5 -> if (srcExtra != null) downloadReference = startDownload(srcExtra)
+                        6 -> if (srcExtra != null) shareText(getString(R.string.share_via), null, srcExtra)
                     }
-                    .show()
+                    bottomSheetMenu.dismiss()
+                }
+                bottomSheetMenu.show(supportFragmentManager, BottomSheetMenu.TAG)
             }
             false
         }
@@ -862,17 +910,22 @@ class BrowserActivity : AppCompatActivity() {
                     try {
                         val handlerIntent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
                         if (handlerIntent != null) {
-                            val packageManager = context.packageManager
                             val info = packageManager.resolveActivity(handlerIntent, PackageManager.MATCH_DEFAULT_ONLY)
                             if (info != null) {
-                                context.startActivity(handlerIntent)
+                                startActivity(handlerIntent)
                             } else {
                                 val marketIntent = Intent(Intent.ACTION_VIEW)
                                 marketIntent.data = Uri.parse("market://details?id=" + handlerIntent.getPackage())
                                 try {
                                     startActivity(marketIntent)
                                 } catch (notFoundException: ActivityNotFoundException) {
-                                    Toast.makeText(context, getString(R.string.error_url_load_fail), Toast.LENGTH_LONG).show()
+                                    val fallbackUrl = intent.getStringExtra("browser_fallback_url")
+                                    if (fallbackUrl != null) {
+                                        val intent = Intent(context, BrowserActivity::class.java).apply {
+                                            putExtra("WEB_URL", fallbackUrl)
+                                        }
+                                        startActivity(intent)
+                                    } else Toast.makeText(context, getString(R.string.error_url_load_fail), Toast.LENGTH_LONG).show()
                                 }
                             }
                         }
@@ -967,7 +1020,7 @@ class BrowserActivity : AppCompatActivity() {
     }
 
     private fun isLocationServiceEnabled() : Boolean {
-        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
         return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
     }
 
@@ -1070,5 +1123,26 @@ class BrowserActivity : AppCompatActivity() {
         }
         script += "blobConvert('$blobURL', '$mimetype', '$fileName');"
         webView.evaluateJavascript(script, null)
+    }
+
+    private fun shareText(title: String?, subject: String?, text: String) {
+        val sendIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_SUBJECT, subject)
+            putExtra(Intent.EXTRA_TEXT, text)
+        }
+        val chooser: Intent = Intent.createChooser(sendIntent, title)
+        if (sendIntent.resolveActivity(packageManager) != null) {
+            startActivity(chooser)
+        }
+    }
+
+    private fun showLongClickMenu(items: Array<String>, header: View) : BottomSheetMenu {
+        val bottomSheetMenu = BottomSheetMenu()
+        for (item in items) {
+            bottomSheetMenu.setMenuItem(item)
+        }
+        bottomSheetMenu.setHeaderView(header)
+        return bottomSheetMenu
     }
 }
