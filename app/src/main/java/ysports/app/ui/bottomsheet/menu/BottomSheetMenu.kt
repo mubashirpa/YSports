@@ -23,6 +23,7 @@ class BottomSheetMenu : BottomSheetDialogFragment() {
     private var listViewAdapter: ListViewAdapter? = null
     private var itemClickListener: AdapterView.OnItemClickListener? = null
     private val bottomSheetMenuItem = ArrayList<BottomSheetMenuItem>()
+    private var menuHeader: View? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -39,13 +40,12 @@ class BottomSheetMenu : BottomSheetDialogFragment() {
         sheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
         screenWidth = AppUtil(requireContext()).minScreenWidth()
         if (screenWidth > 640) screenWidth = 640
+
         listView = binding.listView
-        if (listViewAdapter != null) {
-            listView.adapter = listViewAdapter
-        }
-        if (itemClickListener != null) {
-            listView.onItemClickListener = itemClickListener
-        }
+        if (menuHeader != null) listView.addHeaderView(menuHeader, null, false)
+        if (itemClickListener != null) listView.onItemClickListener = itemClickListener
+        listViewAdapter = ListViewAdapter(requireContext(), bottomSheetMenuItem)
+        listView.adapter = listViewAdapter
     }
 
     override fun onDestroyView() {
@@ -72,6 +72,10 @@ class BottomSheetMenu : BottomSheetDialogFragment() {
         }
     }
 
+    fun setHeaderView(view: View) {
+        menuHeader = view
+    }
+
     fun setMenuItem(title: String) {
         bottomSheetMenuItem.add(BottomSheetMenuItem(title, null, null))
     }
@@ -86,10 +90,6 @@ class BottomSheetMenu : BottomSheetDialogFragment() {
 
     fun setMenuItem(title: String, subtitle: String?, icon: Int?) {
         bottomSheetMenuItem.add(BottomSheetMenuItem(title, subtitle, icon))
-    }
-
-    fun setAdapter(context: Context) {
-        listViewAdapter = ListViewAdapter(context, bottomSheetMenuItem)
     }
 
     fun setOnItemClickListener(clickListener: AdapterView.OnItemClickListener) {
