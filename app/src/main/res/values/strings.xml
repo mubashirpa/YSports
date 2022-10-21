@@ -170,4 +170,8 @@
     <string name="fixed_width">Fixed width</string>
     <string name="fit_to_screen">Fit to screen</string>
     <string name="restart_app_to_apply">Restart app to apply</string>
+    <string name="share_link">Share link</string>
+    <string name="share_via">Share via</string>
+    <string name="link_copied_to_clipboard">Link copied to clipboard</string>
+    <string name="text_copied_to_clipboard">Text copied to clipboard</string>
 </resources>
