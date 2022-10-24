@@ -154,8 +154,9 @@ class MainActivity : AppCompatActivity() {
                     clipboardPermissionShow = sharedPreferences.getBoolean("clipboard_permission_show", false)
                     if (!clipboardPermissionShow) {
                         sharedPreferencesEditor.putBoolean("clipboard_permission_show", true).commit()
-                        MaterialAlertDialogBuilder(context)
+                        MaterialAlertDialogBuilder(context, R.style.ThemeOverlay_YSports_MaterialAlertDialog_Centered_FullWidthButtons)
                             .setTitle(resources.getString(R.string.request_title_allow_permission))
+                            .setIcon(R.drawable.ic_baseline_content_paste_24)
                             .setMessage(resources.getString(R.string.request_message_permission_clipboard))
                             .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
                                 sharedPreferencesEditor.putBoolean("clipboard_permission", false).commit()
@@ -295,8 +296,9 @@ class MainActivity : AppCompatActivity() {
                     Log.d(TAG, "Permission already granted")
                 }
                 shouldShowRequestPermissionRationale(notificationPermission) -> {
-                    MaterialAlertDialogBuilder(context)
+                    MaterialAlertDialogBuilder(context, R.style.ThemeOverlay_YSports_MaterialAlertDialog_Centered_FullWidthButtons)
                         .setTitle("Get notified!")
+                        .setIcon(R.drawable.ic_baseline_notifications_active_24)
                         .setMessage("Get notification about latest match updates, news and more")
                         .setNegativeButton(resources.getString(R.string.skip)) { _, _ ->
                             Log.d(TAG, "Permission denied")
@@ -411,7 +413,7 @@ class MainActivity : AppCompatActivity() {
     private fun networkStream() {
         val materialAlertDialogBuilder = MaterialAlertDialogBuilder(context)
         val clipboardURL = if (clipboardPermission) getFromClipboard() else null
-        val inputLayout: View = layoutInflater.inflate(R.layout.view_input_view_dialog, null)
+        val inputLayout: View = layoutInflater.inflate(R.layout.view_edittext, null)
         val textInputLayout: TextInputLayout = inputLayout.findViewById(R.id.input_layout)
         val textInputEditText: TextInputEditText = inputLayout.findViewById(R.id.input_text)
         textInputLayout.hint = resources.getString(R.string.network_url)
