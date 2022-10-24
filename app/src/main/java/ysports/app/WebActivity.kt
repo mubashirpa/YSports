@@ -354,7 +354,7 @@ class WebActivity : AppCompatActivity() {
         }
 
         override fun onJsPrompt(view: WebView?, url: String?, message: String?, defaultValue: String?, result: JsPromptResult?): Boolean {
-            val inputLayout: View = layoutInflater.inflate(R.layout.view_input_view_dialog, null)
+            val inputLayout: View = layoutInflater.inflate(R.layout.view_edittext, null)
             val textInputEditText: TextInputEditText = inputLayout.findViewById(R.id.input_text)
             textInputEditText.maxLines = 1
             textInputEditText.setText(defaultValue)
@@ -680,14 +680,19 @@ class WebActivity : AppCompatActivity() {
     }
 
     private fun requestWebViewPermission(permission: String, requestCode: Int, message: String, requestResources: Array<String>) {
+        val iconId = when(requestCode) {
+            CAMERA_PERMISSION_REQUEST_CODE -> R.drawable.ic_baseline_camera_24
+            else -> R.drawable.ic_baseline_mic_24
+        }
         when {
             isPermissionGranted(permission) -> {
                 Log.d(TAG, "Permission already granted")
                 onPermissionRequestConfirmation(true, requestResources)
             }
             shouldShowRequestPermissionRationale(permission) -> {
-                MaterialAlertDialogBuilder(context)
+                MaterialAlertDialogBuilder(context, R.style.ThemeOverlay_YSports_MaterialAlertDialog_Centered_FullWidthButtons)
                     .setTitle(getString(R.string.request_title_allow_permission))
+                    .setIcon(iconId)
                     .setMessage(message)
                     .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
                         onPermissionRequestConfirmation(false, arrayOf(""))
@@ -734,8 +739,9 @@ class WebActivity : AppCompatActivity() {
                 fetchLocation()
             }
             shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) -> {
-                MaterialAlertDialogBuilder(context)
+                MaterialAlertDialogBuilder(context, R.style.ThemeOverlay_YSports_MaterialAlertDialog_Centered_FullWidthButtons)
                     .setTitle(getString(R.string.request_title_allow_permission))
+                    .setIcon(R.drawable.ic_baseline_location_on_24)
                     .setMessage(getString(R.string.request_message_permission_location))
                     .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
                         onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)

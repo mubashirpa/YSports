@@ -161,7 +161,7 @@ class BrowserActivity : AppCompatActivity() {
             if (hitTestResult.type == WebView.HitTestResult.SRC_ANCHOR_TYPE) {
                 val items = resources.getStringArray(R.array.web_src_anchor_type_items)
                 menuIcon.setImageBitmap(webView.favicon)
-                if (title != null) {
+                if (!title.isNullOrEmpty()) {
                     menuTitle.text = title
                     menuTitle.visibility = View.VISIBLE
                 }
@@ -193,7 +193,7 @@ class BrowserActivity : AppCompatActivity() {
                 Glide.with(context)
                     .load(srcExtra)
                     .into(menuIcon)
-                if (title != null) {
+                if (!title.isNullOrEmpty()) {
                     menuTitle.text = title
                     menuTitle.visibility = View.VISIBLE
                 }
@@ -220,7 +220,7 @@ class BrowserActivity : AppCompatActivity() {
                 Glide.with(context)
                     .load(srcExtra)
                     .into(menuIcon)
-                if (title != null) {
+                if (!title.isNullOrEmpty()) {
                     menuTitle.text = title
                     menuTitle.visibility = View.VISIBLE
                 }
@@ -638,7 +638,7 @@ class BrowserActivity : AppCompatActivity() {
 
         override fun onJsPrompt(view: WebView?, url: String?, message: String?, defaultValue: String?, result: JsPromptResult?): Boolean {
             val host = Uri.parse(webView.url).host
-            val inputLayout: View = layoutInflater.inflate(R.layout.view_input_view_dialog, null)
+            val inputLayout: View = layoutInflater.inflate(R.layout.view_edittext, null)
             val textInputEditText: TextInputEditText = inputLayout.findViewById(R.id.input_text)
             textInputEditText.maxLines = 1
             textInputEditText.setText(defaultValue)
@@ -982,14 +982,19 @@ class BrowserActivity : AppCompatActivity() {
     }
 
     private fun requestWebViewPermission(permission: String, requestCode: Int, message: String, requestResources: Array<String>) {
+        val iconId = when(requestCode) {
+            CAMERA_PERMISSION_REQUEST_CODE -> R.drawable.ic_baseline_camera_24
+            else -> R.drawable.ic_baseline_mic_24
+        }
         when {
             isPermissionGranted(permission) -> {
                 Log.d(TAG, "Permission already granted")
                 onPermissionRequestConfirmation(true, requestResources)
             }
             shouldShowRequestPermissionRationale(permission) -> {
-                MaterialAlertDialogBuilder(context)
+                MaterialAlertDialogBuilder(context, R.style.ThemeOverlay_YSports_MaterialAlertDialog_Centered_FullWidthButtons)
                     .setTitle(getString(R.string.request_title_allow_permission))
+                    .setIcon(iconId)
                     .setMessage(message)
                     .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
                         onPermissionRequestConfirmation(false, arrayOf(""))
@@ -1036,8 +1041,9 @@ class BrowserActivity : AppCompatActivity() {
                 fetchLocation()
             }
             shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) -> {
-                MaterialAlertDialogBuilder(context)
+                MaterialAlertDialogBuilder(context, R.style.ThemeOverlay_YSports_MaterialAlertDialog_Centered_FullWidthButtons)
                     .setTitle(getString(R.string.request_title_allow_permission))
+                    .setIcon(R.drawable.ic_baseline_location_on_24)
                     .setMessage(getString(R.string.request_message_permission_location_web))
                     .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
                         onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)
