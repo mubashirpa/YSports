@@ -21,7 +21,8 @@
             app:title="@string/title_dynamic_color"
             app:summary="@string/summary_dynamic_color"
             app:defaultValue="false"
-            app:iconSpaceReserved="false"/>
+            app:iconSpaceReserved="false"
+            app:widgetLayout="@layout/preference_material_switch"/>
         <Preference
             app:key="clear_cache"
             app:title="@string/title_clear_cache"
