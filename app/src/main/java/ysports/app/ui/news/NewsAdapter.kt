@@ -6,6 +6,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import ysports.app.R
 import ysports.app.api.newsapi.org.Article
+import ysports.app.databinding.ListItemNewsBannerBetaBinding
+import ysports.app.databinding.ListItemNewsBetaBinding
 import ysports.app.databinding.ListItemNewsBannerBinding
 import ysports.app.databinding.ListItemNewsBinding
 
@@ -17,10 +19,10 @@ class NewsAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NewsViewHolder {
         return when(viewType) {
             R.layout.list_item_news_banner -> NewsViewHolder.NewsBannerViewHolder(
-                ListItemNewsBannerBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+                ListItemNewsBannerBetaBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             )
             R.layout.list_item_news -> NewsViewHolder.NewsItemsViewHolder(
-                ListItemNewsBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+                ListItemNewsBetaBinding.inflate(LayoutInflater.from(parent.context), parent, false)
             )
             else -> throw IllegalArgumentException("Invalid ViewType Provided")
         }

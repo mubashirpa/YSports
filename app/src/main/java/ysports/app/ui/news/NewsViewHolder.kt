@@ -6,7 +6,9 @@ import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.bumptech.glide.Glide
+import ysports.app.databinding.ListItemNewsBannerBetaBinding
 import ysports.app.databinding.ListItemNewsBannerBinding
+import ysports.app.databinding.ListItemNewsBetaBinding
 import ysports.app.databinding.ListItemNewsBinding
 import java.text.SimpleDateFormat
 import java.util.*
@@ -16,7 +18,7 @@ sealed class NewsViewHolder(binding: ViewBinding) : RecyclerView.ViewHolder(bind
     val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
     val calendar: Calendar = Calendar.getInstance()
 
-    class NewsBannerViewHolder(private val binding: ListItemNewsBannerBinding) : NewsViewHolder(binding) {
+    class NewsBannerViewHolder(private val binding: ListItemNewsBannerBetaBinding) : NewsViewHolder(binding) {
         fun bind(context: Context, backdropPath: String?, title: String?, publishedTime: String?) {
             Glide.with(context)
                 .load(backdropPath)
@@ -29,7 +31,7 @@ sealed class NewsViewHolder(binding: ViewBinding) : RecyclerView.ViewHolder(bind
         }
     }
 
-    class NewsItemsViewHolder(private val binding: ListItemNewsBinding) : NewsViewHolder(binding) {
+    class NewsItemsViewHolder(private val binding: ListItemNewsBetaBinding) : NewsViewHolder(binding) {
         fun bind(context: Context, backdropPath: String?, title: String?, publishedTime: String?) {
             Glide.with(context)
                 .load(backdropPath)
