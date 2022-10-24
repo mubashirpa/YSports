@@ -7,26 +7,26 @@
         <menu>
             <item
                 android:id="@+id/matches_item"
-                android:icon="@drawable/ic_outline_matches_24"
+                android:icon="@drawable/ic_baseline_calendar_today_24"
                 android:title="@string/title_matches"
                 android:checkable="true"
                 android:checked="true"
                 app:showAsAction="ifRoom" />
             <item
                 android:id="@+id/leagues_item"
-                android:icon="@drawable/ic_outline_leaderboard_24"
+                android:icon="@drawable/ic_baseline_leaderboard_24"
                 android:title="@string/title_leagues"
                 android:checkable="true"
                 app:showAsAction="ifRoom"/>
             <item
                 android:id="@+id/news_item"
-                android:icon="@drawable/ic_outline_newspaper_24"
+                android:icon="@drawable/ic_baseline_newspaper_24"
                 android:title="@string/title_news"
                 android:checkable="true"
                 app:showAsAction="ifRoom"/>
             <item
                 android:id="@+id/more_item"
-                android:icon="@drawable/ic_outline_dashboard_24"
+                android:icon="@drawable/ic_baseline_dashboard_24"
                 android:title="@string/title_more"
                 android:checkable="true"
                 app:showAsAction="ifRoom"/>
