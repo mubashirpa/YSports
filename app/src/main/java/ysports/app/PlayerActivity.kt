@@ -34,9 +34,12 @@ import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Pair
 import android.view.*
 import android.view.View.OnClickListener
+import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
@@ -123,7 +126,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
     private lateinit var binding: ActivityPlayerBinding
     private lateinit var context: Context
 
-    private lateinit var exoUnlock: ImageButton
+    private lateinit var exoUnlock: Button
     private lateinit var navigationButton: ImageButton
     private lateinit var exoPIP: ImageButton
     private lateinit var exoTitle: TextView
@@ -148,6 +151,8 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
     private val PIP_REQUEST_CODE = 101
     private var PIP_ACTION_ICON_ID = R.drawable.ic_baseline_play_arrow_24
     private var playerLocked = false
+    private var unlockButtonHandler: Handler? = null
+    private var unlockButtonRunnable: Runnable? = null
 
     // Activity lifecycle.
 
@@ -303,6 +308,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
                 playerLocked -> {
                     showToast("Player is locked")
                     exoUnlock.showView()
+                    startUnlockButtonTimer()
                 }
                 else -> finish()
             }
@@ -373,7 +379,10 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
             }
             exoLock -> lockPlayer()
             exoUnlock -> unlockPlayer()
-            playerView -> if (playerLocked) exoUnlock.showView()
+            playerView -> if (playerLocked) {
+                exoUnlock.showView()
+                startUnlockButtonTimer()
+            }
         }
     }
 
@@ -736,7 +745,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
 
             broadcastReceiver = object : BroadcastReceiver() {
                 override fun onReceive(p0: Context?, p1: Intent?) {
-                    if (p1 != null && p1.action == ACTION_PIP_MEDIA_CONTROL && player != null) {
+                    if (p1 != null && p1.action == ACTION_PIP_MEDIA_CONTROL) {
                         if (player?.isPlaying == true) {
                             player?.pause()
                         } else {
@@ -750,8 +759,11 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         } else {
             unregisterReceiver(broadcastReceiver)
             broadcastReceiver = null
-            if (player != null && player?.isPlaying != true && !playerLocked) playerView?.showController()
-            if (playerLocked) exoUnlock.showView()
+            if (player?.isPlaying != true && !playerLocked) playerView?.showController()
+            if (playerLocked) {
+                exoUnlock.showView()
+                startUnlockButtonTimer()
+            }
         }
         binding.appName.isVisible = !isInPictureInPictureMode
     }
@@ -924,23 +936,27 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
     }
 
     private fun lockPlayer() {
-        if (playerView != null) {
-            playerView?.hideController()
-            playerView?.useController = false
-            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LOCKED
-            exoUnlock.showView()
-            playerLocked = true
-        }
+        playerView?.hideController()
+        playerView?.useController = false
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LOCKED
+        exoUnlock.showView()
+        playerLocked = true
+        startUnlockButtonTimer()
     }
 
     private fun unlockPlayer() {
-        if (playerView != null) {
-            playerView?.useController = true
-            playerView?.showController()
-            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
-            exoUnlock.hideView()
-            playerLocked = false
-        }
+        playerView?.useController = true
+        playerView?.showController()
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
+        exoUnlock.hideView()
+        playerLocked = false
+    }
+
+    private fun startUnlockButtonTimer() {
+        if (unlockButtonHandler == null) unlockButtonHandler = Handler(Looper.getMainLooper())
+        if (unlockButtonRunnable == null) unlockButtonRunnable = Runnable { exoUnlock.visibility = View.GONE }
+        unlockButtonHandler?.removeCallbacks(unlockButtonRunnable!!)
+        unlockButtonHandler?.postDelayed(unlockButtonRunnable!!, 3000)
     }
 
     override fun onDown(p0: MotionEvent): Boolean {
