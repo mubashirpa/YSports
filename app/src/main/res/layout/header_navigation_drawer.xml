@@ -10,6 +10,6 @@
         android:layout_height="wrap_content"
         android:layout_margin="24dp"
         android:textAppearance="?attr/textAppearanceHeadlineSmall"
-        android:textColor="?attr/colorOnSurface"
+        android:textColor="@color/onSurfaceVariant"
         android:text="@string/ysports_caps"/>
 </LinearLayout>

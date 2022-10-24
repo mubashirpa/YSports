@@ -17,7 +17,7 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="50dp"
             android:layout_height="50dp"
-            app:cardCornerRadius="8dp"
+            app:cardCornerRadius="@dimen/corner_radius_icon"
             app:cardElevation="0dp"
             style="?attr/materialCardViewFilledStyle">
             <ImageView
