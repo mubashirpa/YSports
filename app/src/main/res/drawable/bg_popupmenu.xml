@@ -3,13 +3,13 @@
     <item>
         <shape>
             <solid android:color="?attr/colorSurface"/>
-            <corners android:radius="16dp"/>
+            <corners android:radius="@dimen/corner_radius_medium"/>
         </shape>
     </item>
     <item>
         <shape>
             <solid android:color="@color/popupmenu_overlay_color"/>
-            <corners android:radius="16dp"/>
+            <corners android:radius="@dimen/corner_radius_medium"/>
             <padding
                 android:bottom="8dp"
                 android:top="8dp"/>
