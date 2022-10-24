@@ -100,7 +100,7 @@
     </style>
 
     <style name="ThemeOverlay.YSports.AlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
-        <item name="dialogCornerRadius">28dp</item>
+        <item name="dialogCornerRadius">@dimen/corner_radius_extra_large</item>
         <item name="android:colorBackground">@color/alertDialogBackground</item>
     </style>
 
@@ -110,5 +110,14 @@
 
     <style name="Widget.YSports.PopupMenu" parent="Widget.Material3.PopupMenu">
         <item name="android:popupBackground">@drawable/bg_popupmenu</item>
+    </style>
+
+    <!-- A theme overlay for dialogs with a center aligned title text, icon and buttons that span the width of the dialog. -->
+    <style name="ThemeOverlay.YSports.MaterialAlertDialog.Centered.FullWidthButtons" parent="ThemeOverlay.Material3.MaterialAlertDialog.Centered">
+        <!-- Mark spacer as gone when showing full width buttons -->
+        <item name="materialAlertDialogButtonSpacerVisibility">2</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.Catalog.Button.TextButton.Dialog.FullWidth</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.Catalog.Button.TextButton.Dialog.FullWidth</item>
+        <item name="buttonBarNeutralButtonStyle">@style/Widget.Catalog.Button.TextButton.Dialog.FullWidth</item>
     </style>
 </resources>
