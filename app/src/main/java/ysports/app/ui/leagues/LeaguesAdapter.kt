@@ -4,10 +4,10 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.google.android.material.imageview.ShapeableImageView
 import ysports.app.R
 import ysports.app.api.leagues.Leagues
 
@@ -27,7 +27,6 @@ class LeaguesAdapter(
         holder.title.text =  title
         Glide.with(context)
             .load(logo)
-            .placeholder(R.drawable.bg_image_placeholder_circle)
             .into(holder.logo)
     }
 
@@ -36,7 +35,7 @@ class LeaguesAdapter(
     }
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val logo: ImageView = itemView.findViewById(R.id.logo)
+        val logo: ShapeableImageView = itemView.findViewById(R.id.logo)
         val title: TextView = itemView.findViewById(R.id.title)
     }
 }
