@@ -104,17 +104,15 @@
         android:textSize="12sp"
         android:visibility="gone" />
 
-    <ysports.app.widgets.PlayerUnlockButton
+    <Button
         android:id="@+id/exo_unlock"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:src="@drawable/ic_baseline_lock_24"
-        android:background="@drawable/bg_ripple_circle"
-        android:contentDescription="@string/app_name"
         android:layout_gravity="bottom"
         android:visibility="gone"
-        app:tint="@color/white"
-        style="@style/ExoMediaButton" />
+        android:contentDescription="@string/app_name"
+        app:icon="@drawable/ic_baseline_lock_24"
+        style="?attr/materialIconButtonStyle"/>
 
 </FrameLayout>
