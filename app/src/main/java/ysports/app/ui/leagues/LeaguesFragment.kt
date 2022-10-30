@@ -40,7 +40,6 @@ class LeaguesFragment : Fragment() {
     private lateinit var errorView: View
     private lateinit var retryButton: Button
     private lateinit var stateDescription: TextView
-    private lateinit var itemDecoration: GridSpacingItemDecoration
     private var leaguesApi: Call<LeaguesResponse>? = null
     private var leaguesList: List<Leagues> = emptyList()
 
@@ -59,11 +58,12 @@ class LeaguesFragment : Fragment() {
         recyclerView = binding.recyclerView
         progressBar = binding.progressBar
         errorView = binding.errorView.root
-        retryButton = binding.errorView.buttonRetry
         stateDescription = binding.errorView.stateDescription
-        itemDecoration = GridSpacingItemDecoration(2, 10, 0, includeEdge = true, isReverse = false)
+        retryButton = binding.errorView.buttonRetry
         val appUtil = AppUtil(requireContext())
         val isTablet = appUtil.isTablet()
+        val marginMin = (resources.getDimension(R.dimen.margin_min) / resources.displayMetrics.density).toInt()
+        val itemDecoration = GridSpacingItemDecoration(2, marginMin, 0, includeEdge = true, isReverse = false)
 
         retryButton.setOnClickListener {
             errorView.hideView()
@@ -124,7 +124,9 @@ class LeaguesFragment : Fragment() {
                     errorOccurred(R.string.error_no_leagues, false)
                     return
                 }
-                setRecyclerAdapter(leaguesList)
+                val leaguesAdapter = LeaguesAdapter(requireContext(), leaguesList)
+                recyclerView.adapter = leaguesAdapter
+                progressBar.hideView()
             }
 
             override fun onFailure(call: Call<LeaguesResponse>, t: Throwable) {
@@ -136,17 +138,8 @@ class LeaguesFragment : Fragment() {
         })
     }
 
-    private fun setRecyclerAdapter(list: List<Leagues>) {
-        errorView.hideView()
-        val leaguesAdapter = LeaguesAdapter(requireContext(), list)
-        recyclerView.adapter = leaguesAdapter
-        progressBar.hideView()
-        recyclerView.showView()
-    }
-
     private fun errorOccurred(error: Int, showButton: Boolean) {
         progressBar.hideView()
-        recyclerView.hideView()
         stateDescription.text = getString(error)
         retryButton.isVisible = showButton
         errorView.showView()
