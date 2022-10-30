@@ -1,40 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/context_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
     tools:context=".BrowserActivity">
+
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fitsSystemWindows="true"
         app:liftOnScroll="false">
+
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/material_toolbar"
+            style="@style/Widget.YSports.Toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:menu="@menu/browser_activity"
-            app:navigationIcon="@drawable/ic_baseline_close_24"
-            style="@style/Widget.YSports.Toolbar" />
+            app:navigationIcon="@drawable/ic_baseline_close_24" />
     </com.google.android.material.appbar.AppBarLayout>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/progress_bar"
             android:layout_width="match_parent"
             android:layout_height="2dp"
             android:indeterminate="false"
-            android:visibility="gone"/>
+            android:visibility="gone" />
+
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
+
             <WebView
                 android:id="@+id/web_view"
                 android:layout_width="match_parent"
@@ -44,40 +49,45 @@
                 android:id="@+id/error_layout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:padding="@dimen/view_error_browser_padding"
                 android:background="@color/background"
+                android:orientation="vertical"
+                android:padding="@dimen/margin_min"
                 android:visibility="gone">
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
-                    android:orientation="vertical"
                     android:layout_weight="1"
-                    android:gravity="center_vertical">
+                    android:gravity="center_vertical"
+                    android:orientation="vertical">
+
                     <TextView
+                        style="?attr/textAppearanceTitleLarge"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/browser_error_title"
-                        android:layout_marginBottom="@dimen/view_error_browser_space_between"
-                        style="?attr/textAppearanceTitleLarge"/>
+                        android:layout_marginBottom="@dimen/margin_min"
+                        android:text="@string/browser_error_title" />
+
                     <TextView
+                        style="?attr/textAppearanceBodyMedium"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/browser_error_description"
-                        style="?attr/textAppearanceBodyMedium"/>
+                        android:text="@string/browser_error_description" />
                 </LinearLayout>
+
                 <Button
                     android:id="@+id/reloadButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/reload"
-                    android:layout_marginVertical="@dimen/view_error_browser_space_between"/>
+                    android:layout_marginVertical="@dimen/margin_min"
+                    android:text="@string/reload" />
+
                 <Button
                     android:id="@+id/detailsButton"
+                    style="?attr/materialButtonOutlinedStyle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/details"
-                    style="?attr/materialButtonOutlinedStyle" />
+                    android:text="@string/details" />
             </LinearLayout>
 
         </RelativeLayout>
