@@ -27,7 +27,9 @@ import ysports.app.api.newsapi.org.NewsResponse
 import ysports.app.databinding.FragmentNewsBinding
 import ysports.app.util.AppUtil
 import ysports.app.util.NetworkUtil
+import ysports.app.widgets.recyclerview.GridSpacingItemDecoration
 import ysports.app.widgets.recyclerview.ItemTouchListener
+import ysports.app.widgets.recyclerview.VerticalSpacingItemDecoration
 import java.util.*
 import kotlin.concurrent.schedule
 
@@ -36,12 +38,13 @@ class NewsFragment : Fragment() {
     private var _binding: FragmentNewsBinding? = null
     private val binding get() = _binding!!
 
-    private var newsApi: Call<NewsResponse>? = null
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var progressBar: CircularProgressIndicator
     private lateinit var errorView: View
     private lateinit var stateDescription: TextView
     private lateinit var retryButton: Button
-    private lateinit var progressBar: CircularProgressIndicator
-    private lateinit var recyclerView: RecyclerView
+    private var newsApi: Call<NewsResponse>? = null
+    private var newsList: List<Article> = ArrayList()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -55,13 +58,16 @@ class NewsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        recyclerView = binding.recyclerView
+        progressBar = binding.progressBar
         errorView = view.findViewById(R.id.errorView)
         stateDescription = binding.errorView.stateDescription
         retryButton = binding.errorView.buttonRetry
-        progressBar = binding.progressBar
-        recyclerView = binding.recyclerView
         val appUtil = AppUtil(requireContext())
         val isTablet = appUtil.isTablet()
+        val marginMin = (resources.getDimension(R.dimen.margin_min) / resources.displayMetrics.density).toInt()
+        val verticalItemDecoration = VerticalSpacingItemDecoration(marginMin, marginMin)
+        val gridItemDecoration = GridSpacingItemDecoration(2, marginMin, 1, includeEdge = true, isReverse = false)
 
         retryButton.setOnClickListener {
             errorView.hideView()
@@ -71,12 +77,45 @@ class NewsFragment : Fragment() {
             }
         }
 
+        var recyclerLayoutManager = LinearLayoutManager(context)
+        if (isTablet) {
+            recyclerLayoutManager = GridLayoutManager(context, 2)
+            recyclerLayoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+                override fun getSpanSize(position: Int): Int {
+                    return if (position == 0) 2 else 1
+                }
+            }
+            recyclerView.addItemDecoration(gridItemDecoration)
+        } else {
+            recyclerView.addItemDecoration(verticalItemDecoration)
+        }
+
+        recyclerView.apply {
+            itemAnimator = DefaultItemAnimator()
+            layoutManager = recyclerLayoutManager
+            addOnItemTouchListener(
+                ItemTouchListener(context, recyclerView, object : ItemTouchListener.ClickListener {
+                    override fun onClick(view: View, position: Int) {
+                        val intent = Intent(context, BrowserActivity::class.java).apply {
+                            putExtra("WEB_URL", newsList[position].url)
+                        }
+                        startActivity(intent)
+                    }
+
+                    override fun onLongClick(view: View, position: Int) {
+
+                    }
+                })
+            )
+        }
+
         if (isTablet) binding.recyclerContainer.maxWidth = dpToPx(appUtil.minScreenWidth())
         readNewsDB()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        _binding = null
         newsApi?.cancel()
     }
 
@@ -89,7 +128,6 @@ class NewsFragment : Fragment() {
     }
 
     private fun readNewsDB() {
-        val isTablet = AppUtil(requireContext()).isTablet()
         newsApi = NewsApi.create().getNews("top-headlines", BuildConfig.news_api, "sports", "in")
         newsApi?.enqueue(object : Callback<NewsResponse> {
             override fun onResponse(call: Call<NewsResponse>, response: Response<NewsResponse>) {
@@ -97,44 +135,14 @@ class NewsFragment : Fragment() {
                     errorOccurred(R.string.error_retrofit_response, true)
                     return
                 }
-                val newsList: List<Article> = response.body()?.articles ?: ArrayList()
+                newsList = response.body()?.articles ?: ArrayList()
                 if (newsList.isEmpty()) {
                     errorOccurred(R.string.error_empty_response, false)
                     return
                 }
                 val newsAdapter = NewsAdapter(requireContext(), newsList)
-
-                var recyclerLayoutManager = LinearLayoutManager(context)
-                if (isTablet) {
-                    recyclerLayoutManager = GridLayoutManager(context, 2)
-                    recyclerLayoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
-                        override fun getSpanSize(position: Int): Int {
-                            return if (position == 0) 2 else 1
-                        }
-                    }
-                }
-
-                recyclerView.apply {
-                    itemAnimator = DefaultItemAnimator()
-                    layoutManager = recyclerLayoutManager
-                    adapter = newsAdapter
-                    addOnItemTouchListener(
-                        ItemTouchListener(context, recyclerView, object : ItemTouchListener.ClickListener {
-                            override fun onClick(view: View, position: Int) {
-                                val intent = Intent(context, BrowserActivity::class.java).apply {
-                                    putExtra("WEB_URL", newsList[position].url)
-                                }
-                                startActivity(intent)
-                            }
-
-                            override fun onLongClick(view: View, position: Int) {
-
-                            }
-                        })
-                    )
-                }
+                recyclerView.adapter = newsAdapter
                 progressBar.hideView()
-                recyclerView.showView()
             }
 
             override fun onFailure(call: Call<NewsResponse>, t: Throwable) {
@@ -148,7 +156,6 @@ class NewsFragment : Fragment() {
 
     private fun errorOccurred(error: Int, showButton: Boolean) {
         progressBar.hideView()
-        recyclerView.hideView()
         stateDescription.text = activity?.resources?.getString(error)
         retryButton.isVisible = showButton
         errorView.showView()

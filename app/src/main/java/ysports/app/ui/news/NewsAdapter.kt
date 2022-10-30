@@ -8,8 +8,6 @@ import ysports.app.R
 import ysports.app.api.newsapi.org.Article
 import ysports.app.databinding.ListItemNewsBannerBetaBinding
 import ysports.app.databinding.ListItemNewsBetaBinding
-import ysports.app.databinding.ListItemNewsBannerBinding
-import ysports.app.databinding.ListItemNewsBinding
 
 class NewsAdapter(
     private val context: Context,
