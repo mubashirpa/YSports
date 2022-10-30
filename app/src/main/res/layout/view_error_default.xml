@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    android:padding="16dp">
+    android:padding="@dimen/margin_min">
     <TextView
         android:id="@+id/state_description"
         android:layout_width="match_parent"
