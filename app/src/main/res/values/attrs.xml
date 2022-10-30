@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Custom parameters for AutoHideTextView -->
+    <declare-styleable name="AutoHideTextView">
+        <attr name="hide_millis" format="integer" />
+    </declare-styleable>
+
+    <!-- Custom parameters for RatioImageView, RatioLinearLayout -->
+    <declare-styleable name="RatioView">
+        <attr name="ratio" format="enum">
+            <enum name="sixteen_nine" value="0" />
+            <enum name="four_three" value="1" />
+        </attr>
+    </declare-styleable>
+</resources>
