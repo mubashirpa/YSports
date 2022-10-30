@@ -1,48 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ui.matches.MatchesFragment">
+
     <LinearLayout
         android:id="@+id/content_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:visibility="gone">
+
         <LinearLayout
             android:id="@+id/tabLayoutContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/background">
+
             <com.google.android.material.tabs.TabLayout
                 android:id="@+id/tabLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_tabs_main"
-                app:tabMode="fixed"
                 app:tabGravity="fill"
-                app:tabMaxWidth="0dp" />
+                app:tabMaxWidth="0dp"
+                app:tabMode="fixed" />
         </LinearLayout>
+
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/view_pager"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"/>
+            android:layout_weight="1" />
     </LinearLayout>
+
     <include
         android:id="@+id/error_layout"
+        layout="@layout/view_error_default"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone"
-        layout="@layout/view_error_default"/>
+        android:visibility="gone" />
+
     <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/progress_bar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:indeterminate="true"
-        android:layout_centerInParent="true"/>
+        android:layout_centerInParent="true"
+        android:indeterminate="true" />
 </RelativeLayout>

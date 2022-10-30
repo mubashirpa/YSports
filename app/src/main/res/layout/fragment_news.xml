@@ -1,33 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="ui.news.NewsFragment">
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/recyclerContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_centerInParent="true">
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:visibility="gone"
-            tools:listitem="@layout/list_item_news"/>
+            tools:listitem="@layout/list_item_news" />
     </androidx.constraintlayout.widget.ConstraintLayout>
+
     <include
         android:id="@+id/errorView"
+        layout="@layout/view_error_default"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone"
-        layout="@layout/view_error_default"/>
+        android:visibility="gone" />
+
     <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:indeterminate="true"
-        android:layout_centerInParent="true" />
+        android:layout_centerInParent="true"
+        android:indeterminate="true" />
 </RelativeLayout>
