@@ -1,66 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="?attr/materialCardViewElevatedStyle"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:checkable="true"
     android:clickable="true"
     android:focusable="true"
-    android:checkable="true"
-    android:layout_marginHorizontal="@dimen/margin_min"
-    android:layout_marginVertical="@dimen/margin_min"
-    app:cardCornerRadius="@dimen/corner_radius_medium"
-    style="?attr/materialCardViewElevatedStyle">
+    app:cardCornerRadius="@dimen/corner_radius_medium">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="@dimen/margin_min">
+
         <com.google.android.material.card.MaterialCardView
+            style="?attr/materialCardViewFilledStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardCornerRadius="@dimen/corner_radius_medium"
-            app:cardElevation="0dp"
-            style="?attr/materialCardViewFilledStyle">
-            <ysports.app.widgets.imageview.RatioImageView
+            app:cardElevation="0dp">
+
+            <ysports.app.widgets.RatioImageView
                 android:id="@+id/backdrop"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:scaleType="fitXY"
                 android:contentDescription="@string/app_name"
-                android:transitionName="article_image"/>
+                android:scaleType="fitXY"
+                android:transitionName="article_image" />
         </com.google.android.material.card.MaterialCardView>
+
         <TextView
             android:id="@+id/title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:maxLines="3"
             android:layout_marginVertical="16dp"
-            android:textAppearance="?attr/textAppearanceTitleLarge"/>
+            android:maxLines="3"
+            android:textAppearance="?attr/textAppearanceTitleLarge" />
+
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
+
             <com.google.android.material.chip.Chip
                 android:id="@+id/time"
+                style="@style/Widget.Material3.Chip.Assist.Elevated"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:elevation="0dp"
                 android:clickable="false"
+                android:elevation="0dp"
                 android:textAppearance="?attr/textAppearanceLabelMedium"
-                app:ensureMinTouchTargetSize="true"
                 app:chipBackgroundColor="@color/surfaceVariant"
-                app:layout_constraintTop_toTopOf="parent"
+                app:ensureMinTouchTargetSize="true"
                 app:layout_constraintLeft_toLeftOf="parent"
-                style="@style/Widget.Material3.Chip.Assist.Elevated"/>
+                app:layout_constraintTop_toTopOf="parent" />
+
             <Button
+                style="?attr/materialIconButtonStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:contentDescription="@string/app_name"
                 app:icon="@drawable/ic_baseline_newspaper_24"
-                app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                style="?attr/materialIconButtonStyle"/>
+                app:layout_constraintTop_toTopOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
