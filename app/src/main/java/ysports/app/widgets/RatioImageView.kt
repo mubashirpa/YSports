@@ -2,35 +2,22 @@ package ysports.app.widgets
 
 import android.content.Context
 import android.util.AttributeSet
-import android.widget.LinearLayout
+import androidx.appcompat.widget.AppCompatImageView
 import ysports.app.R
 
-class RatioLinearLayout : LinearLayout {
+class RatioImageView : AppCompatImageView {
 
     private var ratio: Int = 1
 
     constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0)
-    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : this(
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(
         context,
         attrs,
-        defStyleAttr,
-        0
-    )
-
-    constructor(
-        context: Context,
-        attrs: AttributeSet?,
-        defStyleAttr: Int,
-        defStyleRes: Int
-    ) : super(context, attrs, defStyleAttr, defStyleRes) {
+        defStyleAttr
+    ) {
         val typedArray =
-            context.theme.obtainStyledAttributes(
-                attrs,
-                R.styleable.RatioView,
-                defStyleAttr,
-                defStyleRes
-            )
+            context.theme.obtainStyledAttributes(attrs, R.styleable.RatioView, defStyleAttr, 0)
         try {
             ratio = typedArray.getInteger(R.styleable.RatioView_ratio, 0)
         } finally {
