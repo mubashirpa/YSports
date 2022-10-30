@@ -14,6 +14,8 @@ import android.widget.PopupMenu
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DefaultItemAnimator
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.exoplayer2.MediaItem
 import ysports.app.PlayerChooserActivity
@@ -25,6 +27,7 @@ import ysports.app.databinding.FragmentMatchesObjectBinding
 import ysports.app.player.PlayerUtil
 import ysports.app.ui.matches.adapter.MatchesAdapter
 import ysports.app.util.AppUtil
+import ysports.app.widgets.recyclerview.GridSpacingItemDecoration
 import ysports.app.widgets.recyclerview.ItemTouchListener
 import ysports.app.widgets.recyclerview.VerticalSpacingItemDecoration
 import java.net.URLDecoder
@@ -44,8 +47,7 @@ class MatchesObjectFragment() : Fragment() {
     private var _binding: FragmentMatchesObjectBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var fixtureRecyclerView: RecyclerView
-    private lateinit var itemDecoration: VerticalSpacingItemDecoration
+    private lateinit var recyclerView: RecyclerView
     private lateinit var errorLayout: View
     private var filteredList: List<Matches> = listOf()
     private var list: List<Matches> = listOf()
@@ -71,20 +73,30 @@ class MatchesObjectFragment() : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        fixtureRecyclerView = binding.recyclerView
+        recyclerView = binding.recyclerView
         errorLayout = binding.errorLayout.root
-        itemDecoration = VerticalSpacingItemDecoration(10, 10, 10)
+        val marginMin = (resources.getDimension(R.dimen.margin_min) / resources.displayMetrics.density).toInt()
+        val verticalItemDecoration = VerticalSpacingItemDecoration(marginMin, marginMin)
+        val gridItemDecoration = GridSpacingItemDecoration(2, marginMin, 0, includeEdge = true, isReverse = false)
 
         arguments?.takeIf { it.containsKey(ARG_POSITION) }?.apply {
             val position = getInt(ARG_POSITION)
             filterRecyclerView(position, list)
         }
 
-        fixtureRecyclerView.apply {
+        var recyclerLayoutManager = LinearLayoutManager(context)
+        if (AppUtil(requireContext()).isTablet()) {
+            recyclerLayoutManager = GridLayoutManager(context, 2)
+            recyclerView.addItemDecoration(gridItemDecoration)
+        } else {
+            recyclerView.addItemDecoration(verticalItemDecoration)
+        }
+
+        recyclerView.apply {
             itemAnimator = DefaultItemAnimator()
-            addItemDecoration(itemDecoration)
+            layoutManager = recyclerLayoutManager
             addOnItemTouchListener(
-                ItemTouchListener(context, fixtureRecyclerView, object : ItemTouchListener.ClickListener {
+                ItemTouchListener(context, recyclerView, object : ItemTouchListener.ClickListener {
                     override fun onClick(view: View, position: Int) {
                         val url = filteredList[position].url
                         val media = filteredList[position].media
@@ -170,7 +182,7 @@ class MatchesObjectFragment() : Fragment() {
                                     } else {
                                         "${filteredList[position].homeTeam} vs ${filteredList[position].awayTeam}\n#${getString(R.string.app_name)}"
                                     }
-                                    shareText(subject, getString(R.string.url_download_app), title)
+                                    shareText(title, subject, getString(R.string.url_download_app))
                                     true
                                 }
                                 else -> false
@@ -234,12 +246,12 @@ class MatchesObjectFragment() : Fragment() {
 
     private fun setRecyclerAdapter(list: List<Matches>) {
         val fixtureAdapter = MatchesAdapter(requireContext(), list)
-        fixtureRecyclerView.adapter = fixtureAdapter
-        fixtureRecyclerView.showView()
+        recyclerView.adapter = fixtureAdapter
+        recyclerView.showView()
     }
 
     private fun errorOccurred(error: Int) {
-        fixtureRecyclerView.hideView()
+        recyclerView.hideView()
         binding.errorLayout.stateDescription.text = getString(error)
         binding.errorLayout.buttonRetry.hideView()
         errorLayout.showView()
@@ -261,12 +273,15 @@ class MatchesObjectFragment() : Fragment() {
         return 0
     }
 
-    private fun shareText(subject: String, text: String, title: String) {
-        val intent = Intent(Intent.ACTION_SEND).apply {
+    private fun shareText(title: String?, subject: String?, text: String) {
+        val sendIntent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_SUBJECT, subject)
             putExtra(Intent.EXTRA_TEXT, text)
         }
-        startActivity(Intent.createChooser(intent, title))
+        val chooser: Intent = Intent.createChooser(sendIntent, title)
+        if (sendIntent.resolveActivity(requireContext().packageManager) != null) {
+            startActivity(chooser)
+        }
     }
 }
