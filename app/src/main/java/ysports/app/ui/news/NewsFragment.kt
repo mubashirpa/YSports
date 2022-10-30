@@ -1,6 +1,5 @@
 package ysports.app.ui.news
 
-import android.content.Intent
 import android.content.res.Resources
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -18,7 +17,6 @@ import com.google.android.material.progressindicator.CircularProgressIndicator
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import ysports.app.BrowserActivity
 import ysports.app.BuildConfig
 import ysports.app.R
 import ysports.app.api.newsapi.org.Article
@@ -28,7 +26,6 @@ import ysports.app.databinding.FragmentNewsBinding
 import ysports.app.util.AppUtil
 import ysports.app.util.NetworkUtil
 import ysports.app.widgets.recyclerview.GridSpacingItemDecoration
-import ysports.app.widgets.recyclerview.ItemTouchListener
 import ysports.app.widgets.recyclerview.VerticalSpacingItemDecoration
 import java.util.*
 import kotlin.concurrent.schedule
@@ -47,9 +44,7 @@ class NewsFragment : Fragment() {
     private var newsList: List<Article> = ArrayList()
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentNewsBinding.inflate(inflater, container, false)
         return binding.root
@@ -65,9 +60,11 @@ class NewsFragment : Fragment() {
         retryButton = binding.errorView.buttonRetry
         val appUtil = AppUtil(requireContext())
         val isTablet = appUtil.isTablet()
-        val marginMin = (resources.getDimension(R.dimen.margin_min) / resources.displayMetrics.density).toInt()
+        val marginMin =
+            (resources.getDimension(R.dimen.margin_min) / resources.displayMetrics.density).toInt()
         val verticalItemDecoration = VerticalSpacingItemDecoration(marginMin, marginMin)
-        val gridItemDecoration = GridSpacingItemDecoration(2, marginMin, 1, includeEdge = true, isReverse = false)
+        val gridItemDecoration =
+            GridSpacingItemDecoration(2, marginMin, 1, includeEdge = true, isReverse = false)
 
         retryButton.setOnClickListener {
             errorView.hideView()
@@ -93,20 +90,6 @@ class NewsFragment : Fragment() {
         recyclerView.apply {
             itemAnimator = DefaultItemAnimator()
             layoutManager = recyclerLayoutManager
-            addOnItemTouchListener(
-                ItemTouchListener(context, recyclerView, object : ItemTouchListener.ClickListener {
-                    override fun onClick(view: View, position: Int) {
-                        val intent = Intent(context, BrowserActivity::class.java).apply {
-                            putExtra("WEB_URL", newsList[position].url)
-                        }
-                        startActivity(intent)
-                    }
-
-                    override fun onLongClick(view: View, position: Int) {
-
-                    }
-                })
-            )
         }
 
         if (isTablet) binding.recyclerContainer.maxWidth = dpToPx(appUtil.minScreenWidth())
@@ -147,7 +130,8 @@ class NewsFragment : Fragment() {
 
             override fun onFailure(call: Call<NewsResponse>, t: Throwable) {
                 if (isAdded) {
-                    val error = if (NetworkUtil().isOnline(context)) R.string.error_failed_to_load_content else R.string.error_no_network
+                    val error =
+                        if (NetworkUtil().isOnline(context)) R.string.error_failed_to_load_content else R.string.error_no_network
                     errorOccurred(error, true)
                 }
             }
