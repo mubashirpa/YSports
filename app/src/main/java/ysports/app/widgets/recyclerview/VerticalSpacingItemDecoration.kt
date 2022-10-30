@@ -6,17 +6,13 @@ import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 
 class VerticalSpacingItemDecoration(
-    private val margin: Int,
-    private val verticalSpacing: Int
+    private val margin: Int, private val verticalSpacing: Int
 ) : RecyclerView.ItemDecoration() {
 
     private val displayDensity = Resources.getSystem().displayMetrics.density
 
     override fun getItemOffsets(
-        outRect: Rect,
-        view: View,
-        parent: RecyclerView,
-        state: RecyclerView.State
+        outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State
     ) {
         val total: Int = state.itemCount
         val position: Int = parent.getChildAdapterPosition(view)

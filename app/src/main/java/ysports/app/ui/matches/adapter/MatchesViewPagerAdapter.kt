@@ -10,8 +10,7 @@ import ysports.app.ui.matches.MatchesObjectFragment
 private const val tabs_count = 3
 
 class MatchesViewPagerAdapter(
-    fragment: Fragment,
-    private val list: List<Matches>
+    fragment: Fragment, private val list: List<Matches>
 ) : FragmentStateAdapter(fragment) {
 
     override fun getItemCount(): Int = tabs_count

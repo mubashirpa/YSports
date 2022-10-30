@@ -75,9 +75,11 @@ class MatchesObjectFragment() : Fragment() {
 
         recyclerView = binding.recyclerView
         errorLayout = binding.errorLayout.root
-        val marginMin = (resources.getDimension(R.dimen.margin_min) / resources.displayMetrics.density).toInt()
+        val marginMin =
+            (resources.getDimension(R.dimen.margin_min) / resources.displayMetrics.density).toInt()
         val verticalItemDecoration = VerticalSpacingItemDecoration(marginMin, marginMin)
-        val gridItemDecoration = GridSpacingItemDecoration(2, marginMin, 0, includeEdge = true, isReverse = false)
+        val gridItemDecoration =
+            GridSpacingItemDecoration(2, marginMin, 0, includeEdge = true, isReverse = false)
 
         arguments?.takeIf { it.containsKey(ARG_POSITION) }?.apply {
             val position = getInt(ARG_POSITION)
@@ -104,26 +106,45 @@ class MatchesObjectFragment() : Fragment() {
                         if (url != null) {
                             when {
                                 url.startsWith(CHROME_SCHEME) -> {
-                                    val replacedURL = URLDecoder.decode(url.substring(CHROME_SCHEME.length), "UTF-8")
+                                    val replacedURL = URLDecoder.decode(
+                                        url.substring(CHROME_SCHEME.length),
+                                        "UTF-8"
+                                    )
                                     AppUtil(context).openCustomTabs(replacedURL)
                                 }
                                 url.startsWith(VIDEO_SCHEME) -> {
-                                    val replacedURL = URLDecoder.decode(url.substring(VIDEO_SCHEME.length), "UTF-8")
+                                    val replacedURL = URLDecoder.decode(
+                                        url.substring(VIDEO_SCHEME.length),
+                                        "UTF-8"
+                                    )
                                     if (replacedURL.startsWith(YOUTUBE_SCHEME)) {
-                                        val intent = Intent(context, YouTubePlayerActivity::class.java).apply {
+                                        val intent = Intent(
+                                            context,
+                                            YouTubePlayerActivity::class.java
+                                        ).apply {
                                             putExtra("VIDEO_URL", replacedURL)
                                         }
                                         startActivity(intent)
                                     } else {
-                                        val title = "${filteredList[position].homeTeam} vs ${filteredList[position].awayTeam} (${filteredList[position].leagueName})"
-                                        playerUtil.loadPlayer(context, Uri.parse(replacedURL), title, true)
+                                        val title =
+                                            "${filteredList[position].homeTeam} vs ${filteredList[position].awayTeam} (${filteredList[position].leagueName})"
+                                        playerUtil.loadPlayer(
+                                            context,
+                                            Uri.parse(replacedURL),
+                                            title,
+                                            true
+                                        )
                                     }
                                 }
                                 url.startsWith(MEDIA_SCHEME) -> {
-                                    val replacedURL = URLDecoder.decode(url.substring(MEDIA_SCHEME.length), "UTF-8")
-                                    val intent = Intent(context, PlayerChooserActivity::class.java).apply {
-                                        putExtra("JSON_URL", replacedURL)
-                                    }
+                                    val replacedURL = URLDecoder.decode(
+                                        url.substring(MEDIA_SCHEME.length),
+                                        "UTF-8"
+                                    )
+                                    val intent =
+                                        Intent(context, PlayerChooserActivity::class.java).apply {
+                                            putExtra("JSON_URL", replacedURL)
+                                        }
                                     startActivity(intent)
                                 }
                                 else -> {
@@ -158,29 +179,51 @@ class MatchesObjectFragment() : Fragment() {
                                 R.id.add_calender -> {
                                     if (timestamp.isNotEmpty()) {
                                         val startTime = simpleDateFormat.parse(timestamp)
-                                        val title = "${filteredList[position].homeTeam} vs ${filteredList[position].awayTeam}"
+                                        val title =
+                                            "${filteredList[position].homeTeam} vs ${filteredList[position].awayTeam}"
                                         val description = filteredList[position].leagueName
                                         val intent = Intent(Intent.ACTION_EDIT).apply {
                                             type = "vnd.android.cursor.item/event"
                                             if (startTime != null) {
-                                                putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, startTime.time)
-                                                putExtra(CalendarContract.EXTRA_EVENT_END_TIME, (startTime.time + 105 * 60 * 1000))
+                                                putExtra(
+                                                    CalendarContract.EXTRA_EVENT_BEGIN_TIME,
+                                                    startTime.time
+                                                )
+                                                putExtra(
+                                                    CalendarContract.EXTRA_EVENT_END_TIME,
+                                                    (startTime.time + 105 * 60 * 1000)
+                                                )
                                             }
                                             putExtra(CalendarContract.Events.TITLE, title)
-                                            putExtra(CalendarContract.Events.DESCRIPTION, description)
+                                            putExtra(
+                                                CalendarContract.Events.DESCRIPTION,
+                                                description
+                                            )
                                         }
                                         startActivity(intent)
                                     }
                                     true
                                 }
                                 R.id.share -> {
-                                    val title = "${filteredList[position].homeTeam} vs ${filteredList[position].awayTeam}"
+                                    val title =
+                                        "${filteredList[position].homeTeam} vs ${filteredList[position].awayTeam}"
                                     val subject = if (timestamp.isNotEmpty()) {
                                         val matchTime = simpleDateFormat.parse(timestamp) as Date
-                                        val timeFormatter = SimpleDateFormat("dd. LLL KK:mm aaa", Locale.getDefault())
-                                        "${timeFormatter.format(matchTime)}, ${filteredList[position].homeTeam} vs ${filteredList[position].awayTeam}\n#${getString(R.string.app_name)}"
+                                        val timeFormatter = SimpleDateFormat(
+                                            "dd. LLL KK:mm aaa",
+                                            Locale.getDefault()
+                                        )
+                                        "${timeFormatter.format(matchTime)}, ${filteredList[position].homeTeam} vs ${filteredList[position].awayTeam}\n#${
+                                            getString(
+                                                R.string.app_name
+                                            )
+                                        }"
                                     } else {
-                                        "${filteredList[position].homeTeam} vs ${filteredList[position].awayTeam}\n#${getString(R.string.app_name)}"
+                                        "${filteredList[position].homeTeam} vs ${filteredList[position].awayTeam}\n#${
+                                            getString(
+                                                R.string.app_name
+                                            )
+                                        }"
                                     }
                                     shareText(title, subject, getString(R.string.url_download_app))
                                     true
@@ -257,7 +300,7 @@ class MatchesObjectFragment() : Fragment() {
         errorLayout.showView()
     }
 
-    private fun checkDate(timestamp: String) : Int {
+    private fun checkDate(timestamp: String): Int {
         val startTime = simpleDateFormat.parse(timestamp)
         if (startTime != null) {
             calendar.time = startTime

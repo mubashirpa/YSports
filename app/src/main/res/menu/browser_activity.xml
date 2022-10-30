@@ -3,23 +3,23 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/share"
+        android:contentDescription="@string/app_name"
         android:icon="@drawable/ic_baseline_share_24"
         android:title="@string/share"
-        android:contentDescription="@string/app_name"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/refresh"
-        android:title="@string/refresh"
         android:contentDescription="@string/app_name"
-        app:showAsAction="never"/>
+        android:title="@string/refresh"
+        app:showAsAction="never" />
     <item
         android:id="@+id/copy"
-        android:title="@string/copy_link"
         android:contentDescription="@string/app_name"
-        app:showAsAction="never"/>
+        android:title="@string/copy_link"
+        app:showAsAction="never" />
     <item
         android:id="@+id/open"
-        android:title="@string/open_in_browser"
         android:contentDescription="@string/app_name"
-        app:showAsAction="never"/>
+        android:title="@string/open_in_browser"
+        app:showAsAction="never" />
 </menu>

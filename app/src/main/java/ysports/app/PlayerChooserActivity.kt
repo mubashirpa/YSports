@@ -124,7 +124,9 @@ class PlayerChooserActivity : AppCompatActivity(), OnChildClickListener {
         }
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (grantResults.isEmpty()) {
             // Empty results are triggered if a permission is requested while another request was already
@@ -134,12 +136,16 @@ class PlayerChooserActivity : AppCompatActivity(), OnChildClickListener {
         if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             loadSample()
         } else {
-            Toast.makeText(applicationContext, "One or more lists failed to load", Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                applicationContext, "One or more lists failed to load", Toast.LENGTH_LONG
+            ).show()
             finish()
         }
     }
 
-    override fun onChildClick(parent: ExpandableListView?, view: View?, groupPosition: Int, childPosition: Int, id: Long): Boolean {
+    override fun onChildClick(
+        parent: ExpandableListView?, view: View?, groupPosition: Int, childPosition: Int, id: Long
+    ): Boolean {
         // Save the selected item first to be able to restore it if the tested code crashes.
         val prefEditor = getPreferences(MODE_PRIVATE).edit()
         prefEditor.putInt(GROUP_POSITION_PREFERENCE_KEY, groupPosition)
@@ -163,53 +169,50 @@ class PlayerChooserActivity : AppCompatActivity(), OnChildClickListener {
         }
 
         var sawError = false
-        lifecycleScope.executeAsyncTask(
-            onPreExecute = {
-                // runs in Main Thread
-            },
-            doInBackground = { publishProgress: suspend (progress: Int) -> Unit ->
-                // runs in Background Thread
+        lifecycleScope.executeAsyncTask(onPreExecute = {
+            // runs in Main Thread
+        }, doInBackground = { publishProgress: suspend (progress: Int) -> Unit ->
+            // runs in Background Thread
 
-                // simulate progress update
-                // call `publishProgress` to update progress, `onProgressUpdate` will be called
+            // simulate progress update
+            // call `publishProgress` to update progress, `onProgressUpdate` will be called
 
-                val result: MutableList<PlaylistGroup> = ArrayList()
-                val dataSource: DataSource = DemoUtil.getDataSourceFactory(context).createDataSource()
-                for (uri in uris) {
-                    val dataSpec = DataSpec(Uri.parse(uri))
-                    val inputStream: InputStream = DataSourceInputStream(dataSource, dataSpec)
-                    try {
-                        readPlaylistGroups(JsonReader(InputStreamReader(inputStream, "UTF-8")), result)
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Error loading sample list: $uri", e)
-                        sawError = true
-                    } finally {
-                        DataSourceUtil.closeQuietly(dataSource)
-                    }
+            val result: MutableList<PlaylistGroup> = ArrayList()
+            val dataSource: DataSource = DemoUtil.getDataSourceFactory(context).createDataSource()
+            for (uri in uris) {
+                val dataSpec = DataSpec(Uri.parse(uri))
+                val inputStream: InputStream = DataSourceInputStream(dataSource, dataSpec)
+                try {
+                    readPlaylistGroups(
+                        JsonReader(InputStreamReader(inputStream, "UTF-8")), result
+                    )
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error loading sample list: $uri", e)
+                    sawError = true
+                } finally {
+                    DataSourceUtil.closeQuietly(dataSource)
                 }
-                publishProgress(100)
-                result
-            },
-            onPostExecute = {
-                // runs in Main Thread
-                // "it" is a data returned from "doInBackground"
-                onPlaylistGroups(it, sawError)
-            },
-            onProgressUpdate = {
-                // runs in Main Thread
-                // here "it" contains progress
             }
-        )
+            publishProgress(100)
+            result
+        }, onPostExecute = {
+            // runs in Main Thread
+            // "it" is a data returned from "doInBackground"
+            onPlaylistGroups(it, sawError)
+        }, onProgressUpdate = {
+            // runs in Main Thread
+            // here "it" contains progress
+        })
     }
 
     private fun onPlaylistGroups(groups: MutableList<PlaylistGroup>, sawError: Boolean) {
         if (sawError && groups.isNotEmpty()) {
-            Snackbar.make(binding.contextView, R.string.error_list_load_failed, Snackbar.LENGTH_LONG)
-                .setAction(R.string.retry) {
-                    progressBar.showView()
-                    loadSample()
-                }
-                .show()
+            Snackbar.make(
+                binding.contextView, R.string.error_list_load_failed, Snackbar.LENGTH_LONG
+            ).setAction(R.string.retry) {
+                progressBar.showView()
+                loadSample()
+            }.show()
         }
         loadComplete(groups.isEmpty())
 
@@ -305,7 +308,13 @@ class PlayerChooserActivity : AppCompatActivity(), OnChildClickListener {
                 "extension" -> extension = reader.nextString()
                 "clip_start_position_ms" -> clippingConfiguration.setStartPositionMs(reader.nextLong())
                 "clip_end_position_ms" -> clippingConfiguration.setEndPositionMs(reader.nextLong())
-                "ad_tag_uri" -> mediaItem.setAdsConfiguration(MediaItem.AdsConfiguration.Builder(Uri.parse(reader.nextString())).build())
+                "ad_tag_uri" -> mediaItem.setAdsConfiguration(
+                    MediaItem.AdsConfiguration.Builder(
+                        Uri.parse(
+                            reader.nextString()
+                        )
+                    ).build()
+                )
                 "drm_scheme" -> drmUuid = Util.getDrmUuid(reader.nextString())
                 "drm_license_uri", "drm_license_url" -> drmLicenseUri = reader.nextString()
                 "drm_key_request_properties" -> {
@@ -345,35 +354,42 @@ class PlayerChooserActivity : AppCompatActivity(), OnChildClickListener {
             PlaylistHolder(title, mediaItems)
         } else {
             @Nullable val adaptiveMimeType = Util.getAdaptiveMimeTypeForContentType(
-                if (TextUtils.isEmpty(extension)) Util.inferContentType(uri!!) else Util.inferContentTypeForExtension(extension!!)
+                if (TextUtils.isEmpty(extension)) Util.inferContentType(uri!!) else Util.inferContentTypeForExtension(
+                    extension!!
+                )
             )
-            mediaItem
-                .setUri(uri)
-                .setMediaMetadata(MediaMetadata.Builder().setTitle(title).build())
+            mediaItem.setUri(uri).setMediaMetadata(MediaMetadata.Builder().setTitle(title).build())
                 .setMimeType(adaptiveMimeType)
                 .setClippingConfiguration(clippingConfiguration.build())
             if (drmUuid != null) {
-                mediaItem.setDrmConfiguration(MediaItem.DrmConfiguration.Builder(drmUuid)
-                    .setLicenseUri(drmLicenseUri)
-                    .setLicenseRequestHeaders(drmLicenseRequestHeaders)
-                    .setForceSessionsForAudioAndVideoTracks(drmSessionForClearContent)
-                    .setMultiSession(drmMultiSession)
-                    .setForceDefaultLicenseUri(drmForceDefaultLicenseUri)
-                    .build())
+                mediaItem.setDrmConfiguration(
+                    MediaItem.DrmConfiguration.Builder(drmUuid).setLicenseUri(drmLicenseUri)
+                        .setLicenseRequestHeaders(drmLicenseRequestHeaders)
+                        .setForceSessionsForAudioAndVideoTracks(drmSessionForClearContent)
+                        .setMultiSession(drmMultiSession)
+                        .setForceDefaultLicenseUri(drmForceDefaultLicenseUri).build()
+                )
             } else {
                 checkState(drmLicenseUri == null, "drm_uuid is required if drm_license_uri is set.")
-                checkState(drmLicenseRequestHeaders.isEmpty(), "drm_uuid is required if drm_key_request_properties is set.")
-                checkState(!drmSessionForClearContent, "drm_uuid is required if drm_session_for_clear_content is set.")
+                checkState(
+                    drmLicenseRequestHeaders.isEmpty(),
+                    "drm_uuid is required if drm_key_request_properties is set."
+                )
+                checkState(
+                    !drmSessionForClearContent,
+                    "drm_uuid is required if drm_session_for_clear_content is set."
+                )
                 checkState(!drmMultiSession, "drm_uuid is required if drm_multi_session is set.")
-                checkState(!drmForceDefaultLicenseUri, "drm_uuid is required if drm_force_default_license_uri is set.")
+                checkState(
+                    !drmForceDefaultLicenseUri,
+                    "drm_uuid is required if drm_force_default_license_uri is set."
+                )
             }
             if (subtitleUri != null) {
                 val subtitleConfiguration = MediaItem.SubtitleConfiguration.Builder(subtitleUri)
                     .setMimeType(checkNotNull(subtitleMimeType) {
                         "subtitle_mime_type is required if subtitle_uri is set."
-                    })
-                    .setLanguage(subtitleLanguage)
-                    .build()
+                    }).setLanguage(subtitleLanguage).build()
                 mediaItem.setSubtitleConfigurations(ImmutableList.of(subtitleConfiguration))
             }
             PlaylistHolder(title, Collections.singletonList(mediaItem.build()))
@@ -441,16 +457,26 @@ class PlayerChooserActivity : AppCompatActivity(), OnChildClickListener {
             return false
         }
 
-        override fun getGroupView(groupPosition: Int, isExpanded: Boolean, convertView: View?, parent: ViewGroup?): View {
+        override fun getGroupView(
+            groupPosition: Int, isExpanded: Boolean, convertView: View?, parent: ViewGroup?
+        ): View {
             var view: View? = convertView
             if (view == null) {
-                view = layoutInflater.inflate(android.R.layout.simple_expandable_list_item_1, parent, false)
+                view = layoutInflater.inflate(
+                    android.R.layout.simple_expandable_list_item_1, parent, false
+                )
             }
             (view as TextView).text = getGroup(groupPosition).title
             return view
         }
 
-        override fun getChildView(groupPosition: Int, childPosition: Int, isLastChild: Boolean, convertView: View?, parent: ViewGroup?): View {
+        override fun getChildView(
+            groupPosition: Int,
+            childPosition: Int,
+            isLastChild: Boolean,
+            convertView: View?,
+            parent: ViewGroup?
+        ): View {
             var view: View? = convertView
             if (view == null) {
                 view = layoutInflater.inflate(R.layout.list_item_player_chooser, parent, false)

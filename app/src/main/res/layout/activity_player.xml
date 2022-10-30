@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".PlayerActivity">
@@ -11,64 +10,69 @@
         android:id="@+id/player_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:controller_layout_id="@layout/view_player_control"
         app:animation_enabled="false"
+        app:controller_layout_id="@layout/view_player_control"
         app:show_buffering="always" />
 
     <LinearLayout
         android:id="@+id/brightness_control"
         android:layout_width="wrap_content"
         android:layout_height="48dp"
-        android:orientation="horizontal"
-        android:gravity="center"
         android:layout_gravity="end"
         android:layout_marginTop="24dp"
         android:layout_marginEnd="10dp"
+        android:gravity="center"
+        android:orientation="horizontal"
         android:paddingHorizontal="10dp"
         android:visibility="gone">
+
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/brightness_progress"
             android:layout_width="150dp"
             android:layout_height="wrap_content"
-            app:trackCornerRadius="8dp"
-            app:trackThickness="8dp"
+            app:indicatorColor="@color/white"
             app:trackColor="@android:color/darker_gray"
-            app:indicatorColor="@color/white"/>
+            app:trackCornerRadius="8dp"
+            app:trackThickness="8dp" />
+
         <ImageView
             android:id="@+id/brightness_icon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_baseline_brightness_medium_24"
-            android:contentDescription="@string/app_name"
             android:layout_marginStart="10dp"
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/ic_baseline_brightness_medium_24"
             app:tint="@color/white" />
     </LinearLayout>
+
     <LinearLayout
         android:id="@+id/volume_control"
         android:layout_width="wrap_content"
         android:layout_height="48dp"
-        android:orientation="horizontal"
-        android:gravity="center"
         android:layout_gravity="end"
         android:layout_marginTop="24dp"
         android:layout_marginEnd="10dp"
+        android:gravity="center"
+        android:orientation="horizontal"
         android:paddingHorizontal="10dp"
         android:visibility="gone">
+
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/volume_progress"
             android:layout_width="150dp"
             android:layout_height="wrap_content"
-            app:trackCornerRadius="8dp"
-            app:trackThickness="8dp"
+            app:indicatorColor="@color/white"
             app:trackColor="@android:color/darker_gray"
-            app:indicatorColor="@color/white"/>
+            app:trackCornerRadius="8dp"
+            app:trackThickness="8dp" />
+
         <ImageView
             android:id="@+id/volume_icon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_baseline_volume_up_24"
-            android:contentDescription="@string/app_name"
             android:layout_marginStart="10dp"
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/ic_baseline_volume_up_24"
             app:tint="@color/white" />
     </LinearLayout>
 
@@ -77,12 +81,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:padding="14dp"
         android:background="@drawable/bg_player_ratio_notifier"
-        android:textSize="22sp"
+        android:padding="14dp"
         android:textColor="@color/white"
+        android:textSize="22sp"
         android:textStyle="bold"
-        android:visibility="gone"/>
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/app_name"
@@ -91,11 +95,12 @@
         android:layout_gravity="center|end"
         android:layout_marginEnd="50dp"
         android:alpha="0.8"
+        android:clickable="false"
+        android:focusable="false"
         android:text="@string/ysports_caps"
         android:textColor="@color/watermark"
-        android:textSize="12sp"
-        android:clickable="false"
-        android:focusable="false" />
+        android:textSize="12sp" />
+
     <TextView
         android:id="@+id/debug_text_view"
         android:layout_width="match_parent"
@@ -106,13 +111,13 @@
 
     <Button
         android:id="@+id/exo_unlock"
+        style="?attr/materialIconButtonStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
         android:layout_gravity="bottom"
-        android:visibility="gone"
+        android:layout_margin="16dp"
         android:contentDescription="@string/app_name"
-        app:icon="@drawable/ic_baseline_lock_24"
-        style="?attr/materialIconButtonStyle"/>
+        android:visibility="gone"
+        app:icon="@drawable/ic_baseline_lock_24" />
 
 </FrameLayout>

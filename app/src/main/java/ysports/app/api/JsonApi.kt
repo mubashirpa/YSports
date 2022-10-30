@@ -19,7 +19,7 @@ interface JsonApi {
     fun getMatches(@Url path: String): Call<MatchesResponse>
 
     companion object {
-        fun create(BASE_URL: String) : JsonApi {
+        fun create(BASE_URL: String): JsonApi {
             val logger = HttpLoggingInterceptor()
             logger.level = HttpLoggingInterceptor.Level.BASIC
 

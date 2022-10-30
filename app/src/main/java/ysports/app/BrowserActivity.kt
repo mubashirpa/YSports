@@ -132,9 +132,7 @@ class BrowserActivity : AppCompatActivity() {
                         ClipData.newPlainText("clipboard", webView.url ?: WEB_URL)
                     )
                     Toast.makeText(
-                        context,
-                        getString(R.string.link_copied_to_clipboard),
-                        Toast.LENGTH_SHORT
+                        context, getString(R.string.link_copied_to_clipboard), Toast.LENGTH_SHORT
                     ).show()
                     true
                 }
@@ -151,11 +149,9 @@ class BrowserActivity : AppCompatActivity() {
         }
 
         binding.detailsButton.setOnClickListener {
-            MaterialAlertDialogBuilder(context)
-                .setTitle(webView.url)
+            MaterialAlertDialogBuilder(context).setTitle(webView.url)
                 .setMessage("Error: $errorDescription\n\nError code:$errorCode")
-                .setPositiveButton(resources.getString(R.string.cancel)) { _, _ -> }
-                .show()
+                .setPositiveButton(resources.getString(R.string.cancel)) { _, _ -> }.show()
         }
 
         webView.setOnLongClickListener {
@@ -207,9 +203,7 @@ class BrowserActivity : AppCompatActivity() {
                             }
                         }
                         4 -> if (srcExtra != null) shareText(
-                            getString(R.string.share_via),
-                            title,
-                            srcExtra
+                            getString(R.string.share_via), title, srcExtra
                         )
                     }
                     bottomSheetMenu.dismiss()
@@ -218,9 +212,7 @@ class BrowserActivity : AppCompatActivity() {
             }
             if (hitTestResult.type == WebView.HitTestResult.IMAGE_TYPE) {
                 val items = resources.getStringArray(R.array.web_image_anchor_type_items)
-                Glide.with(context)
-                    .load(srcExtra)
-                    .into(menuIcon)
+                Glide.with(context).load(srcExtra).into(menuIcon)
                 if (!title.isNullOrEmpty()) {
                     menuTitle.text = title
                     menuTitle.visibility = View.VISIBLE
@@ -247,9 +239,7 @@ class BrowserActivity : AppCompatActivity() {
             }
             if (hitTestResult.type == WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE) {
                 val items = resources.getStringArray(R.array.web_src_image_anchor_type_items)
-                Glide.with(context)
-                    .load(srcExtra)
-                    .into(menuIcon)
+                Glide.with(context).load(srcExtra).into(menuIcon)
                 if (!title.isNullOrEmpty()) {
                     menuTitle.text = title
                     menuTitle.visibility = View.VISIBLE
@@ -311,39 +301,33 @@ class BrowserActivity : AppCompatActivity() {
         // WebViewAssetLoader
         // Default URL: https://appassets.androidplatform.net/assets/index.html
         // Custom URL: https://ysports.app/assets/index.html
-        val assetLoader = WebViewAssetLoader.Builder()
-            .setDomain("ysports.app")
+        val assetLoader = WebViewAssetLoader.Builder().setDomain("ysports.app")
             .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
-            .addPathHandler("/res/", WebViewAssetLoader.ResourcesPathHandler(this))
-            .build()
+            .addPathHandler("/res/", WebViewAssetLoader.ResourcesPathHandler(this)).build()
 
         // Supporting Dark Theme for WebView
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING))
-                WebSettingsCompat.setAlgorithmicDarkeningAllowed(webView.settings, false)
+            if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) WebSettingsCompat.setAlgorithmicDarkeningAllowed(
+                webView.settings,
+                false
+            )
         } else {
             // Deprecated in Api level 33
             when (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
                 Configuration.UI_MODE_NIGHT_YES -> {
-                    if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK))
-                        WebSettingsCompat.setForceDark(
-                            webView.settings,
-                            WebSettingsCompat.FORCE_DARK_ON
-                        )
+                    if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) WebSettingsCompat.setForceDark(
+                        webView.settings, WebSettingsCompat.FORCE_DARK_ON
+                    )
                 }
                 Configuration.UI_MODE_NIGHT_NO, Configuration.UI_MODE_NIGHT_UNDEFINED -> {
-                    if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK))
-                        WebSettingsCompat.setForceDark(
-                            webView.settings,
-                            WebSettingsCompat.FORCE_DARK_OFF
-                        )
+                    if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) WebSettingsCompat.setForceDark(
+                        webView.settings, WebSettingsCompat.FORCE_DARK_OFF
+                    )
                 }
             }
-            if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY))
-                WebSettingsCompat.setForceDarkStrategy(
-                    webView.settings,
-                    WebSettingsCompat.DARK_STRATEGY_WEB_THEME_DARKENING_ONLY
-                )
+            if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK_STRATEGY)) WebSettingsCompat.setForceDarkStrategy(
+                webView.settings, WebSettingsCompat.DARK_STRATEGY_WEB_THEME_DARKENING_ONLY
+            )
         }
 
         // Setup debugging; See https://developers.google.com/web/tools/chrome-devtools/remote-debugging/webviews for reference
@@ -417,8 +401,7 @@ class BrowserActivity : AppCompatActivity() {
             val wifiConnected = NetworkUtil().wifiConnected(context)
             if (!wifiConnected) downloadDialogBuilder.setMessage(getString(R.string.warning_cellular_data_usage))
 
-            downloadDialogBuilder
-                .setTitle(resources.getString(R.string.download))
+            downloadDialogBuilder.setTitle(resources.getString(R.string.download))
                 .setView(downloadLayout)
                 .setNegativeButton(resources.getString(R.string.cancel)) { _, _ -> }
                 .setPositiveButton(resources.getString(R.string.download)) { _, _ ->
@@ -431,9 +414,7 @@ class BrowserActivity : AppCompatActivity() {
                             startDownload(url, userAgent, mimetype, textFileName.text.toString())
                         }
                     }
-                }
-                .setCancelable(false)
-                .show()
+                }.setCancelable(false).show()
         }
     }
 
@@ -471,9 +452,7 @@ class BrowserActivity : AppCompatActivity() {
     }
 
     override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == CAMERA_PERMISSION_REQUEST_CODE && grantResults.isNotEmpty()) {
@@ -482,8 +461,7 @@ class BrowserActivity : AppCompatActivity() {
                 onPermissionRequestConfirmation(false, arrayOf(""))
             } else {
                 onPermissionRequestConfirmation(
-                    true,
-                    arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE)
+                    true, arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE)
                 )
             }
         }
@@ -493,8 +471,7 @@ class BrowserActivity : AppCompatActivity() {
                 onPermissionRequestConfirmation(false, arrayOf(""))
             } else {
                 onPermissionRequestConfirmation(
-                    true,
-                    arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE)
+                    true, arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE)
                 )
             }
         }
@@ -502,9 +479,7 @@ class BrowserActivity : AppCompatActivity() {
             if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
                 Log.e(TAG, "Location permission denied")
                 onGeolocationPermissionConfirmation(
-                    geolocationOrigin,
-                    allowed = false,
-                    retain = false
+                    geolocationOrigin, allowed = false, retain = false
                 )
             } else {
                 fetchLocation()
@@ -523,30 +498,23 @@ class BrowserActivity : AppCompatActivity() {
             callback: SafeBrowsingResponseCompat
         ) {
             if (WebViewFeature.isFeatureSupported(WebViewFeature.SAFE_BROWSING_RESPONSE_BACK_TO_SAFETY)) {
-                MaterialAlertDialogBuilder(context)
-                    .setTitle(getString(R.string.warning_unsafe_page_title))
+                MaterialAlertDialogBuilder(context).setTitle(getString(R.string.warning_unsafe_page_title))
                     .setMessage(getString(R.string.warning_unsafe_page_message))
                     .setNegativeButton(resources.getString(R.string.continue_page)) { _, _ ->
                         callback.backToSafety(false)
-                    }
-                    .setPositiveButton(resources.getString(R.string.block)) { _, _ ->
+                    }.setPositiveButton(resources.getString(R.string.block)) { _, _ ->
                         callback.backToSafety(true)
                         Toast.makeText(
-                            view.context,
-                            getString(R.string.unsafe_page_blocked),
-                            Toast.LENGTH_LONG
+                            view.context, getString(R.string.unsafe_page_blocked), Toast.LENGTH_LONG
                         ).show()
-                    }
-                    .setCancelable(false)
-                    .show()
+                    }.setCancelable(false).show()
             }
         }
 
         // Termination Handling API
         @RequiresApi(26)
         override fun onRenderProcessGone(
-            view: WebView?,
-            detail: RenderProcessGoneDetail?
+            view: WebView?, detail: RenderProcessGoneDetail?
         ): Boolean {
             if (detail != null && !detail.didCrash()) {
                 // Renderer was killed because the system ran out of memory.
@@ -568,8 +536,7 @@ class BrowserActivity : AppCompatActivity() {
         }
 
         override fun shouldInterceptRequest(
-            view: WebView,
-            request: WebResourceRequest
+            view: WebView, request: WebResourceRequest
         ): WebResourceResponse? {
             if (!enableAdBlocker) return assetLoader.shouldInterceptRequest(request.url)
             val loadedUrls: MutableMap<String, Boolean> = HashMap()
@@ -603,9 +570,7 @@ class BrowserActivity : AppCompatActivity() {
 
         @UiThread
         override fun onReceivedError(
-            view: WebView,
-            request: WebResourceRequest,
-            error: WebResourceErrorCompat
+            view: WebView, request: WebResourceRequest, error: WebResourceErrorCompat
         ) {
             if (!WebViewFeature.isFeatureSupported(WebViewFeature.RECEIVE_WEB_RESOURCE_ERROR)) return
             if (request.isForMainFrame) {
@@ -619,9 +584,7 @@ class BrowserActivity : AppCompatActivity() {
 
         @SuppressLint("WebViewClientOnReceivedSslError")
         override fun onReceivedSslError(
-            view: WebView?,
-            handler: SslErrorHandler?,
-            error: SslError?
+            view: WebView?, handler: SslErrorHandler?, error: SslError?
         ) {
             val errorMessage = when (error?.primaryError) {
                 SslError.SSL_UNTRUSTED -> getString(R.string.error_ssl_untrusted)
@@ -631,24 +594,18 @@ class BrowserActivity : AppCompatActivity() {
                 SslError.SSL_DATE_INVALID -> getString(R.string.error_ssl_date_invalid)
                 else -> getString(R.string.error_ssl)
             }
-            MaterialAlertDialogBuilder(context)
-                .setTitle(getString(R.string.error_ssl_title))
+            MaterialAlertDialogBuilder(context).setTitle(getString(R.string.error_ssl_title))
                 .setMessage(errorMessage)
                 .setNegativeButton(resources.getString(R.string.cancel)) { _, _ ->
                     handler?.cancel()
-                }
-                .setPositiveButton(resources.getString(R.string.proceed)) { _, _ ->
+                }.setPositiveButton(resources.getString(R.string.proceed)) { _, _ ->
                     handler?.proceed()
-                }
-                .setCancelable(false)
-                .show()
+                }.setCancelable(false).show()
         }
 
         @UiThread
         override fun onReceivedHttpError(
-            view: WebView,
-            request: WebResourceRequest,
-            errorResponse: WebResourceResponse
+            view: WebView, request: WebResourceRequest, errorResponse: WebResourceResponse
         ) {
             if (WebViewFeature.isFeatureSupported(WebViewFeature.RECEIVE_HTTP_ERROR)) {
                 super.onReceivedHttpError(view, request, errorResponse)
@@ -681,16 +638,11 @@ class BrowserActivity : AppCompatActivity() {
         }
 
         override fun onCreateWindow(
-            view: WebView?,
-            isDialog: Boolean,
-            isUserGesture: Boolean,
-            resultMsg: Message?
+            view: WebView?, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message?
         ): Boolean {
             if (!isUserGesture && enablePopupBlocker) {
                 Snackbar.make(
-                    binding.contextView,
-                    getString(R.string.popup_blocked),
-                    Snackbar.LENGTH_LONG
+                    binding.contextView, getString(R.string.popup_blocked), Snackbar.LENGTH_LONG
                 ).show()
                 return false
             }
@@ -711,45 +663,31 @@ class BrowserActivity : AppCompatActivity() {
         }
 
         override fun onJsAlert(
-            view: WebView?,
-            url: String?,
-            message: String?,
-            result: JsResult?
+            view: WebView?, url: String?, message: String?, result: JsResult?
         ): Boolean {
             val host = Uri.parse(webView.url).host
-            MaterialAlertDialogBuilder(context)
-                .setTitle(getString(R.string.js_dialog_title, host))
-                .setMessage(message)
-                .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
+            MaterialAlertDialogBuilder(context).setTitle(getString(R.string.js_dialog_title, host))
+                .setMessage(message).setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
                     result?.confirm()
-                }
-                .setOnCancelListener {
+                }.setOnCancelListener {
                     result?.cancel()
-                }
-                .show()
+                }.show()
             return true
         }
 
         override fun onJsConfirm(
-            view: WebView?,
-            url: String?,
-            message: String?,
-            result: JsResult?
+            view: WebView?, url: String?, message: String?, result: JsResult?
         ): Boolean {
             val host = Uri.parse(webView.url).host
-            MaterialAlertDialogBuilder(context)
-                .setTitle(getString(R.string.js_dialog_title, host))
+            MaterialAlertDialogBuilder(context).setTitle(getString(R.string.js_dialog_title, host))
                 .setMessage(message)
                 .setNegativeButton(resources.getString(R.string.cancel)) { _, _ ->
                     result?.cancel()
-                }
-                .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
+                }.setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
                     result?.confirm()
-                }
-                .setOnCancelListener {
+                }.setOnCancelListener {
                     result?.cancel()
-                }
-                .show()
+                }.show()
             return true
         }
 
@@ -765,24 +703,19 @@ class BrowserActivity : AppCompatActivity() {
             val textInputEditText: TextInputEditText = inputLayout.findViewById(R.id.input_text)
             textInputEditText.maxLines = 1
             textInputEditText.setText(defaultValue)
-            MaterialAlertDialogBuilder(context)
-                .setTitle(getString(R.string.js_dialog_title, host))
-                .setMessage(message)
-                .setView(inputLayout)
+            MaterialAlertDialogBuilder(context).setTitle(getString(R.string.js_dialog_title, host))
+                .setMessage(message).setView(inputLayout)
                 .setNegativeButton(resources.getString(R.string.cancel)) { _, _ ->
                     result?.cancel()
-                }
-                .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
+                }.setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
                     if (textInputEditText.text.isNullOrEmpty()) {
                         result?.confirm()
                     } else {
                         result?.confirm(textInputEditText.text.toString())
                     }
-                }
-                .setOnCancelListener {
+                }.setOnCancelListener {
                     result?.cancel()
-                }
-                .show()
+                }.show()
             return true
         }
 
@@ -795,42 +728,42 @@ class BrowserActivity : AppCompatActivity() {
                     Log.d(TAG, "Permission request: $reqResources")
                     when (reqResources) {
                         PermissionRequest.RESOURCE_VIDEO_CAPTURE -> {
-                            MaterialAlertDialogBuilder(context)
-                                .setMessage(getString(R.string.access_message_camera_web, urlHost))
-                                .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
-                                    onPermissionRequestConfirmation(false, arrayOf(""))
-                                }
-                                .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
-                                    requestWebViewPermission(
-                                        Manifest.permission.CAMERA,
-                                        CAMERA_PERMISSION_REQUEST_CODE,
-                                        getString(R.string.request_message_permission_camera_web),
-                                        arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE)
-                                    )
-                                }
-                                .setOnCancelListener {
-                                    onPermissionRequestConfirmation(false, arrayOf(""))
-                                }
-                                .show()
+                            MaterialAlertDialogBuilder(context).setMessage(
+                                getString(
+                                    R.string.access_message_camera_web,
+                                    urlHost
+                                )
+                            ).setNegativeButton(resources.getString(R.string.block)) { _, _ ->
+                                onPermissionRequestConfirmation(false, arrayOf(""))
+                            }.setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
+                                requestWebViewPermission(
+                                    Manifest.permission.CAMERA,
+                                    CAMERA_PERMISSION_REQUEST_CODE,
+                                    getString(R.string.request_message_permission_camera_web),
+                                    arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE)
+                                )
+                            }.setOnCancelListener {
+                                onPermissionRequestConfirmation(false, arrayOf(""))
+                            }.show()
                         }
                         PermissionRequest.RESOURCE_AUDIO_CAPTURE -> {
-                            MaterialAlertDialogBuilder(context)
-                                .setMessage(getString(R.string.access_message_mic_web, urlHost))
-                                .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
-                                    onPermissionRequestConfirmation(false, arrayOf(""))
-                                }
-                                .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
-                                    requestWebViewPermission(
-                                        Manifest.permission.RECORD_AUDIO,
-                                        MIC_PERMISSION_REQUEST_CODE,
-                                        getString(R.string.request_message_permission_mic_web),
-                                        arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE)
-                                    )
-                                }
-                                .setOnCancelListener {
-                                    onPermissionRequestConfirmation(false, arrayOf(""))
-                                }
-                                .show()
+                            MaterialAlertDialogBuilder(context).setMessage(
+                                getString(
+                                    R.string.access_message_mic_web,
+                                    urlHost
+                                )
+                            ).setNegativeButton(resources.getString(R.string.block)) { _, _ ->
+                                onPermissionRequestConfirmation(false, arrayOf(""))
+                            }.setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
+                                requestWebViewPermission(
+                                    Manifest.permission.RECORD_AUDIO,
+                                    MIC_PERMISSION_REQUEST_CODE,
+                                    getString(R.string.request_message_permission_mic_web),
+                                    arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE)
+                                )
+                            }.setOnCancelListener {
+                                onPermissionRequestConfirmation(false, arrayOf(""))
+                            }.show()
                         }
                         else -> {
                             onPermissionRequestConfirmation(false, arrayOf(""))
@@ -846,33 +779,28 @@ class BrowserActivity : AppCompatActivity() {
         }
 
         override fun onGeolocationPermissionsShowPrompt(
-            origin: String?,
-            callback: GeolocationPermissions.Callback?
+            origin: String?, callback: GeolocationPermissions.Callback?
         ) {
             geolocationCallback = null
             geolocationOrigin = null
             geolocationCallback = callback
             geolocationOrigin = origin
-            MaterialAlertDialogBuilder(context)
-                .setMessage(getString(R.string.access_message_location_web, urlHost))
-                .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
-                    onGeolocationPermissionConfirmation(
-                        geolocationOrigin,
-                        allowed = false,
-                        retain = false
-                    )
-                }
-                .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
-                    requestLocationPermission()
-                }
-                .setOnCancelListener {
-                    onGeolocationPermissionConfirmation(
-                        geolocationOrigin,
-                        allowed = false,
-                        retain = false
-                    )
-                }
-                .show()
+            MaterialAlertDialogBuilder(context).setMessage(
+                getString(
+                    R.string.access_message_location_web,
+                    urlHost
+                )
+            ).setNegativeButton(resources.getString(R.string.block)) { _, _ ->
+                onGeolocationPermissionConfirmation(
+                    geolocationOrigin, allowed = false, retain = false
+                )
+            }.setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
+                requestLocationPermission()
+            }.setOnCancelListener {
+                onGeolocationPermissionConfirmation(
+                    geolocationOrigin, allowed = false, retain = false
+                )
+            }.show()
         }
 
         override fun onGeolocationPermissionsHidePrompt() {
@@ -973,12 +901,9 @@ class BrowserActivity : AppCompatActivity() {
                 window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                         // Set the content to appear under the system bars so that the
                         // content doesn't resize when the system bars hide and show.
-                        or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        or View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                         // Hide the nav bar and status bar
-                        or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        or View.SYSTEM_UI_FLAG_FULLSCREEN)
+                        or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN)
 
             }
         }
@@ -1062,8 +987,7 @@ class BrowserActivity : AppCompatActivity() {
                         val handlerIntent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME)
                         if (handlerIntent != null) {
                             val info = packageManager.resolveActivity(
-                                handlerIntent,
-                                PackageManager.MATCH_DEFAULT_ONLY
+                                handlerIntent, PackageManager.MATCH_DEFAULT_ONLY
                             )
                             if (info != null) {
                                 startActivity(handlerIntent)
@@ -1091,9 +1015,7 @@ class BrowserActivity : AppCompatActivity() {
                         }
                     } catch (uriSyntaxException: URISyntaxException) {
                         Toast.makeText(
-                            context,
-                            getString(R.string.error_url_load_fail),
-                            Toast.LENGTH_LONG
+                            context, getString(R.string.error_url_load_fail), Toast.LENGTH_LONG
                         ).show()
                     }
                 }
@@ -1125,8 +1047,7 @@ class BrowserActivity : AppCompatActivity() {
 
     private fun onReceivedError() {
         webView.evaluateJavascript(
-            "javascript:document.open();document.write('');document.close();",
-            null
+            "javascript:document.open();document.write('');document.close();", null
         )
         webView.hideView()
         binding.errorLayout.showView()
@@ -1154,16 +1075,12 @@ class BrowserActivity : AppCompatActivity() {
 
     private fun isPermissionGranted(permission: String): Boolean {
         return ContextCompat.checkSelfPermission(
-            context,
-            permission
+            context, permission
         ) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun requestWebViewPermission(
-        permission: String,
-        requestCode: Int,
-        message: String,
-        requestResources: Array<String>
+        permission: String, requestCode: Int, message: String, requestResources: Array<String>
     ) {
         val iconId = when (requestCode) {
             CAMERA_PERMISSION_REQUEST_CODE -> R.drawable.ic_baseline_camera_24
@@ -1178,18 +1095,13 @@ class BrowserActivity : AppCompatActivity() {
                 MaterialAlertDialogBuilder(
                     context,
                     R.style.ThemeOverlay_YSports_MaterialAlertDialog_Centered_FullWidthButtons
-                )
-                    .setTitle(getString(R.string.request_title_allow_permission))
-                    .setIcon(iconId)
+                ).setTitle(getString(R.string.request_title_allow_permission)).setIcon(iconId)
                     .setMessage(message)
                     .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
                         onPermissionRequestConfirmation(false, arrayOf(""))
-                    }
-                    .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
+                    }.setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
                         requestPermissions(arrayOf(permission), requestCode)
-                    }
-                    .setCancelable(false)
-                    .show()
+                    }.setCancelable(false).show()
             }
             else -> {
                 requestPermissions(arrayOf(permission), requestCode)
@@ -1217,8 +1129,7 @@ class BrowserActivity : AppCompatActivity() {
 
     private fun requestLocationPermission() {
         val permissions = arrayOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
+            Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION
         )
         when {
             isPermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION) -> {
@@ -1233,22 +1144,16 @@ class BrowserActivity : AppCompatActivity() {
                 MaterialAlertDialogBuilder(
                     context,
                     R.style.ThemeOverlay_YSports_MaterialAlertDialog_Centered_FullWidthButtons
-                )
-                    .setTitle(getString(R.string.request_title_allow_permission))
+                ).setTitle(getString(R.string.request_title_allow_permission))
                     .setIcon(R.drawable.ic_baseline_location_on_24)
                     .setMessage(getString(R.string.request_message_permission_location_web))
                     .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
                         onGeolocationPermissionConfirmation(
-                            geolocationOrigin,
-                            allowed = false,
-                            retain = false
+                            geolocationOrigin, allowed = false, retain = false
                         )
-                    }
-                    .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
+                    }.setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
                         requestPermissions(permissions, LOCATION_PERMISSION_REQUEST_CODE)
-                    }
-                    .setCancelable(false)
-                    .show()
+                    }.setCancelable(false).show()
             }
             else -> {
                 requestPermissions(permissions, LOCATION_PERMISSION_REQUEST_CODE)
@@ -1258,9 +1163,7 @@ class BrowserActivity : AppCompatActivity() {
 
     @Suppress("SameParameterValue")
     private fun onGeolocationPermissionConfirmation(
-        origin: String?,
-        allowed: Boolean,
-        retain: Boolean
+        origin: String?, allowed: Boolean, retain: Boolean
     ) {
         if (geolocationCallback != null) {
             geolocationCallback?.invoke(origin, allowed, retain)
@@ -1273,9 +1176,7 @@ class BrowserActivity : AppCompatActivity() {
         if (!isLocationServiceEnabled()) {
             onGeolocationPermissionConfirmation(geolocationOrigin, allowed = false, retain = false)
             Toast.makeText(
-                context,
-                getString(R.string.error_disabled_location_service),
-                Toast.LENGTH_LONG
+                context, getString(R.string.error_disabled_location_service), Toast.LENGTH_LONG
             ).show()
             val locationIntent = Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)
             try {
@@ -1289,10 +1190,7 @@ class BrowserActivity : AppCompatActivity() {
     }
 
     private fun startDownload(
-        url: String,
-        userAgent: String,
-        mimetype: String,
-        fileName: String
+        url: String, userAgent: String, mimetype: String, fileName: String
     ): Long {
         val downloadURI = Uri.parse(url)
         val request: DownloadManager.Request = DownloadManager.Request(downloadURI)
@@ -1307,9 +1205,7 @@ class BrowserActivity : AppCompatActivity() {
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
         request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
         Snackbar.make(
-            binding.contextView,
-            getString(R.string.downloading_file),
-            Snackbar.LENGTH_LONG
+            binding.contextView, getString(R.string.downloading_file), Snackbar.LENGTH_LONG
         ).show()
         return downloadManager.enqueue(request)
     }
@@ -1324,9 +1220,7 @@ class BrowserActivity : AppCompatActivity() {
         request.addRequestHeader("cookie", cookies)
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
         Snackbar.make(
-            binding.contextView,
-            getString(R.string.downloading_file),
-            Snackbar.LENGTH_LONG
+            binding.contextView, getString(R.string.downloading_file), Snackbar.LENGTH_LONG
         ).show()
         return downloadManager.enqueue(request)
     }
@@ -1336,9 +1230,7 @@ class BrowserActivity : AppCompatActivity() {
             val referenceId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
             if (downloadReference == referenceId) {
                 Snackbar.make(
-                    binding.contextView,
-                    getString(R.string.download_complete),
-                    Snackbar.LENGTH_LONG
+                    binding.contextView, getString(R.string.download_complete), Snackbar.LENGTH_LONG
                 ).show()
             }
         }
@@ -1375,20 +1267,17 @@ class BrowserActivity : AppCompatActivity() {
     }
 
     private fun shareImageFromUrl(urlToImage: String) {
-        Glide.with(context)
-            .asBitmap()
-            .load(urlToImage)
-            .into(object : CustomTarget<Bitmap>() {
-                override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
-                    //val path: String = Media.insertImage(contentResolver, resource, "${abs(random.nextLong())}", urlToImage)
-                    val path = saveImage(resource)
-                    if (path != null) shareImageFromUri(getString(R.string.share_via), path)
-                }
+        Glide.with(context).asBitmap().load(urlToImage).into(object : CustomTarget<Bitmap>() {
+            override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                //val path: String = Media.insertImage(contentResolver, resource, "${abs(random.nextLong())}", urlToImage)
+                val path = saveImage(resource)
+                if (path != null) shareImageFromUri(getString(R.string.share_via), path)
+            }
 
-                override fun onLoadCleared(placeholder: Drawable?) {
+            override fun onLoadCleared(placeholder: Drawable?) {
 
-                }
-            })
+            }
+        })
     }
 
     private fun saveImage(bitmap: Bitmap): Uri? {
@@ -1397,18 +1286,14 @@ class BrowserActivity : AppCompatActivity() {
         val file = File(path, "${abs(Random().nextLong())}.png").also {
             FileOutputStream(it).use { fileOutputStream ->
                 bitmap.compress(
-                    Bitmap.CompressFormat.PNG,
-                    100,
-                    fileOutputStream
+                    Bitmap.CompressFormat.PNG, 100, fileOutputStream
                 )
             }
         }.apply {
             deleteOnExit()
         }
         return FileProvider.getUriForFile(
-            context,
-            getString(R.string.file_provider_authority),
-            file
+            context, getString(R.string.file_provider_authority), file
         )
     }
 

@@ -4,6 +4,7 @@
     <style name="TextAppearance.YSports.TitleLarge" parent="TextAppearance.Material3.TitleLarge">
         <item name="android:textSize">18sp</item>
     </style>
+    <!-- Browser Activity Toolbar Text Appearance -->
     <style name="TextAppearance.YSports.TitleMedium" parent="TextAppearance.Material3.TitleMedium">
         <item name="android:textSize">12sp</item>
     </style>

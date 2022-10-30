@@ -15,33 +15,26 @@ class NotificationUtil(val context: Context) {
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun createNotificationChannel(
-        channelName: String,
-        channelDescription: String,
-        channelId: String,
-        channelImportance: Int
-    ) : String {
+        channelName: String, channelDescription: String, channelId: String, channelImportance: Int
+    ): String {
         val channel = NotificationChannel(channelId, channelName, channelImportance)
         channel.description = channelDescription
-        val notificationManager = context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        if (notificationManager.getNotificationChannel(channelId) == null) notificationManager.createNotificationChannel(channel)
+        val notificationManager =
+            context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        if (notificationManager.getNotificationChannel(channelId) == null) notificationManager.createNotificationChannel(
+            channel
+        )
         return channelId
     }
 
     fun sendNotification(
-        channelId: String,
-        title: String,
-        message: String,
-        priority: Int,
-        intent: PendingIntent
+        channelId: String, title: String, message: String, priority: Int, intent: PendingIntent
     ) {
-        val builder = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(title)
-            .setContentText(message)
-            .setPriority(priority)
-            // Set the intent that will fire when the user taps the notification
-            .setContentIntent(intent)
-            .setAutoCancel(true)
+        val builder =
+            NotificationCompat.Builder(context, channelId).setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle(title).setContentText(message).setPriority(priority)
+                // Set the intent that will fire when the user taps the notification
+                .setContentIntent(intent).setAutoCancel(true)
 
         with(NotificationManagerCompat.from(context)) {
             // notificationId is a unique int for each notification that you must define
@@ -59,12 +52,10 @@ class NotificationUtil(val context: Context) {
         } else {
             NotificationCompat.PRIORITY_DEFAULT
         }
-        val builder = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(title)
-            .setContentText(message)
-            .setPriority(priority)
-            .setAutoCancel(true)
+        val builder =
+            NotificationCompat.Builder(context, channelId).setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle(title).setContentText(message).setPriority(priority)
+                .setAutoCancel(true)
 
         with(NotificationManagerCompat.from(context)) {
             // notificationId is a unique int for each notification that you must define

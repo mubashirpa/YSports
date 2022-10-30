@@ -17,10 +17,7 @@ class GridSpacingItemDecoration(
     private val spacing = dpToPx(displayDensity, gridSpacing)
 
     override fun getItemOffsets(
-        outRect: Rect,
-        view: View,
-        parent: RecyclerView,
-        state: RecyclerView.State
+        outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State
     ) {
         val position = parent.getChildAdapterPosition(view) - headerCount
 

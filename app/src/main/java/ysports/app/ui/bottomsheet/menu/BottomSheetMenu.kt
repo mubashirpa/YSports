@@ -26,9 +26,7 @@ class BottomSheetMenu : BottomSheetDialogFragment() {
     private var menuHeader: View? = null
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = ViewBottomSheetMenuBinding.inflate(inflater, container, false)
         return binding.root
@@ -105,13 +103,15 @@ class BottomSheetMenu : BottomSheetDialogFragment() {
         const val TAG = "ModalBottomSheet"
     }
 
-    inner class ListViewAdapter(context: Context, arrayList: ArrayList<BottomSheetMenuItem>) : ArrayAdapter<BottomSheetMenuItem>(context, 0, arrayList) {
+    inner class ListViewAdapter(context: Context, arrayList: ArrayList<BottomSheetMenuItem>) :
+        ArrayAdapter<BottomSheetMenuItem>(context, 0, arrayList) {
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
             val menuItem: BottomSheetMenuItem? = getItem(position)
             var view = convertView
             if (view == null) {
-                view = LayoutInflater.from(context).inflate(R.layout.list_item_bottom_sheet_menu, parent, false)
+                view = LayoutInflater.from(context)
+                    .inflate(R.layout.list_item_bottom_sheet_menu, parent, false)
             }
 
             val icon: ImageView = view!!.findViewById(R.id.list_item_icon)

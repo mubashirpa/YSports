@@ -150,24 +150,28 @@ class MainActivity : AppCompatActivity() {
                     changeFragmentDestination(3)
                 }
                 R.id.network_stream_item -> {
-                    clipboardPermission = sharedPreferences.getBoolean("clipboard_permission", false)
-                    clipboardPermissionShow = sharedPreferences.getBoolean("clipboard_permission_show", false)
+                    clipboardPermission =
+                        sharedPreferences.getBoolean("clipboard_permission", false)
+                    clipboardPermissionShow =
+                        sharedPreferences.getBoolean("clipboard_permission_show", false)
                     if (!clipboardPermissionShow) {
-                        sharedPreferencesEditor.putBoolean("clipboard_permission_show", true).commit()
-                        MaterialAlertDialogBuilder(context, R.style.ThemeOverlay_YSports_MaterialAlertDialog_Centered_FullWidthButtons)
-                            .setTitle(resources.getString(R.string.request_title_allow_permission))
+                        sharedPreferencesEditor.putBoolean("clipboard_permission_show", true)
+                            .commit()
+                        MaterialAlertDialogBuilder(
+                            context,
+                            R.style.ThemeOverlay_YSports_MaterialAlertDialog_Centered_FullWidthButtons
+                        ).setTitle(resources.getString(R.string.request_title_allow_permission))
                             .setIcon(R.drawable.ic_baseline_content_paste_24)
                             .setMessage(resources.getString(R.string.request_message_permission_clipboard))
                             .setNegativeButton(resources.getString(R.string.block)) { _, _ ->
-                                sharedPreferencesEditor.putBoolean("clipboard_permission", false).commit()
+                                sharedPreferencesEditor.putBoolean("clipboard_permission", false)
+                                    .commit()
                                 networkStream()
-                            }
-                            .setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
-                                sharedPreferencesEditor.putBoolean("clipboard_permission", true).commit()
+                            }.setPositiveButton(resources.getString(R.string.allow)) { _, _ ->
+                                sharedPreferencesEditor.putBoolean("clipboard_permission", true)
+                                    .commit()
                                 networkStream()
-                            }
-                            .setCancelable(false)
-                            .show()
+                            }.setCancelable(false).show()
                     } else {
                         networkStream()
                     }
@@ -177,7 +181,11 @@ class MainActivity : AppCompatActivity() {
                     startActivity(intent)
                 }
                 R.id.share_item -> {
-                    shareText(getString(R.string.share_app_using), getString(R.string.app_name), getString(R.string.url_share_app))
+                    shareText(
+                        getString(R.string.share_app_using),
+                        getString(R.string.app_name),
+                        getString(R.string.url_share_app)
+                    )
                 }
             }
             drawerLayout.close()
@@ -185,7 +193,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         navigationBar?.setOnItemSelectedListener { item ->
-            when(item.itemId) {
+            when (item.itemId) {
                 R.id.matches -> {
                     changeFragmentDestination(0)
                     true
@@ -207,7 +215,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         navigationRail?.setOnItemSelectedListener { item ->
-            when(item.itemId) {
+            when (item.itemId) {
                 R.id.matches -> {
                     changeFragmentDestination(0)
                     true
@@ -237,7 +245,8 @@ class MainActivity : AppCompatActivity() {
             val connectivityObserver = NetworkConnectivityObserver(context)
             connectivityObserver.observe().onEach {
                 if (it == ConnectivityObserver.Status.Lost) {
-                    val  snackBar = Snackbar.make(binding.frameLayout, "Connection lost", Snackbar.LENGTH_LONG)
+                    val snackBar =
+                        Snackbar.make(binding.frameLayout, "Connection lost", Snackbar.LENGTH_LONG)
                     snackBar.anchorView = navigationBar
                     snackBar.show()
                 }
@@ -259,12 +268,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkUpdate() {
-        val currentVersion: String = BuildConfig.VERSION_NAME // Version name should specified inside build gradle
+        val currentVersion: String =
+            BuildConfig.VERSION_NAME // Version name should specified inside build gradle
         val database = Firebase.database
         val reference = database.getReference("version")
         reference.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val ind: GenericTypeIndicator<HashMap<String, Any>> = object : GenericTypeIndicator<HashMap<String, Any>>() {}
+                val ind: GenericTypeIndicator<HashMap<String, Any>> =
+                    object : GenericTypeIndicator<HashMap<String, Any>>() {}
                 val childKey: String? = snapshot.key
                 val childValue: HashMap<String, Any>? = snapshot.getValue(ind)
                 if (childKey == null) {
@@ -275,7 +286,9 @@ class MainActivity : AppCompatActivity() {
                         val latestVersion: String = childValue["latest"].toString()
                         if (currentVersion != latestVersion) {
                             Toast.makeText(context, "Update available", Toast.LENGTH_LONG).show()
-                            if (childValue.containsKey("url")) AppUtil(context).openCustomTabs(childValue["url"].toString())
+                            if (childValue.containsKey("url")) AppUtil(context).openCustomTabs(
+                                childValue["url"].toString()
+                            )
                         }
                     }
                 }
@@ -296,18 +309,17 @@ class MainActivity : AppCompatActivity() {
                     Log.d(TAG, "Permission already granted")
                 }
                 shouldShowRequestPermissionRationale(notificationPermission) -> {
-                    MaterialAlertDialogBuilder(context, R.style.ThemeOverlay_YSports_MaterialAlertDialog_Centered_FullWidthButtons)
-                        .setTitle("Get notified!")
+                    MaterialAlertDialogBuilder(
+                        context,
+                        R.style.ThemeOverlay_YSports_MaterialAlertDialog_Centered_FullWidthButtons
+                    ).setTitle("Get notified!")
                         .setIcon(R.drawable.ic_baseline_notifications_active_24)
                         .setMessage("Get notification about latest match updates, news and more")
                         .setNegativeButton(resources.getString(R.string.skip)) { _, _ ->
                             Log.d(TAG, "Permission denied")
-                        }
-                        .setPositiveButton(resources.getString(R.string.im_in)) { _, _ ->
+                        }.setPositiveButton(resources.getString(R.string.im_in)) { _, _ ->
                             requestPermissionLauncher.launch(notificationPermission)
-                        }
-                        .setCancelable(false)
-                        .show()
+                        }.setCancelable(false).show()
                 }
                 else -> {
                     requestPermissionLauncher.launch(notificationPermission)
@@ -317,8 +329,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     @Suppress("SameParameterValue")
-    private fun isPermissionGranted(permission: String) : Boolean {
-        return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+    private fun isPermissionGranted(permission: String): Boolean {
+        return ContextCompat.checkSelfPermission(
+            context, permission
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
     private val requestPermissionLauncher = registerForActivityResult(
@@ -374,25 +388,33 @@ class MainActivity : AppCompatActivity() {
             0 -> {
                 hideFragments()
                 supportFragmentManager.beginTransaction().apply {
-                    if (matchesFragment.isAdded) show(matchesFragment) else add(R.id.frame_layout, matchesFragment)
+                    if (matchesFragment.isAdded) show(matchesFragment) else add(
+                        R.id.frame_layout, matchesFragment
+                    )
                 }.commit()
             }
             1 -> {
                 hideFragments()
                 supportFragmentManager.beginTransaction().apply {
-                    if (leaguesFragment.isAdded) show(leaguesFragment) else add(R.id.frame_layout, leaguesFragment)
+                    if (leaguesFragment.isAdded) show(leaguesFragment) else add(
+                        R.id.frame_layout, leaguesFragment
+                    )
                 }.commit()
             }
             2 -> {
                 hideFragments()
                 supportFragmentManager.beginTransaction().apply {
-                    if (newsFragment.isAdded) show(newsFragment) else add(R.id.frame_layout, newsFragment)
+                    if (newsFragment.isAdded) show(newsFragment) else add(
+                        R.id.frame_layout, newsFragment
+                    )
                 }.commit()
             }
             3 -> {
                 hideFragments()
                 supportFragmentManager.beginTransaction().apply {
-                    if (moreFragment.isAdded) show(moreFragment) else add(R.id.frame_layout, moreFragment)
+                    if (moreFragment.isAdded) show(moreFragment) else add(
+                        R.id.frame_layout, moreFragment
+                    )
                 }.commit()
             }
         }
@@ -430,16 +452,15 @@ class MainActivity : AppCompatActivity() {
             return@setOnEditorActionListener false
         }
 
-        if (clipboardURL != null && URLUtil.isValidUrl(clipboardURL)) textInputEditText.setText(clipboardURL)
-        materialAlertDialogBuilder
-            .setTitle("Network Stream")
-            .setMessage("Please enter a network URL:")
-            .setView(inputLayout)
+        if (clipboardURL != null && URLUtil.isValidUrl(clipboardURL)) textInputEditText.setText(
+            clipboardURL
+        )
+        materialAlertDialogBuilder.setTitle("Network Stream")
+            .setMessage("Please enter a network URL:").setView(inputLayout)
             .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
                 val url = textInputEditText.text.toString()
                 loadPlayer(url)
-            }
-            .setNegativeButton(resources.getString(R.string.cancel)) { _, _ -> }
+            }.setNegativeButton(resources.getString(R.string.cancel)) { _, _ -> }
         materialAlertDialogBuilder.create().show()
     }
 
@@ -464,8 +485,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleDynamicLink() {
-        Firebase.dynamicLinks
-            .getDynamicLink(intent)
+        Firebase.dynamicLinks.getDynamicLink(intent)
             .addOnSuccessListener(this) { pendingDynamicLinkData: PendingDynamicLinkData? ->
                 val deepLink: Uri?
                 if (pendingDynamicLinkData != null) {
@@ -474,8 +494,7 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     handleDeepLink()
                 }
-            }
-            .addOnFailureListener(this) {
+            }.addOnFailureListener(this) {
                 Toast.makeText(context, getString(R.string.error_default), Toast.LENGTH_LONG).show()
             }
     }

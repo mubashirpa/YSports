@@ -7,29 +7,29 @@
         <menu>
             <item
                 android:id="@+id/matches_item"
-                android:icon="@drawable/ic_baseline_calendar_today_24"
-                android:title="@string/title_matches"
                 android:checkable="true"
                 android:checked="true"
+                android:icon="@drawable/ic_baseline_calendar_today_24"
+                android:title="@string/title_matches"
                 app:showAsAction="ifRoom" />
             <item
                 android:id="@+id/leagues_item"
+                android:checkable="true"
                 android:icon="@drawable/ic_baseline_leaderboard_24"
                 android:title="@string/title_leagues"
-                android:checkable="true"
-                app:showAsAction="ifRoom"/>
+                app:showAsAction="ifRoom" />
             <item
                 android:id="@+id/news_item"
+                android:checkable="true"
                 android:icon="@drawable/ic_baseline_newspaper_24"
                 android:title="@string/title_news"
-                android:checkable="true"
-                app:showAsAction="ifRoom"/>
+                app:showAsAction="ifRoom" />
             <item
                 android:id="@+id/more_item"
+                android:checkable="true"
                 android:icon="@drawable/ic_baseline_dashboard_24"
                 android:title="@string/title_more"
-                android:checkable="true"
-                app:showAsAction="ifRoom"/>
+                app:showAsAction="ifRoom" />
         </menu>
     </item>
     <item
@@ -38,22 +38,22 @@
         <menu>
             <item
                 android:id="@+id/network_stream_item"
+                android:checkable="false"
                 android:icon="@drawable/ic_baseline_network_stream_24"
                 android:title="@string/title_network_stream"
-                android:checkable="false"
-                app:showAsAction="ifRoom"/>
+                app:showAsAction="ifRoom" />
             <item
                 android:id="@+id/settings_item"
+                android:checkable="false"
                 android:icon="@drawable/ic_baseline_settings_24"
                 android:title="@string/title_settings"
-                android:checkable="false"
-                app:showAsAction="ifRoom"/>
+                app:showAsAction="ifRoom" />
             <item
                 android:id="@+id/share_item"
+                android:checkable="false"
                 android:icon="@drawable/ic_baseline_share_24"
                 android:title="@string/title_share"
-                android:checkable="false"
-                app:showAsAction="ifRoom"/>
+                app:showAsAction="ifRoom" />
         </menu>
     </item>
 </menu>

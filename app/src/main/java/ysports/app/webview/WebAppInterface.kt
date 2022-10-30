@@ -29,8 +29,7 @@ import java.io.IOException
 
 @Suppress("PrivatePropertyName")
 class WebAppInterface(
-    val context: Context,
-    val activity: Activity
+    val context: Context, val activity: Activity
 ) {
 
     private val TAG = "WebAppInterface"
@@ -52,7 +51,7 @@ class WebAppInterface(
     @JavascriptInterface
     fun play(url: String?, title: String?) {
         if (url != null) {
-            if (url.startsWith("https://youtu.be/")) {
+            if (url.startsWith(YOUTUBE_SCHEME)) {
                 val intent = Intent(context, YouTubePlayerActivity::class.java).apply {
                     putExtra("VIDEO_URL", url)
                 }
@@ -80,10 +79,13 @@ class WebAppInterface(
     fun downloadBase64(url: String, fileName: String) {
         if (url.startsWith(BASE64_SCHEME)) {
             activity.runOnUiThread {
-                Toast.makeText(context, context.getString(R.string.downloading_file), Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    context, context.getString(R.string.downloading_file), Toast.LENGTH_LONG
+                ).show()
                 //val fileType = url.substring(url.indexOf("/") + 1, url.indexOf(";"))
                 //val fileName = System.currentTimeMillis().toString() + "." + fileType
-                val path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                val path =
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
                 val file = File(path, fileName)
 
                 try {
@@ -97,7 +99,9 @@ class WebAppInterface(
                     outputStream.close()
 
                     //Tell the media scanner about the new file so that it is immediately available to the user.
-                    MediaScannerConnection.scanFile(context, arrayOf(file.toString()), null) { scan_path, uri ->
+                    MediaScannerConnection.scanFile(
+                        context, arrayOf(file.toString()), null
+                    ) { scan_path, uri ->
                         Log.i(TAG, "Scanned: $scan_path")
                         Log.i(TAG, "Uri: $uri")
                     }
@@ -105,22 +109,40 @@ class WebAppInterface(
                     //Set notification after download complete and add "click to view" action to that
                     val mimetype = url.substring(url.indexOf(":") + 1, url.indexOf("/"))
 
-                    val channelId: String = context.getString(R.string.default_notification_channel_id)
+                    val channelId: String =
+                        context.getString(R.string.default_notification_channel_id)
                     val intent = Intent().apply {
                         action = Intent.ACTION_VIEW
                         flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-                        setDataAndType(FileProvider.getUriForFile(context, context.getString(R.string.file_provider_authority), file), "${mimetype}/*")
+                        setDataAndType(
+                            FileProvider.getUriForFile(
+                                context, context.getString(R.string.file_provider_authority), file
+                            ), "${mimetype}/*"
+                        )
                     }
-                    val pendingIntent: PendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+                    val pendingIntent: PendingIntent =
+                        PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
                     val priority = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                         NotificationManager.IMPORTANCE_DEFAULT
                     } else {
                         NotificationCompat.PRIORITY_DEFAULT
                     }
-                    NotificationUtil(context).sendNotification(channelId, fileName, context.getString(R.string.downloaded_successfully), priority, pendingIntent)
-                    Toast.makeText(context, context.getString(R.string.download_complete), Toast.LENGTH_LONG).show()
+                    NotificationUtil(context).sendNotification(
+                        channelId,
+                        fileName,
+                        context.getString(R.string.downloaded_successfully),
+                        priority,
+                        pendingIntent
+                    )
+                    Toast.makeText(
+                        context, context.getString(R.string.download_complete), Toast.LENGTH_LONG
+                    ).show()
                 } catch (e: IOException) {
-                    Toast.makeText(context, context.getString(R.string.error_download_failed), Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.error_download_failed),
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         }
@@ -133,15 +155,20 @@ class WebAppInterface(
             if (light) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     val controller = window.insetsController
-                    controller?.setSystemBarsAppearance(WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS, WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS)
-                } else{
+                    controller?.setSystemBarsAppearance(
+                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
+                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                    )
+                } else {
                     //Deprecated in Api level 30
                     addFlags(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)
                 }
             } else {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     val controller = window.insetsController
-                    controller?.setSystemBarsAppearance(0, WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS)
+                    controller?.setSystemBarsAppearance(
+                        0, WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                    )
                 } else {
                     //Deprecated in Api level 30
                     clearFlags(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)

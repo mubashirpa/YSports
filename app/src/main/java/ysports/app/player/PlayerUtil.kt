@@ -1,4 +1,4 @@
-// Last updated on 01 Aug 2022
+// Last updated on 30 Oct 2022
 
 package ysports.app.player
 
@@ -31,7 +31,11 @@ class PlayerUtil {
     private var selectedSpeedChoice = 3
     private var isVideoTrackAuto = true
 
-    fun loadPlayer(context: Context, mediaItems: List<MediaItem>, preferExtensionDecoders: Boolean) {
+    fun loadPlayer(
+        context: Context,
+        mediaItems: List<MediaItem>,
+        preferExtensionDecoders: Boolean
+    ) {
         val intent = Intent(context, PlayerActivity::class.java).apply {
             putExtra(IntentUtil.PREFER_EXTENSION_DECODERS_EXTRA, preferExtensionDecoders)
         }
@@ -39,20 +43,28 @@ class PlayerUtil {
         context.startActivity(intent)
     }
 
-    fun loadPlayer(context: Context, videoUri: Uri, title: String?, preferExtensionDecoders: Boolean) {
+    fun loadPlayer(
+        context: Context,
+        videoUri: Uri,
+        title: String?,
+        preferExtensionDecoders: Boolean
+    ) {
         val intent = Intent(context, PlayerActivity::class.java).apply {
             putExtra(IntentUtil.PREFER_EXTENSION_DECODERS_EXTRA, preferExtensionDecoders)
         }
         val mediaItem = MediaItem.Builder()
             .setUri(videoUri)
-            .setMediaMetadata(MediaMetadata.Builder().setTitle(title ?: videoUri.lastPathSegment.toString()).build())
+            .setMediaMetadata(
+                MediaMetadata.Builder().setTitle(title ?: videoUri.lastPathSegment.toString())
+                    .build()
+            )
             .build()
         val mediaItems: List<MediaItem> = ImmutableList.of(mediaItem)
         IntentUtil.addToIntent(mediaItems, intent)
         context.startActivity(intent)
     }
 
-    fun createMediaItems(media: Media) : List<MediaItem> {
+    fun createMediaItems(media: Media): List<MediaItem> {
         val mediaItems: MutableList<MediaItem> = ArrayList()
         val mediaItem = MediaItem.Builder()
         val clippingConfiguration = MediaItem.ClippingConfiguration.Builder()
@@ -66,11 +78,17 @@ class PlayerUtil {
             val uri: Uri = Uri.parse(url)
             val extension: String? = media.extension
             val clipStartPositionMs = media.clipStartPositionMs
-            if (clipStartPositionMs != null) clippingConfiguration.setStartPositionMs(clipStartPositionMs)
+            if (clipStartPositionMs != null) clippingConfiguration.setStartPositionMs(
+                clipStartPositionMs
+            )
             val clipEndPositionMs = media.clipEndPositionMs
             if (clipEndPositionMs != null) clippingConfiguration.setEndPositionMs(clipEndPositionMs)
             val adTagUri = media.adTagUri
-            if (adTagUri != null) mediaItem.setAdsConfiguration(MediaItem.AdsConfiguration.Builder(Uri.parse(adTagUri)).build())
+            if (adTagUri != null) mediaItem.setAdsConfiguration(
+                MediaItem.AdsConfiguration.Builder(
+                    Uri.parse(adTagUri)
+                ).build()
+            )
             val drmScheme = media.drmScheme
             val drmUuid: UUID? = if (drmScheme != null) Util.getDrmUuid(drmScheme) else null
             val drmLicenseUri = media.drmLicenseUri ?: media.drmLicenseUrl
@@ -85,7 +103,9 @@ class PlayerUtil {
             val subtitleLanguage: String? = media.subtitleLanguage
 
             @Nullable val adaptiveMimeType = Util.getAdaptiveMimeTypeForContentType(
-                if (TextUtils.isEmpty(extension)) Util.inferContentType(uri) else Util.inferContentTypeForExtension(extension!!)
+                if (TextUtils.isEmpty(extension)) Util.inferContentType(uri) else Util.inferContentTypeForExtension(
+                    extension!!
+                )
             )
             mediaItem
                 .setUri(uri)
@@ -94,14 +114,16 @@ class PlayerUtil {
                 .setClippingConfiguration(clippingConfiguration.build())
             if (drmUuid != null) {
                 mediaItem
-                    .setDrmConfiguration(MediaItem.DrmConfiguration.Builder(drmUuid)
-                        .setLicenseUri(drmLicenseUri)
-                        .setLicenseRequestHeaders(drmLicenseRequestHeaders)
-                        .setForceSessionsForAudioAndVideoTracks(drmSessionForClearContent)
-                        .setMultiSession(drmMultiSession)
-                        .setForceDefaultLicenseUri(drmForceDefaultLicenseUri)
-                        .build())
-            }  else {
+                    .setDrmConfiguration(
+                        MediaItem.DrmConfiguration.Builder(drmUuid)
+                            .setLicenseUri(drmLicenseUri)
+                            .setLicenseRequestHeaders(drmLicenseRequestHeaders)
+                            .setForceSessionsForAudioAndVideoTracks(drmSessionForClearContent)
+                            .setMultiSession(drmMultiSession)
+                            .setForceDefaultLicenseUri(drmForceDefaultLicenseUri)
+                            .build()
+                    )
+            } else {
                 Preconditions.checkState(
                     drmLicenseUri == null,
                     "drm_uuid is required if drm_license_uri is set."
@@ -139,11 +161,19 @@ class PlayerUtil {
             for (i in playlist.indices) {
                 val uri: Uri = Uri.parse(playlist[i].uri)
                 val clipStartPositionMs = playlist[i].clipStartPositionMs
-                if (clipStartPositionMs != null) clippingConfiguration.setStartPositionMs(clipStartPositionMs)
+                if (clipStartPositionMs != null) clippingConfiguration.setStartPositionMs(
+                    clipStartPositionMs
+                )
                 val clipEndPositionMs = playlist[i].clipEndPositionMs
-                if (clipEndPositionMs != null) clippingConfiguration.setEndPositionMs(clipEndPositionMs)
+                if (clipEndPositionMs != null) clippingConfiguration.setEndPositionMs(
+                    clipEndPositionMs
+                )
                 val adTagUri = playlist[i].adTagUri
-                if (adTagUri != null) mediaItem.setAdsConfiguration(MediaItem.AdsConfiguration.Builder(Uri.parse(adTagUri)).build())
+                if (adTagUri != null) mediaItem.setAdsConfiguration(
+                    MediaItem.AdsConfiguration.Builder(
+                        Uri.parse(adTagUri)
+                    ).build()
+                )
                 val drmScheme = playlist[i].drmScheme
                 val drmUuid: UUID? = if (drmScheme != null) Util.getDrmUuid(drmScheme) else null
                 val drmLicenseUri = playlist[i].drmLicenseUri
@@ -153,9 +183,11 @@ class PlayerUtil {
                     .setClippingConfiguration(clippingConfiguration.build())
                 if (drmUuid != null) {
                     mediaItem
-                        .setDrmConfiguration(MediaItem.DrmConfiguration.Builder(drmUuid)
-                            .setLicenseUri(drmLicenseUri)
-                            .build())
+                        .setDrmConfiguration(
+                            MediaItem.DrmConfiguration.Builder(drmUuid)
+                                .setLicenseUri(drmLicenseUri)
+                                .build()
+                        )
                 }
                 mediaItems.add(mediaItem.build())
             }
@@ -197,7 +229,9 @@ class PlayerUtil {
                     label += if (!isSupported) " (Unsupported)" else ""
                     val list = Locale(trackFormat.language.toString()).displayLanguage + label
 
-                    if (list.contains("und") || list.contains("null")) audioList.add("Audio track #$tempPosition") else audioList.add(list)
+                    if (list.contains("und") || list.contains("null")) audioList.add("Audio track #$tempPosition") else audioList.add(
+                        list
+                    )
                 }
             }
         }
@@ -238,7 +272,9 @@ class PlayerUtil {
                 .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, false)
                 .setOverrideForType(
                     TrackSelectionOverride(
-                        audioTrackGroup?.mediaTrackGroup!!, 0))
+                        audioTrackGroup?.mediaTrackGroup!!, 0
+                    )
+                )
                 .build()
     }
 
@@ -275,7 +311,9 @@ class PlayerUtil {
                     label += if (!isSupported) " (Unsupported)" else ""
                     val list = Locale(trackFormat.language.toString()).displayLanguage + label
 
-                    if (list.contains("und") || list.contains("null")) subtitlesList.add("Subtitle track #$tempPosition") else subtitlesList.add(list)
+                    if (list.contains("und") || list.contains("null")) subtitlesList.add("Subtitle track #$tempPosition") else subtitlesList.add(
+                        list
+                    )
                 }
             }
         }
@@ -316,7 +354,9 @@ class PlayerUtil {
                 .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
                 .setOverrideForType(
                     TrackSelectionOverride(
-                        textTrackGroup?.mediaTrackGroup!!, 0))
+                        textTrackGroup?.mediaTrackGroup!!, 0
+                    )
+                )
                 .build()
     }
 
@@ -361,10 +401,16 @@ class PlayerUtil {
                     if (trackFormat.bitrate != -1) {
                         dataUsage = (trackFormat.bitrate * 0.000000000125) * 3600
                     }
-                    val dataUsageMessage = if (dataUsage != 0.0) String.format("(up to %.2f GB per hour)", dataUsage) else ""
+                    val dataUsageMessage = if (dataUsage != 0.0) String.format(
+                        "(up to %.2f GB per hour)",
+                        dataUsage
+                    ) else ""
                     val width = trackFormat.width
                     val height = trackFormat.height
-                    val list = if (isSupported) "${getResolution("${width}x${height}")} $dataUsageMessage" else "${getResolution("${width}x${height}")} (Unsupported)"
+                    val list =
+                        if (isSupported) "${getResolution("${width}x${height}")} $dataUsageMessage" else "${
+                            getResolution("${width}x${height}")
+                        } (Unsupported)"
 
                     videoList.add(list)
                 }
@@ -415,7 +461,9 @@ class PlayerUtil {
                         .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, false)
                         .setOverrideForType(
                             TrackSelectionOverride(
-                                videoTrackGroup?.mediaTrackGroup!!, trackIndex - 2))
+                                videoTrackGroup?.mediaTrackGroup!!, trackIndex - 2
+                            )
+                        )
                         .build()
             }
         }
@@ -443,8 +491,8 @@ class PlayerUtil {
             .show()
     }
 
-    private fun getResolution(aspectRatio: String) : String {
-        return when(aspectRatio) {
+    private fun getResolution(aspectRatio: String): String {
+        return when (aspectRatio) {
             // 16:9 aspect ratio
             "426x240" -> "240p"
             "640x360" -> "360p"

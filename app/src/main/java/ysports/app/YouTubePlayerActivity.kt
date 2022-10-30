@@ -44,7 +44,9 @@ class YouTubePlayerActivity : YouTubeBaseActivity() {
         }
 
         youTubePlayer.initialize(API_KEY, object : YouTubePlayer.OnInitializedListener {
-            override fun onInitializationSuccess(provider: YouTubePlayer.Provider, youTubePlayer: YouTubePlayer, wasRestored: Boolean) {
+            override fun onInitializationSuccess(
+                provider: YouTubePlayer.Provider, youTubePlayer: YouTubePlayer, wasRestored: Boolean
+            ) {
                 if (!wasRestored) {
                     youTubePlayer.setShowFullscreenButton(false)
                     youTubePlayer.setFullscreen(true)
@@ -53,8 +55,13 @@ class YouTubePlayerActivity : YouTubeBaseActivity() {
                 }
             }
 
-            override fun onInitializationFailure(provider: YouTubePlayer.Provider, youTubeInitializationResult: YouTubeInitializationResult) {
-                Toast.makeText(context, getString(R.string.error_initialize_youtube_player), Toast.LENGTH_SHORT).show()
+            override fun onInitializationFailure(
+                provider: YouTubePlayer.Provider,
+                youTubeInitializationResult: YouTubeInitializationResult
+            ) {
+                Toast.makeText(
+                    context, getString(R.string.error_initialize_youtube_player), Toast.LENGTH_SHORT
+                ).show()
             }
         })
     }
@@ -78,18 +85,14 @@ class YouTubePlayerActivity : YouTubeBaseActivity() {
         val hideBehavior = (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                 // Set the content to appear under the system bars so that the
                 // content doesn't resize when the system bars hide and show.
-                or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                 // Hide the nav bar and status bar
-                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_FULLSCREEN)
+                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN)
 
         // Shows the system bars by removing all the flags
         // except for the ones that make the content appear under the system bars.
-        val showBehavior = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
+        val showBehavior =
+            (View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
         if (hide) {
             window.decorView.systemUiVisibility = hideBehavior
         } else {

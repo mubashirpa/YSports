@@ -62,8 +62,10 @@ class LeaguesFragment : Fragment() {
         retryButton = binding.errorView.buttonRetry
         val appUtil = AppUtil(requireContext())
         val isTablet = appUtil.isTablet()
-        val marginMin = (resources.getDimension(R.dimen.margin_min) / resources.displayMetrics.density).toInt()
-        val itemDecoration = GridSpacingItemDecoration(2, marginMin, 0, includeEdge = true, isReverse = false)
+        val marginMin =
+            (resources.getDimension(R.dimen.margin_min) / resources.displayMetrics.density).toInt()
+        val itemDecoration =
+            GridSpacingItemDecoration(2, marginMin, 0, includeEdge = true, isReverse = false)
 
         retryButton.setOnClickListener {
             errorView.hideView()
@@ -112,9 +114,13 @@ class LeaguesFragment : Fragment() {
     }
 
     private fun readDatabase() {
-        leaguesApi = JsonApi.create("https://api.npoint.io/").getLeagues(PrivateKeys().leaguesUrlPath())
+        leaguesApi =
+            JsonApi.create("https://api.npoint.io/").getLeagues(PrivateKeys().leaguesUrlPath())
         leaguesApi?.enqueue(object : Callback<LeaguesResponse> {
-            override fun onResponse(call: Call<LeaguesResponse>, response: Response<LeaguesResponse>) {
+            override fun onResponse(
+                call: Call<LeaguesResponse>,
+                response: Response<LeaguesResponse>
+            ) {
                 if (!response.isSuccessful) {
                     errorOccurred(R.string.error_retrofit_response, true)
                     return
@@ -131,7 +137,8 @@ class LeaguesFragment : Fragment() {
 
             override fun onFailure(call: Call<LeaguesResponse>, t: Throwable) {
                 if (isAdded) {
-                    val error = if (NetworkUtil().isOnline(context)) R.string.error_failed_to_load_content else R.string.error_no_network
+                    val error =
+                        if (NetworkUtil().isOnline(context)) R.string.error_failed_to_load_content else R.string.error_no_network
                     errorOccurred(error, true)
                 }
             }

@@ -15,21 +15,14 @@ class AutoHideTextView : AppCompatTextView {
 
     constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(
-        context,
-        attrs,
-        android.R.attr.textViewStyle
+        context, attrs, android.R.attr.textViewStyle
     )
 
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(
-        context,
-        attrs,
-        defStyleAttr
+        context, attrs, defStyleAttr
     ) {
         val typedArray = context.theme.obtainStyledAttributes(
-            attrs,
-            R.styleable.AutoHideTextView,
-            defStyleAttr,
-            0
+            attrs, R.styleable.AutoHideTextView, defStyleAttr, 0
         )
         try {
             hideMillis = typedArray.getInt(R.styleable.AutoHideTextView_hide_millis, 1000).toLong()
@@ -39,10 +32,7 @@ class AutoHideTextView : AppCompatTextView {
     }
 
     override fun onTextChanged(
-        text: CharSequence?,
-        start: Int,
-        lengthBefore: Int,
-        lengthAfter: Int
+        text: CharSequence?, start: Int, lengthBefore: Int, lengthAfter: Int
     ) {
         super.onTextChanged(text, start, lengthBefore, lengthAfter)
         if (mHandler == null) mHandler = Handler(Looper.getMainLooper())

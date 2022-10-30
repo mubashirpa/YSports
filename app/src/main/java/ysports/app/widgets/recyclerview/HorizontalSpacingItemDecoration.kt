@@ -6,18 +6,13 @@ import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 
 class HorizontalSpacingItemDecoration(
-    private val marginStart: Int,
-    private val marginEnd: Int,
-    private val horizontalSpacing: Int
+    private val marginStart: Int, private val marginEnd: Int, private val horizontalSpacing: Int
 ) : RecyclerView.ItemDecoration() {
 
     private val displayDensity = Resources.getSystem().displayMetrics.density
 
     override fun getItemOffsets(
-        outRect: Rect,
-        view: View,
-        parent: RecyclerView,
-        state: RecyclerView.State
+        outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State
     ) {
         val total: Int = state.itemCount
         val position: Int = parent.getChildAdapterPosition(view)

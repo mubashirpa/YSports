@@ -28,9 +28,7 @@ class SettingsActivity : AppCompatActivity() {
         context = this
 
         if (savedInstanceState == null) {
-            supportFragmentManager
-                .beginTransaction()
-                .replace(R.id.settings, SettingsFragment())
+            supportFragmentManager.beginTransaction().replace(R.id.settings, SettingsFragment())
                 .commit()
         }
 
@@ -63,7 +61,8 @@ class SettingsActivity : AppCompatActivity() {
                 else -> themePreference?.summary = getString(R.string.summary_theme_system_default)
             }
             cachePreference?.summary = getCacheSize()
-            versionPreference?.summary = getString(R.string.summary_version, BuildConfig.VERSION_NAME)
+            versionPreference?.summary =
+                getString(R.string.summary_version, BuildConfig.VERSION_NAME)
 
             notificationsPreference?.setOnPreferenceClickListener {
                 val intent = Intent().apply {
@@ -102,7 +101,8 @@ class SettingsActivity : AppCompatActivity() {
             }
 
             dynamicColorPreference?.setOnPreferenceChangeListener { _, _ ->
-                Toast.makeText(context, getString(R.string.restart_app_to_apply), Toast.LENGTH_LONG).show()
+                Toast.makeText(context, getString(R.string.restart_app_to_apply), Toast.LENGTH_LONG)
+                    .show()
                 true
             }
 
@@ -110,7 +110,8 @@ class SettingsActivity : AppCompatActivity() {
                 val cacheDeleted = fileUtil.deleteDir(context?.cacheDir)
                 val externalCacheDeleted = fileUtil.deleteDir(context?.externalCacheDir)
                 if (cacheDeleted || externalCacheDeleted) {
-                    Toast.makeText(context, getString(R.string.cache_cleared), Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, getString(R.string.cache_cleared), Toast.LENGTH_LONG)
+                        .show()
                 }
                 it.summary = getCacheSize()
                 true
@@ -130,7 +131,7 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
-        private fun getCacheSize() : String {
+        private fun getCacheSize(): String {
             var size: Long = 0
             size += fileUtil.getDirSize(context?.cacheDir)
             size += fileUtil.getDirSize(context?.externalCacheDir)

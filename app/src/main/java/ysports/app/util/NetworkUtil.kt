@@ -9,12 +9,16 @@ class NetworkUtil {
 
     fun isOnline(context: Context?): Boolean {
         var online = false
-        val connectivityManager = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val connectivityManager =
+            context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val network = connectivityManager.activeNetwork
         if (network != null) {
             val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
             if (networkCapabilities != null) {
-                if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) || networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) {
+                if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) || networkCapabilities.hasTransport(
+                        NetworkCapabilities.TRANSPORT_CELLULAR
+                    )
+                ) {
                     online = true
                 }
             }
@@ -24,7 +28,8 @@ class NetworkUtil {
 
     fun wifiConnected(context: Context): Boolean {
         var connected = false
-        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val network: Network? = connectivityManager.activeNetwork
         if (network != null) {
             val networkCapabilities = connectivityManager.getNetworkCapabilities(network)

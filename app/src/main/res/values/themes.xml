@@ -1,4 +1,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
+
     <style name="Theme.YSports" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/primary</item>
@@ -40,14 +41,16 @@
         <item name="android:windowLightStatusBar">?attr/isLightTheme</item>
         <!-- Navigation bar. -->
         <item name="android:navigationBarColor">@android:color/transparent</item>
-        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">?attr/isLightTheme</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">?attr/isLightTheme
+        </item>
         <!-- For overflow menu -->
         <item name="popupMenuBackground">@drawable/bg_popupmenu</item>
         <!-- For popup menu -->
         <item name="popupMenuStyle">@style/Widget.YSports.PopupMenu</item>
         <item name="android:popupMenuStyle">@style/Widget.YSports.PopupMenu</item>
         <!-- For alert dialog -->
-        <item name="alertDialogTheme">@style/ThemeOverlay.YSports.AlertDialog</item> <!-- For preference dialog -->
+        <item name="alertDialogTheme">@style/ThemeOverlay.YSports.AlertDialog
+        </item> <!-- For preference dialog -->
         <item name="android:alertDialogTheme">@style/ThemeOverlay.YSports.AlertDialog</item>
         <!-- For ModalBottomSheet -->
         <item name="bottomSheetDialogTheme">@style/ThemeOverlay.YSports.BottomSheetDialog</item>
@@ -55,7 +58,8 @@
 
     <style name="Theme.YSports.PlayerActivity" parent="Theme.YSports">
         <item name="android:windowBackground">@android:color/black</item>
-        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="o_mr1">shortEdges</item>
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="o_mr1">shortEdges
+        </item>
         <item name="android:windowTranslucentStatus">true</item>
         <item name="android:windowTranslucentNavigation">true</item>
     </style>
@@ -83,7 +87,8 @@
 
         <item name="android:statusBarColor">@color/transparent_50</item>
         <item name="android:navigationBarColor">@color/background</item>
-        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">?attr/isLightTheme</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">?attr/isLightTheme
+        </item>
 
         <item name="android:colorBackground">@color/background</item>
         <item name="colorOnBackground">@color/onBackground</item>
@@ -116,8 +121,14 @@
     <style name="ThemeOverlay.YSports.MaterialAlertDialog.Centered.FullWidthButtons" parent="ThemeOverlay.Material3.MaterialAlertDialog.Centered">
         <!-- Mark spacer as gone when showing full width buttons -->
         <item name="materialAlertDialogButtonSpacerVisibility">2</item>
-        <item name="buttonBarPositiveButtonStyle">@style/Widget.Catalog.Button.TextButton.Dialog.FullWidth</item>
-        <item name="buttonBarNegativeButtonStyle">@style/Widget.Catalog.Button.TextButton.Dialog.FullWidth</item>
-        <item name="buttonBarNeutralButtonStyle">@style/Widget.Catalog.Button.TextButton.Dialog.FullWidth</item>
+        <item name="buttonBarPositiveButtonStyle">
+            @style/Widget.Catalog.Button.TextButton.Dialog.FullWidth
+        </item>
+        <item name="buttonBarNegativeButtonStyle">
+            @style/Widget.Catalog.Button.TextButton.Dialog.FullWidth
+        </item>
+        <item name="buttonBarNeutralButtonStyle">
+            @style/Widget.Catalog.Button.TextButton.Dialog.FullWidth
+        </item>
     </style>
 </resources>

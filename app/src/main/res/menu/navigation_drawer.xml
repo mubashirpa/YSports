@@ -3,20 +3,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/network_stream_item"
+        android:checkable="false"
         android:icon="@drawable/ic_baseline_network_stream_24"
         android:title="@string/title_network_stream"
-        android:checkable="false"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/settings_item"
+        android:checkable="false"
         android:icon="@drawable/ic_baseline_settings_24"
         android:title="@string/title_settings"
-        android:checkable="false"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/share_item"
+        android:checkable="false"
         android:icon="@drawable/ic_baseline_share_24"
         android:title="@string/title_share"
-        android:checkable="false"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="ifRoom" />
 </menu>

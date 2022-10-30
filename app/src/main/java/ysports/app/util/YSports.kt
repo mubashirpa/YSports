@@ -40,7 +40,12 @@ class YSports : Application() {
             val channelId: String = getString(R.string.default_notification_channel_id)
             val channelName: String = getString(R.string.default_notification_channel_name)
             val channelDescription = getString(R.string.default_notification_channel_description)
-            NotificationUtil(this).createNotificationChannel(channelName, channelDescription, channelId, NotificationManager.IMPORTANCE_HIGH)
+            NotificationUtil(this).createNotificationChannel(
+                channelName,
+                channelDescription,
+                channelId,
+                NotificationManager.IMPORTANCE_HIGH
+            )
         }
     }
 }

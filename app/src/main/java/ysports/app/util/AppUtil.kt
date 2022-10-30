@@ -23,11 +23,15 @@ class AppUtil(val context: Context) {
         try {
             customTabsIntent.launchUrl(context, Uri.parse(url))
         } catch (e: Exception) {
-            Toast.makeText(context, context.getString(R.string.error_url_load_fail), Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                context,
+                context.getString(R.string.error_url_load_fail),
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 
-    fun isTablet() : Boolean {
+    fun isTablet(): Boolean {
         if (minScreenWidth() >= 600) {
             return true
         }
@@ -46,7 +50,7 @@ class AppUtil(val context: Context) {
         return (px / density).toInt()
     }
 
-    private fun generateDynamicLink(url: String, dynamicLink: (String) -> Unit = {  }) {
+    private fun generateDynamicLink(url: String, dynamicLink: (String) -> Unit = { }) {
         Firebase.dynamicLinks.shortLinkAsync {
             link = Uri.parse(url)
             domainUriPrefix = context.getString(R.string.dynamic_link_url_prefix)
@@ -56,7 +60,8 @@ class AppUtil(val context: Context) {
         }.addOnSuccessListener { (shortLink, flowChartLink) ->
             dynamicLink.invoke("$shortLink")
         }.addOnFailureListener {
-            Toast.makeText(context, context.getString(R.string.error_default), Toast.LENGTH_LONG).show()
+            Toast.makeText(context, context.getString(R.string.error_default), Toast.LENGTH_LONG)
+                .show()
         }
     }
 }

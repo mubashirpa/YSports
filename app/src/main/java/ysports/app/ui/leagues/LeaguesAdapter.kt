@@ -24,7 +24,7 @@ class LeaguesAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val title = list[position].leagueTitle
         val logo = list[position].leagueLogo
-        holder.title.text =  title
+        holder.title.text = title
         Glide.with(context)
             .load(logo)
             .into(holder.logo)

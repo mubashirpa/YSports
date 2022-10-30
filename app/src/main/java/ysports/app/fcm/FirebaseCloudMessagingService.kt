@@ -41,14 +41,21 @@ class FirebaseCloudMessagingService : FirebaseMessagingService() {
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
-        val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+        val pendingIntent: PendingIntent =
+            PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
         val priority = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             NotificationManager.IMPORTANCE_HIGH
         } else {
             NotificationCompat.PRIORITY_HIGH
         }
-        NotificationUtil(this).sendNotification(channelId, messageTitle!!, messageBody!!, priority, pendingIntent)
+        NotificationUtil(this).sendNotification(
+            channelId,
+            messageTitle!!,
+            messageBody!!,
+            priority,
+            pendingIntent
+        )
     }
 
     companion object {

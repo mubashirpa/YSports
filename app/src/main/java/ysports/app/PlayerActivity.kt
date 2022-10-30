@@ -84,8 +84,8 @@ import kotlin.math.abs
 import kotlin.math.max
 
 @Suppress("PrivatePropertyName")
-class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.ControllerVisibilityListener,
-    GestureDetector.OnGestureListener {
+class PlayerActivity : AppCompatActivity(), OnClickListener,
+    StyledPlayerView.ControllerVisibilityListener, GestureDetector.OnGestureListener {
 
     // Saved instance state keys.
 
@@ -119,7 +119,8 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
     // androidx.annotation:annotation-experimental).
     private var serverSideAdsLoader: ImaServerSideAdInsertionMediaSource.AdsLoader? = null
 
-    private var serverSideAdsLoaderState: @MonotonicNonNull ImaServerSideAdInsertionMediaSource.AdsLoader.State? = null
+    private var serverSideAdsLoaderState: @MonotonicNonNull ImaServerSideAdInsertionMediaSource.AdsLoader.State? =
+        null
 
     /* END */
 
@@ -198,7 +199,9 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         playerView?.requestFocus()
 
         if (savedInstanceState != null) {
-            trackSelectionParameters = TrackSelectionParameters.fromBundle(savedInstanceState.getBundle(KEY_TRACK_SELECTION_PARAMETERS)!!)
+            trackSelectionParameters = TrackSelectionParameters.fromBundle(
+                savedInstanceState.getBundle(KEY_TRACK_SELECTION_PARAMETERS)!!
+            )
             startAutoPlay = savedInstanceState.getBoolean(KEY_AUTO_PLAY)
             startItemIndex = savedInstanceState.getInt(KEY_ITEM_INDEX)
             startPosition = savedInstanceState.getLong(KEY_POSITION)
@@ -224,23 +227,20 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
 
         changeAspectRatioButton.setOnLongClickListener {
             val videoZoomItems = resources.getStringArray(R.array.player_resize_mode)
-            var checkedItem: Int = when(playerView?.resizeMode) {
+            var checkedItem: Int = when (playerView?.resizeMode) {
                 AspectRatioFrameLayout.RESIZE_MODE_FILL -> 1
                 AspectRatioFrameLayout.RESIZE_MODE_ZOOM -> 2
                 AspectRatioFrameLayout.RESIZE_MODE_FIXED_HEIGHT -> 3
                 AspectRatioFrameLayout.RESIZE_MODE_FIXED_WIDTH -> 4
                 else -> 0
             }
-            MaterialAlertDialogBuilder(context)
-                .setTitle(resources.getString(R.string.video_zoom))
+            MaterialAlertDialogBuilder(context).setTitle(resources.getString(R.string.video_zoom))
                 .setNeutralButton(resources.getString(R.string.cancel)) { _, _ -> }
                 .setPositiveButton(resources.getString(R.string.ok)) { _, _ ->
                     setVideoZoom(checkedItem)
-                }
-                .setSingleChoiceItems(videoZoomItems, checkedItem) { _, position ->
+                }.setSingleChoiceItems(videoZoomItems, checkedItem) { _, position ->
                     checkedItem = position
-                }
-                .show()
+                }.show()
             true
         }
     }
@@ -272,7 +272,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
             }
         }
 
-        if(brightness != 0) setScreenBrightness(brightness)
+        if (brightness != 0) setScreenBrightness(brightness)
     }
 
     override fun onPause() {
@@ -322,7 +322,9 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         if (player?.isPlaying == true) enterPictureInPicture(false)
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (grantResults.isEmpty()) {
             // Empty results are triggered if a permission is requested while another request was already
@@ -363,7 +365,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
             navigationButton -> onBackPressedCallback.handleOnBackPressed()
             exoPIP -> enterPictureInPicture(true)
             changeAspectRatioButton -> {
-                when(playerView?.resizeMode) {
+                when (playerView?.resizeMode) {
                     AspectRatioFrameLayout.RESIZE_MODE_FIT -> setVideoZoom(1)
                     AspectRatioFrameLayout.RESIZE_MODE_FILL -> setVideoZoom(2)
                     AspectRatioFrameLayout.RESIZE_MODE_ZOOM -> setVideoZoom(3)
@@ -410,12 +412,12 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
             }
 
             lastSeenTracks = Tracks.EMPTY
-            val playerBuilder = ExoPlayer.Builder(context)
-                .setMediaSourceFactory(createMediaSourceFactory())
-                .setSeekBackIncrementMs(10000)
-                .setSeekForwardIncrementMs(10000)
+            val playerBuilder =
+                ExoPlayer.Builder(context).setMediaSourceFactory(createMediaSourceFactory())
+                    .setSeekBackIncrementMs(10000).setSeekForwardIncrementMs(10000)
             setRenderersFactory(
-                playerBuilder, intent.getBooleanExtra(PREFER_EXTENSION_DECODERS_EXTRA, false))
+                playerBuilder, intent.getBooleanExtra(PREFER_EXTENSION_DECODERS_EXTRA, false)
+            )
             player = playerBuilder.build()
             player?.trackSelectionParameters = trackSelectionParameters!!
             player?.addListener(PlayerEventListener())
@@ -445,7 +447,8 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
     private fun createMediaSourceFactory(): MediaSource.Factory {
         val drmSessionManagerProvider = DefaultDrmSessionManagerProvider()
         drmSessionManagerProvider.setDrmHttpDataSourceFactory(
-            DemoUtil.getHttpDataSourceFactory(context))
+            DemoUtil.getHttpDataSourceFactory(context)
+        )
         val serverSideAdLoaderBuilder =
             ImaServerSideAdInsertionMediaSource.AdsLoader.Builder(context, playerView!!)
         if (serverSideAdsLoaderState != null) {
@@ -455,19 +458,18 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         val imaServerSideAdInsertionMediaSourceFactory =
             ImaServerSideAdInsertionMediaSource.Factory(
                 serverSideAdsLoader!!,
-                DefaultMediaSourceFactory(context).setDataSourceFactory(dataSourceFactory!!))
-        return DefaultMediaSourceFactory(context)
-            .setDataSourceFactory(dataSourceFactory!!)
-            .setDrmSessionManagerProvider(drmSessionManagerProvider)
-            .setLocalAdInsertionComponents(
-                this::getClientSideAdsLoader, playerView!!)
-            .setServerSideAdInsertionMediaSourceFactory(imaServerSideAdInsertionMediaSourceFactory)
+                DefaultMediaSourceFactory(context).setDataSourceFactory(dataSourceFactory!!)
+            )
+        return DefaultMediaSourceFactory(context).setDataSourceFactory(dataSourceFactory!!)
+            .setDrmSessionManagerProvider(drmSessionManagerProvider).setLocalAdInsertionComponents(
+                this::getClientSideAdsLoader, playerView!!
+            ).setServerSideAdInsertionMediaSourceFactory(imaServerSideAdInsertionMediaSourceFactory)
     }
 
     private fun setRenderersFactory(
-        playerBuilder: ExoPlayer.Builder, preferExtensionDecoders: Boolean) {
-        val renderersFactory =
-            DemoUtil.buildRenderersFactory(context, preferExtensionDecoders)
+        playerBuilder: ExoPlayer.Builder, preferExtensionDecoders: Boolean
+    ) {
+        val renderersFactory = DemoUtil.buildRenderersFactory(context, preferExtensionDecoders)
         playerBuilder.setRenderersFactory(renderersFactory)
     }
 
@@ -498,7 +500,8 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
                 return Collections.emptyList()
             }
 
-            val drmConfiguration: MediaItem.DrmConfiguration? = mediaItem.localConfiguration?.drmConfiguration
+            val drmConfiguration: MediaItem.DrmConfiguration? =
+                mediaItem.localConfiguration?.drmConfiguration
             if (drmConfiguration != null) {
                 if (!FrameworkMediaDrm.isCryptoSchemeSupported(drmConfiguration.scheme)) {
                     showToast(R.string.error_drm_unsupported_scheme)
@@ -556,7 +559,9 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
 
     private fun saveServerSideAdsLoaderState(outState: Bundle) {
         if (serverSideAdsLoaderState != null) {
-            outState.putBundle(KEY_SERVER_SIDE_ADS_LOADER_STATE, serverSideAdsLoaderState?.toBundle())
+            outState.putBundle(
+                KEY_SERVER_SIDE_ADS_LOADER_STATE, serverSideAdsLoaderState?.toBundle()
+            )
         }
     }
 
@@ -565,7 +570,8 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         if (adsLoaderStateBundle != null) {
             serverSideAdsLoaderState =
                 ImaServerSideAdInsertionMediaSource.AdsLoader.State.CREATOR.fromBundle(
-                    adsLoaderStateBundle)
+                    adsLoaderStateBundle
+                )
         }
     }
 
@@ -592,7 +598,8 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
     // User controls
 
     private fun updateButtonVisibility() {
-        selectTracksButton?.isVisible = player != null && TrackSelectionDialog.willHaveContent(player)
+        selectTracksButton?.isVisible =
+            player != null && TrackSelectionDialog.willHaveContent(player)
     }
 
     private fun showControls() {
@@ -631,12 +638,18 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
             if (tracks == lastSeenTracks) {
                 return
             }
-            if (tracks.containsType(C.TRACK_TYPE_VIDEO)
-                && !tracks.isTypeSupported(C.TRACK_TYPE_VIDEO, true)) {
+            if (tracks.containsType(C.TRACK_TYPE_VIDEO) && !tracks.isTypeSupported(
+                    C.TRACK_TYPE_VIDEO,
+                    true
+                )
+            ) {
                 showToast(R.string.error_unsupported_video)
             }
-            if (tracks.containsType(C.TRACK_TYPE_AUDIO)
-                && !tracks.isTypeSupported(C.TRACK_TYPE_AUDIO, true)) {
+            if (tracks.containsType(C.TRACK_TYPE_AUDIO) && !tracks.isTypeSupported(
+                    C.TRACK_TYPE_AUDIO,
+                    true
+                )
+            ) {
                 showToast(R.string.error_unsupported_audio)
             }
             lastSeenTracks = tracks
@@ -677,8 +690,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
             super.onMediaMetadataChanged(mediaMetadata)
             val mediaTitle = mediaMetadata.title
-            if (mediaTitle != null && mediaTitle != "null")
-                exoTitle.text = mediaTitle
+            if (mediaTitle != null && mediaTitle != "null") exoTitle.text = mediaTitle
         }
     }
 
@@ -705,29 +717,36 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         }
     }
 
-    private fun createMediaItems(intent: Intent, downloadTracker: DownloadTracker) : List<MediaItem> {
+    private fun createMediaItems(
+        intent: Intent, downloadTracker: DownloadTracker
+    ): List<MediaItem> {
         val mediaItems: MutableList<MediaItem> = ArrayList()
         for (item in IntentUtil.createMediaItemsFromIntent(intent)) {
-            mediaItems.add(maybeSetDownloadProperties(item, downloadTracker.getDownloadRequest(item.localConfiguration?.uri)))
+            mediaItems.add(
+                maybeSetDownloadProperties(
+                    item, downloadTracker.getDownloadRequest(item.localConfiguration?.uri)
+                )
+            )
         }
         return mediaItems
     }
 
-    private fun maybeSetDownloadProperties(item: MediaItem, downloadRequest: DownloadRequest?) : MediaItem {
+    private fun maybeSetDownloadProperties(
+        item: MediaItem, downloadRequest: DownloadRequest?
+    ): MediaItem {
         if (downloadRequest == null) {
             return item
         }
         val builder = item.buildUpon()
-        builder
-            .setMediaId(downloadRequest.id)
-            .setUri(downloadRequest.uri)
-            .setCustomCacheKey(downloadRequest.customCacheKey)
-            .setMimeType(downloadRequest.mimeType)
+        builder.setMediaId(downloadRequest.id).setUri(downloadRequest.uri)
+            .setCustomCacheKey(downloadRequest.customCacheKey).setMimeType(downloadRequest.mimeType)
             .setStreamKeys(downloadRequest.streamKeys)
-        @Nullable val drmConfiguration: MediaItem.DrmConfiguration? = item.localConfiguration?.drmConfiguration
+        @Nullable val drmConfiguration: MediaItem.DrmConfiguration? =
+            item.localConfiguration?.drmConfiguration
         if (drmConfiguration != null) {
             builder.setDrmConfiguration(
-                drmConfiguration.buildUpon().setKeySetId(downloadRequest.keySetId).build())
+                drmConfiguration.buildUpon().setKeySetId(downloadRequest.keySetId).build()
+            )
         }
         return builder.build()
     }
@@ -737,7 +756,9 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
     /*Picture-in-Picture */
 
     @RequiresApi(Build.VERSION_CODES.O)
-    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
+    override fun onPictureInPictureModeChanged(
+        isInPictureInPictureMode: Boolean, newConfig: Configuration
+    ) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         if (isInPictureInPictureMode) {
             playerView?.hideController()
@@ -771,19 +792,24 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
     private fun enterPictureInPicture(openSettings: Boolean) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val appOPS = getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
-            val pipAvailable = appOPS.unsafeCheckOpNoThrow(AppOpsManager.OPSTR_PICTURE_IN_PICTURE, android.os.Process.myUid(), packageName) == AppOpsManager.MODE_ALLOWED
+            val pipAvailable = appOPS.unsafeCheckOpNoThrow(
+                AppOpsManager.OPSTR_PICTURE_IN_PICTURE, android.os.Process.myUid(), packageName
+            ) == AppOpsManager.MODE_ALLOWED
             if (pipAvailable) {
                 if (player?.isPlaying != true) player?.play()
                 enterPictureInPictureMode(updatePictureInPictureParams())
             } else if (openSettings) {
-                val intent = Intent("android.settings.PICTURE_IN_PICTURE_SETTINGS", Uri.parse("package:$packageName"))
+                val intent = Intent(
+                    "android.settings.PICTURE_IN_PICTURE_SETTINGS",
+                    Uri.parse("package:$packageName")
+                )
                 startActivity(intent)
             }
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun updatePictureInPictureParams() : PictureInPictureParams {
+    private fun updatePictureInPictureParams(): PictureInPictureParams {
         val paramsBuilder: PictureInPictureParams.Builder = PictureInPictureParams.Builder()
 
         val sourceRectHint = Rect()
@@ -791,8 +817,14 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
 
         val actions: ArrayList<RemoteAction> = ArrayList()
         val actionIntent = Intent(ACTION_PIP_MEDIA_CONTROL)
-        val pendingIntent = PendingIntent.getBroadcast(context, PIP_REQUEST_CODE, actionIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-        PIP_ACTION_ICON_ID = if (player?.isPlaying == true) R.drawable.ic_baseline_pause_24 else R.drawable.ic_baseline_play_arrow_24
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            PIP_REQUEST_CODE,
+            actionIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        PIP_ACTION_ICON_ID =
+            if (player?.isPlaying == true) R.drawable.ic_baseline_pause_24 else R.drawable.ic_baseline_play_arrow_24
         val icon: Icon = Icon.createWithResource(context, PIP_ACTION_ICON_ID)
         actions.add(RemoteAction(icon, "Play/Pause", "Play/Pause Video", pendingIntent))
 
@@ -823,18 +855,14 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         val hideBehavior = (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                 // Set the content to appear under the system bars so that the
                 // content doesn't resize when the system bars hide and show.
-                or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                 // Hide the nav bar and status bar
-                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_FULLSCREEN)
+                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN)
 
         // Shows the system bars by removing all the flags
         // except for the ones that make the content appear under the system bars.
-        val showBehavior = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
+        val showBehavior =
+            (View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
         if (hide) {
             window.decorView.systemUiVisibility = hideBehavior
         } else {
@@ -887,16 +915,24 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
                             selectedVideoTrack = if (videoTracksSelected > 1) {
                                 "Auto"
                             } else {
-                                getResolution("${trackFormat.width}x${trackFormat.height}", trackFormat.width, trackFormat.height)
+                                getResolution(
+                                    "${trackFormat.width}x${trackFormat.height}",
+                                    trackFormat.width,
+                                    trackFormat.height
+                                )
                             }
                         }
                         if (trackType == C.TRACK_TYPE_AUDIO) {
-                            selectedAudioTrack = Locale(trackFormat.language.toString()).displayLanguage
-                            if (selectedAudioTrack == "und" || selectedAudioTrack == "null") selectedAudioTrack = null
+                            selectedAudioTrack =
+                                Locale(trackFormat.language.toString()).displayLanguage
+                            if (selectedAudioTrack == "und" || selectedAudioTrack == "null") selectedAudioTrack =
+                                null
                         }
                         if (trackType == C.TRACK_TYPE_TEXT) {
-                            selectedSubtitleTrack = Locale(trackFormat.language.toString()).displayLanguage
-                            if (selectedSubtitleTrack == "und" || selectedSubtitleTrack == "null") selectedSubtitleTrack = null
+                            selectedSubtitleTrack =
+                                Locale(trackFormat.language.toString()).displayLanguage
+                            if (selectedSubtitleTrack == "und" || selectedSubtitleTrack == "null") selectedSubtitleTrack =
+                                null
                         }
                     }
                 }
@@ -904,28 +940,50 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         }
 
         val bottomSheetMenu = BottomSheetMenu()
-        bottomSheetMenu.setMenuItem(getString(R.string.quality), selectedVideoTrack, R.drawable.ic_baseline_hd_24)
-        bottomSheetMenu.setMenuItem(getString(R.string.audio), selectedAudioTrack, R.drawable.ic_baseline_audiotrack_24)
-        bottomSheetMenu.setMenuItem(getString(R.string.subtitles), selectedSubtitleTrack, R.drawable.ic_baseline_subtitles_24)
+        bottomSheetMenu.setMenuItem(
+            getString(R.string.quality), selectedVideoTrack, R.drawable.ic_baseline_hd_24
+        )
+        bottomSheetMenu.setMenuItem(
+            getString(R.string.audio), selectedAudioTrack, R.drawable.ic_baseline_audiotrack_24
+        )
+        bottomSheetMenu.setMenuItem(
+            getString(R.string.subtitles),
+            selectedSubtitleTrack,
+            R.drawable.ic_baseline_subtitles_24
+        )
         if (playbackSpeed == "1.0x") {
-            bottomSheetMenu.setMenuItem(getString(R.string.playback_speed), "Normal", R.drawable.ic_baseline_slow_motion_video_24)
+            bottomSheetMenu.setMenuItem(
+                getString(R.string.playback_speed),
+                "Normal",
+                R.drawable.ic_baseline_slow_motion_video_24
+            )
         } else if (playbackSpeed != "nullx") {
-            bottomSheetMenu.setMenuItem(getString(R.string.playback_speed), playbackSpeed, R.drawable.ic_baseline_slow_motion_video_24)
+            bottomSheetMenu.setMenuItem(
+                getString(R.string.playback_speed),
+                playbackSpeed,
+                R.drawable.ic_baseline_slow_motion_video_24
+            )
         } else {
-            bottomSheetMenu.setMenuItem(getString(R.string.playback_speed), R.drawable.ic_baseline_slow_motion_video_24)
+            bottomSheetMenu.setMenuItem(
+                getString(R.string.playback_speed), R.drawable.ic_baseline_slow_motion_video_24
+            )
         }
         bottomSheetMenu.setOnItemClickListener { _, _, position, _ ->
-            when(position) {
+            when (position) {
                 0 -> playerUtil.selectVideoTrack(context, player)
                 1 -> playerUtil.selectAudioTrack(context, player)
                 2 -> playerUtil.selectSubTrack(context, player)
                 3 -> playerUtil.setPlaybackSpeed(context, player)
                 4 -> {
-                    if (!isShowingTrackSelectionDialog && TrackSelectionDialog.willHaveContent(player)) {
+                    if (!isShowingTrackSelectionDialog && TrackSelectionDialog.willHaveContent(
+                            player
+                        )
+                    ) {
                         isShowingTrackSelectionDialog = true
-                        val trackSelectionDialog = TrackSelectionDialog.createForPlayer(player) /* onDismissListener= */ {
-                            isShowingTrackSelectionDialog = false
-                        }
+                        val trackSelectionDialog =
+                            TrackSelectionDialog.createForPlayer(player) /* onDismissListener= */ {
+                                isShowingTrackSelectionDialog = false
+                            }
                         trackSelectionDialog.show(supportFragmentManager,  /* tag = */null)
                     }
                 }
@@ -954,7 +1012,8 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
 
     private fun startUnlockButtonTimer() {
         if (unlockButtonHandler == null) unlockButtonHandler = Handler(Looper.getMainLooper())
-        if (unlockButtonRunnable == null) unlockButtonRunnable = Runnable { exoUnlock.visibility = View.GONE }
+        if (unlockButtonRunnable == null) unlockButtonRunnable =
+            Runnable { exoUnlock.visibility = View.GONE }
         unlockButtonHandler?.removeCallbacks(unlockButtonRunnable!!)
         unlockButtonHandler?.postDelayed(unlockButtonRunnable!!, 3000)
     }
@@ -972,7 +1031,9 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         return false
     }
 
-    override fun onScroll(event1: MotionEvent, event2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
+    override fun onScroll(
+        event1: MotionEvent, event2: MotionEvent, distanceX: Float, distanceY: Float
+    ): Boolean {
         if (playerLocked) return false
 
         minSwipeY += distanceY
@@ -981,20 +1042,18 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         val screenHeight = Resources.getSystem().displayMetrics.heightPixels
         val border = 20 * Resources.getSystem().displayMetrics.density.toInt()
 
-        if( event1.x < border || event1.y < border || event1.x > screenWidth - border || event1.y > screenHeight - border)
-            return false
+        if (event1.x < border || event1.y < border || event1.x > screenWidth - border || event1.y > screenHeight - border) return false
 
-        if(abs(distanceX) < abs(distanceY) && abs(minSwipeY) > 50){
-            if(event1.x < screenWidth/2){
+        if (abs(distanceX) < abs(distanceY) && abs(minSwipeY) > 50) {
+            if (event1.x < screenWidth / 2) {
                 //brightness
                 binding.brightnessControl.showView()
                 binding.volumeControl.hideView()
                 val increase = distanceY > 0
-                val newValue = if(increase) brightness + 1 else brightness - 1
-                if(newValue in 0..30) brightness = newValue
+                val newValue = if (increase) brightness + 1 else brightness - 1
+                if (newValue in 0..30) brightness = newValue
                 setScreenBrightness(brightness)
-            }
-            else {
+            } else {
                 //volume
                 val volumeIconSrc: Int
                 binding.brightnessControl.hideView()
@@ -1004,7 +1063,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
                 val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
                 val increase = distanceY > 0
                 val newValue: Int
-                if(increase) {
+                if (increase) {
                     newValue = volume + 1
                     volumeIconSrc = R.drawable.ic_baseline_volume_up_24
                 } else {
@@ -1015,7 +1074,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
                         R.drawable.ic_baseline_volume_mute_24
                     }
                 }
-                if(newValue in 0..maxVolume) volume = newValue
+                if (newValue in 0..maxVolume) volume = newValue
                 binding.volumeIcon.setImageResource(volumeIconSrc)
                 binding.volumeProgress.progress = (volume * 100) / maxVolume
                 audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0)
@@ -1038,7 +1097,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         playerView?.setOnTouchListener { _, motionEvent ->
             if (playerLocked) return@setOnTouchListener false
             gestureDetectorCompat.onTouchEvent(motionEvent)
-            if(motionEvent.action == MotionEvent.ACTION_UP) {
+            if (motionEvent.action == MotionEvent.ACTION_UP) {
                 binding.brightnessControl.hideView()
                 binding.volumeControl.hideView()
             }
@@ -1048,7 +1107,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
 
     private fun setScreenBrightness(value: Int) {
         val brightnessIconSrc: Int
-        val brightnessConstant = 1.0f/30
+        val brightnessConstant = 1.0f / 30
         val layoutParams = window.attributes
         layoutParams.screenBrightness = brightnessConstant * value
         val brightnessPercentage = (value * 100) / 30
@@ -1073,10 +1132,9 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         val notificationId = 101
         val mediaDescriptionAdapter = DescriptionAdapter(context)
 
-        val playerNotificationManager = PlayerNotificationManager
-            .Builder(context, notificationId, channelId)
-            .setMediaDescriptionAdapter(mediaDescriptionAdapter)
-            .build()
+        val playerNotificationManager =
+            PlayerNotificationManager.Builder(context, notificationId, channelId)
+                .setMediaDescriptionAdapter(mediaDescriptionAdapter).build()
 
         playerNotificationManager.setUsePreviousAction(false)
         playerNotificationManager.setUseNextAction(false)
@@ -1093,18 +1151,20 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         }
     }
 
-    private fun createNotificationChannel() : String {
+    private fun createNotificationChannel(): String {
         val channelId: String = getString(R.string.player_notification_channel_id)
         val channelName: String = getString(R.string.player_notification_channel_name)
         val channelDescription = getString(R.string.player_notification_channel_description)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationUtil(context).createNotificationChannel(channelName, channelDescription, channelId, NotificationManager.IMPORTANCE_LOW)
+            NotificationUtil(context).createNotificationChannel(
+                channelName, channelDescription, channelId, NotificationManager.IMPORTANCE_LOW
+            )
         }
         return channelId
     }
 
-    private fun getResolution(aspectRatio: String, width: Int, height: Int) : String {
-        return when(aspectRatio) {
+    private fun getResolution(aspectRatio: String, width: Int, height: Int): String {
+        return when (aspectRatio) {
             // 16:9 aspect ratio
             "426x240" -> "240p"
             "640x360" -> "360p"
@@ -1127,7 +1187,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
         }
     }
 
-    private fun getResolution(width: Int, height: Int) : String {
+    private fun getResolution(width: Int, height: Int): String {
         if ((width == 1280 && height in 525..720) || (width in 576..1080 && height == 720)) return "720p" // 1280x720
         if ((width == 1920 && height in 787..1080) || (width in 864..1920 && height == 1080)) return "1080p" // 1920x1080
         if (width == 1998 && height == 1080) return "2K"
@@ -1141,7 +1201,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener, StyledPlayerView.Co
     }
 
     private fun setVideoZoom(type: Int) {
-        aspectRatioText.text = when(type) {
+        aspectRatioText.text = when (type) {
             1 -> {
                 playerView?.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
                 getString(R.string.stretch)

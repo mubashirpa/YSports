@@ -22,7 +22,7 @@ interface NewsApi {
     companion object {
         private const val BASE_URL = "https://newsapi.org/"
 
-        fun create() : NewsApi {
+        fun create(): NewsApi {
             val logger = HttpLoggingInterceptor()
             logger.level = HttpLoggingInterceptor.Level.BASIC
 

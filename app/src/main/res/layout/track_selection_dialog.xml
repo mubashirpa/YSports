@@ -1,49 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:paddingVertical="16dp">
+
     <androidx.viewpager.widget.ViewPager
         android:id="@+id/track_selection_dialog_view_pager"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
+
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/track_selection_dialog_tab_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_tabs_main"
-            app:tabMode="fixed"
             app:tabGravity="fill"
-            app:tabMaxWidth="0dp"/>
+            app:tabMaxWidth="0dp"
+            app:tabMode="fixed" />
     </androidx.viewpager.widget.ViewPager>
+
     <com.google.android.material.divider.MaterialDivider
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:dividerColor="@color/surfaceVariant"/>
+        app:dividerColor="@color/surfaceVariant" />
+
     <LinearLayout
         android:id="@+id/button_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:gravity="end"
+        android:orientation="horizontal"
         android:paddingHorizontal="16dp"
         android:paddingTop="16dp">
+
         <Button
             android:id="@+id/track_selection_dialog_cancel_button"
+            style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@android:string/cancel"
             android:layout_marginEnd="8dp"
-            style="@style/Widget.Material3.Button.TextButton" />
+            android:text="@android:string/cancel" />
+
         <Button
             android:id="@+id/track_selection_dialog_ok_button"
+            style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@android:string/ok"
-            style="@style/Widget.Material3.Button.TextButton" />
+            android:text="@android:string/ok" />
     </LinearLayout>
 </LinearLayout>

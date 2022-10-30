@@ -96,9 +96,13 @@ class MatchesFragment() : Fragment() {
     }
 
     private fun readDatabase() {
-        matchesApi = JsonApi.create("https://api.npoint.io/").getMatches(PrivateKeys().matchesUrlPath())
+        matchesApi =
+            JsonApi.create("https://api.npoint.io/").getMatches(PrivateKeys().matchesUrlPath())
         matchesApi?.enqueue(object : Callback<MatchesResponse> {
-            override fun onResponse(call: Call<MatchesResponse>, response: Response<MatchesResponse>) {
+            override fun onResponse(
+                call: Call<MatchesResponse>,
+                response: Response<MatchesResponse>
+            ) {
                 if (!response.isSuccessful) {
                     errorOccurred(R.string.error_retrofit_response, true)
                     return
@@ -113,7 +117,8 @@ class MatchesFragment() : Fragment() {
 
             override fun onFailure(call: Call<MatchesResponse>, t: Throwable) {
                 if (isAdded) {
-                    val error = if (NetworkUtil().isOnline(context)) R.string.error_failed_to_load_content else R.string.error_no_network
+                    val error =
+                        if (NetworkUtil().isOnline(context)) R.string.error_failed_to_load_content else R.string.error_no_network
                     errorOccurred(error, true)
                 }
             }
