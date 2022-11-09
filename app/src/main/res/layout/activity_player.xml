@@ -118,6 +118,7 @@
         android:layout_margin="16dp"
         android:contentDescription="@string/app_name"
         android:visibility="gone"
-        app:icon="@drawable/ic_baseline_lock_24" />
+        app:icon="@drawable/ic_baseline_lock_24"
+        app:iconTint="@color/white" />
 
 </FrameLayout>
