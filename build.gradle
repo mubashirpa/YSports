@@ -5,7 +5,7 @@ buildscript {
 
     ext {
         retrofit_version = '2.9.0'
-        okhttp_logging_interceptor_version = '5.0.0-alpha.10'
+        okhttp_logging_interceptor_version = '5.0.0-alpha.2'
         exoplayer_version = '2.18.1'
     }
 }
