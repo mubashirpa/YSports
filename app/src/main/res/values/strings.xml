@@ -173,4 +173,6 @@
     <string name="share_via">Share via</string>
     <string name="link_copied_to_clipboard">Link copied to clipboard</string>
     <string name="text_copied_to_clipboard">Text copied to clipboard</string>
+    <string name="positive_10s">10s</string>
+    <string name="negative_10s">-10s</string>
 </resources>
