@@ -66,12 +66,10 @@ import com.google.android.exoplayer2.ui.AspectRatioFrameLayout
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.google.android.exoplayer2.ui.StyledPlayerView
 import com.google.android.exoplayer2.upstream.DataSource
-import com.google.android.exoplayer2.util.DebugTextViewHelper
-import com.google.android.exoplayer2.util.ErrorMessageProvider
-import com.google.android.exoplayer2.util.EventLogger
-import com.google.android.exoplayer2.util.Util
+import com.google.android.exoplayer2.util.*
 import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.common.collect.ImmutableList
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull
 import ysports.app.databinding.ActivityPlayerBinding
 import ysports.app.player.*
@@ -82,6 +80,7 @@ import ysports.app.widgets.AutoHideTextView
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
+
 
 @Suppress("PrivatePropertyName")
 class PlayerActivity : AppCompatActivity(), OnClickListener,
@@ -154,6 +153,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
     private var playerLocked = false
     private var unlockButtonHandler: Handler? = null
     private var unlockButtonRunnable: Runnable? = null
+    private var gestureDetector: GestureDetector? = null
 
     // Activity lifecycle.
 
@@ -365,6 +365,8 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
             navigationButton -> onBackPressedCallback.handleOnBackPressed()
             exoPIP -> enterPictureInPicture(true)
             changeAspectRatioButton -> {
+                // TODO("Delete this line")
+                loadSubtitle()
                 when (playerView?.resizeMode) {
                     AspectRatioFrameLayout.RESIZE_MODE_FIT -> setVideoZoom(1)
                     AspectRatioFrameLayout.RESIZE_MODE_FILL -> setVideoZoom(2)
@@ -406,7 +408,42 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
      */
     private fun initializePlayer(): Boolean {
         if (player == null) {
-            mediaItems = createMediaItems(intent)
+            val action = intent.action
+            val type = intent.type
+            val data = intent.data
+
+            if (Intent.ACTION_SEND == action && "text/plain" == type) {
+                val text: String? = intent.getStringExtra(Intent.EXTRA_TEXT)
+                if (text != null) {
+                    val parsedUri = Uri.parse(text)
+                    if (parsedUri.isAbsolute) {
+                        val mediaItem = MediaItem.Builder()
+                            .setUri(parsedUri)
+                            .setMediaMetadata(
+                                MediaMetadata.Builder().setTitle(parsedUri.lastPathSegment.toString())
+                                    .build()
+                            )
+                            .build()
+                        mediaItems = ImmutableList.of(mediaItem)
+                        // TODO("Fix this")
+                        Log.d("hello", "ACTION_SEND: $parsedUri")
+                        showToast(parsedUri.toString())
+                    }
+                }
+            } else if (data != null) {
+                val uri: Uri = data
+                val mediaItem = MediaItem.Builder()
+                    .setUri(uri)
+                    .setMediaMetadata(
+                        MediaMetadata.Builder().setTitle(uri.lastPathSegment.toString())
+                            .build()
+                    )
+                    .build()
+                mediaItems = ImmutableList.of(mediaItem)
+            } else {
+                mediaItems = createMediaItems(intent)
+            }
+
             if (mediaItems?.isEmpty() == true) {
                 return false
             }
@@ -441,6 +478,9 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
             playerNotificationManager = initializeNotification()
         }
         playerNotificationManager?.setPlayer(player)
+
+        enableDoubleTap()
+
         return true
     }
 
@@ -1096,6 +1136,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
     private fun initializeSwipeControl() {
         playerView?.setOnTouchListener { _, motionEvent ->
             if (playerLocked) return@setOnTouchListener false
+            gestureDetector?.onTouchEvent(motionEvent)
             gestureDetectorCompat.onTouchEvent(motionEvent)
             if (motionEvent.action == MotionEvent.ACTION_UP) {
                 binding.brightnessControl.hideView()
@@ -1224,5 +1265,37 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
             }
         }
         aspectRatioText.showView()
+    }
+
+    private fun enableDoubleTap() {
+        val seekInterval = 10000L
+
+        gestureDetector =
+            GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
+                override fun onDoubleTap(e: MotionEvent): Boolean {
+                    if (player != null && playerView != null) {
+                        val x = e.x
+                        val currentPosition = player!!.currentPosition
+                        val currentMediaItemIndex = player!!.currentMediaItemIndex
+
+                        if (x > playerView!!.width / 2) {
+                            // Forward
+                            aspectRatioText.text = getString(R.string.positive_10s)
+                            aspectRatioText.showView()
+                            player?.seekTo(currentMediaItemIndex, currentPosition + seekInterval)
+                        } else {
+                            // Backward
+                            aspectRatioText.text = getString(R.string.negative_10s)
+                            aspectRatioText.showView()
+                            player?.seekTo(currentMediaItemIndex, currentPosition - seekInterval)
+                        }
+                    }
+                    return true
+                }
+            })
+    }
+
+    private fun loadSubtitle() {
+        // TODO("Load external subtitle")
     }
 }
