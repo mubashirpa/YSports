@@ -47,8 +47,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.annotation.Nullable
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.GestureDetectorCompat
-import androidx.core.view.isVisible
+import androidx.core.view.*
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.drm.DefaultDrmSessionManagerProvider
@@ -81,10 +80,9 @@ import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
 
-
 @Suppress("PrivatePropertyName")
 class PlayerActivity : AppCompatActivity(), OnClickListener,
-    StyledPlayerView.ControllerVisibilityListener, GestureDetector.OnGestureListener {
+    StyledPlayerView.ControllerVisibilityListener {
 
     // Saved instance state keys.
 
@@ -125,7 +123,6 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
 
     private lateinit var binding: ActivityPlayerBinding
     private lateinit var context: Context
-
     private lateinit var exoUnlock: Button
     private lateinit var navigationButton: ImageButton
     private lateinit var exoPIP: ImageButton
@@ -138,15 +135,12 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
     private lateinit var exoPosition: TextView
     private lateinit var exoDuration: TextView
     private lateinit var aspectRatioText: AutoHideTextView
-
-    private lateinit var gestureDetectorCompat: GestureDetectorCompat
     private var playerNotificationManager: PlayerNotificationManager? = null
-    private lateinit var audioManager: AudioManager
     private var broadcastReceiver: BroadcastReceiver? = null
     private val playerUtil = PlayerUtil()
     private var minSwipeY: Float = 0f
-    private var brightness: Int = 0
-    private var volume: Int = 0
+    private var brightness: Int = 15
+    private var maxVolume: Int = 0
     private val ACTION_PIP_MEDIA_CONTROL = "pip_media_control"
     private val PIP_REQUEST_CODE = 101
     private var PIP_ACTION_ICON_ID = R.drawable.ic_baseline_play_arrow_24
@@ -157,6 +151,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
 
     // Activity lifecycle.
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityPlayerBinding.inflate(layoutInflater)
@@ -167,31 +162,6 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
         debugTextView = binding.debugTextView
         selectTracksButton = findViewById(R.id.exo_settings)
         selectTracksButton?.setOnClickListener(this)
-
-        exoUnlock = findViewById(R.id.exo_unlock)
-        navigationButton = findViewById(R.id.exo_navigation)
-        exoPIP = findViewById(R.id.exo_pip)
-        exoTitle = findViewById(R.id.exo_title)
-        exoPrevious = findViewById(R.id.exo_prev)
-        exoNext = findViewById(R.id.exo_next)
-        liveIndicator = findViewById(R.id.exo_live_indicator)
-        exoLock = findViewById(R.id.exo_lock)
-        changeAspectRatioButton = findViewById(R.id.exo_change_aspect_ratio)
-        exoPosition = findViewById(R.id.exo_position)
-        exoDuration = findViewById(R.id.exo_duration)
-        aspectRatioText = binding.aspectRatioText
-
-        exoUnlock.setOnClickListener(this)
-        navigationButton.setOnClickListener(this)
-        exoPIP.setOnClickListener(this)
-        liveIndicator.setOnClickListener(this)
-        exoLock.setOnClickListener(this)
-        changeAspectRatioButton.setOnClickListener(this)
-
-        gestureDetectorCompat = GestureDetectorCompat(context, this)
-        audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        exoPIP.isVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
-        onBackPressedDispatcher.addCallback(onBackPressedCallback)
 
         playerView = binding.playerView
         playerView?.setControllerVisibilityListener(this)
@@ -213,7 +183,45 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
 
         /* END */
 
-        initializeSwipeControl()
+        exoUnlock = findViewById(R.id.exo_unlock)
+        navigationButton = findViewById(R.id.exo_navigation)
+        exoPIP = findViewById(R.id.exo_pip)
+        exoTitle = findViewById(R.id.exo_title)
+        exoPrevious = findViewById(R.id.exo_prev)
+        exoNext = findViewById(R.id.exo_next)
+        liveIndicator = findViewById(R.id.exo_live_indicator)
+        exoLock = findViewById(R.id.exo_lock)
+        changeAspectRatioButton = findViewById(R.id.exo_change_aspect_ratio)
+        exoPosition = findViewById(R.id.exo_position)
+        exoDuration = findViewById(R.id.exo_duration)
+        aspectRatioText = binding.aspectRatioText
+
+        playerView?.setOnClickListener(this)
+        exoUnlock.setOnClickListener(this)
+        navigationButton.setOnClickListener(this)
+        exoPIP.setOnClickListener(this)
+        liveIndicator.setOnClickListener(this)
+        exoLock.setOnClickListener(this)
+        changeAspectRatioButton.setOnClickListener(this)
+
+        val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+        exoPIP.isVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+        onBackPressedDispatcher.addCallback(onBackPressedCallback)
+        playerView?.useController = false
+        playerView?.controllerHideOnTouch = false
+        playerView?.controllerShowTimeoutMs = 2000
+        enableGesture()
+
+        playerView?.setOnTouchListener { _, motionEvent ->
+            if (playerLocked) return@setOnTouchListener false
+            gestureDetector?.onTouchEvent(motionEvent)
+            if (motionEvent.action == MotionEvent.ACTION_UP) {
+                binding.brightnessControl.hideView()
+                binding.volumeControl.hideView()
+            }
+            false
+        }
 
         playerView?.addOnLayoutChangeListener { _, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
             if (left != oldLeft || right != oldRight || top != oldTop || bottom != oldBottom) {
@@ -222,8 +230,6 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
                 }
             }
         }
-
-        playerView?.setOnClickListener(this)
 
         changeAspectRatioButton.setOnLongClickListener {
             val videoZoomItems = resources.getStringArray(R.array.player_resize_mode)
@@ -272,7 +278,9 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
             }
         }
 
-        if (brightness != 0) setScreenBrightness(brightness)
+        /* END */
+
+        setScreenBrightness(brightness)
     }
 
     override fun onPause() {
@@ -298,28 +306,6 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
     override fun onDestroy() {
         super.onDestroy()
         releaseClientSideAdsLoader()
-    }
-
-    /* END */
-
-    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
-        override fun handleOnBackPressed() {
-            when {
-                playerLocked -> {
-                    showToast("Player is locked")
-                    exoUnlock.showView()
-                    startUnlockButtonTimer()
-                }
-                else -> finish()
-            }
-        }
-    }
-
-    /* When user press home button */
-
-    override fun onUserLeaveHint() {
-        super.onUserLeaveHint()
-        if (player?.isPlaying == true) enterPictureInPicture(false)
     }
 
     override fun onRequestPermissionsResult(
@@ -365,8 +351,6 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
             navigationButton -> onBackPressedCallback.handleOnBackPressed()
             exoPIP -> enterPictureInPicture(true)
             changeAspectRatioButton -> {
-                // TODO("Delete this line")
-                loadSubtitle()
                 when (playerView?.resizeMode) {
                     AspectRatioFrameLayout.RESIZE_MODE_FIT -> setVideoZoom(1)
                     AspectRatioFrameLayout.RESIZE_MODE_FILL -> setVideoZoom(2)
@@ -394,7 +378,11 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
 
     override fun onVisibilityChanged(visibility: Int) {
         //debugRootView.setVisibility(visibility);
-        if (visibility == View.VISIBLE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode) playerView?.hideController()
+        if (visibility == View.VISIBLE) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode) playerView?.hideController()
+        } else {
+            playerView?.useController = false
+        }
     }
 
     // Internal methods
@@ -420,7 +408,8 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
                         val mediaItem = MediaItem.Builder()
                             .setUri(parsedUri)
                             .setMediaMetadata(
-                                MediaMetadata.Builder().setTitle(parsedUri.lastPathSegment.toString())
+                                MediaMetadata.Builder()
+                                    .setTitle(parsedUri.lastPathSegment.toString())
                                     .build()
                             )
                             .build()
@@ -474,13 +463,12 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
         player?.prepare()
         updateButtonVisibility()
 
+        /* END */
+
         if (playerNotificationManager == null) {
             playerNotificationManager = initializeNotification()
         }
         playerNotificationManager?.setPlayer(player)
-
-        enableDoubleTap()
-
         return true
     }
 
@@ -793,6 +781,26 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
 
     /* End */
 
+    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            when {
+                playerLocked -> {
+                    showToast("Player is locked")
+                    exoUnlock.showView()
+                    startUnlockButtonTimer()
+                }
+                else -> finish()
+            }
+        }
+    }
+
+    /* When user press home button */
+
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        if (player?.isPlaying == true) enterPictureInPicture(false)
+    }
+
     /*Picture-in-Picture */
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -880,7 +888,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                controlWindowInsets(true)
+                hideWindowInsets()
             } else {
                 controlSystemUI(true)
             }
@@ -910,20 +918,23 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
         }
     }
 
-    @Suppress("SameParameterValue")
     @RequiresApi(Build.VERSION_CODES.R)
-    private fun controlWindowInsets(hide: Boolean) {
-        // WindowInsetsController can hide or show specified system bars.
-        val insetsController = window.decorView.windowInsetsController ?: return
-        // The behaviour of the immersive mode.
-        val behavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        // The type of system bars to hide or show.
-        val type = WindowInsets.Type.systemBars()
-        insetsController.systemBarsBehavior = behavior
-        if (hide) {
-            insetsController.hide(type)
-        } else {
-            insetsController.show(type)
+    private fun hideWindowInsets() {
+        val windowInsetsController =
+            WindowCompat.getInsetsController(window, window.decorView)
+        windowInsetsController.systemBarsBehavior =
+            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+
+        window.decorView.setOnApplyWindowInsetsListener { view, windowInsets ->
+
+            val ins = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars())
+
+            if (windowInsets.isVisible(WindowInsetsCompat.Type.navigationBars())
+                || windowInsets.isVisible(WindowInsetsCompat.Type.statusBars())
+            ) {
+                windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
+            }
+            view.onApplyWindowInsets(windowInsets)
         }
     }
 
@@ -1058,94 +1069,6 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
         unlockButtonHandler?.postDelayed(unlockButtonRunnable!!, 3000)
     }
 
-    override fun onDown(p0: MotionEvent): Boolean {
-        minSwipeY = 0f
-        return false
-    }
-
-    override fun onShowPress(p0: MotionEvent) {
-        return
-    }
-
-    override fun onSingleTapUp(p0: MotionEvent): Boolean {
-        return false
-    }
-
-    override fun onScroll(
-        event1: MotionEvent, event2: MotionEvent, distanceX: Float, distanceY: Float
-    ): Boolean {
-        if (playerLocked) return false
-
-        minSwipeY += distanceY
-
-        val screenWidth = Resources.getSystem().displayMetrics.widthPixels
-        val screenHeight = Resources.getSystem().displayMetrics.heightPixels
-        val border = 20 * Resources.getSystem().displayMetrics.density.toInt()
-
-        if (event1.x < border || event1.y < border || event1.x > screenWidth - border || event1.y > screenHeight - border) return false
-
-        if (abs(distanceX) < abs(distanceY) && abs(minSwipeY) > 50) {
-            if (event1.x < screenWidth / 2) {
-                //brightness
-                binding.brightnessControl.showView()
-                binding.volumeControl.hideView()
-                val increase = distanceY > 0
-                val newValue = if (increase) brightness + 1 else brightness - 1
-                if (newValue in 0..30) brightness = newValue
-                setScreenBrightness(brightness)
-            } else {
-                //volume
-                val volumeIconSrc: Int
-                binding.brightnessControl.hideView()
-                binding.volumeControl.showView()
-                val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-                volume = currentVolume
-                val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-                val increase = distanceY > 0
-                val newValue: Int
-                if (increase) {
-                    newValue = volume + 1
-                    volumeIconSrc = R.drawable.ic_baseline_volume_up_24
-                } else {
-                    newValue = volume - 1
-                    volumeIconSrc = if (newValue > 0) {
-                        R.drawable.ic_baseline_volume_down_24
-                    } else {
-                        R.drawable.ic_baseline_volume_mute_24
-                    }
-                }
-                if (newValue in 0..maxVolume) volume = newValue
-                binding.volumeIcon.setImageResource(volumeIconSrc)
-                binding.volumeProgress.progress = (volume * 100) / maxVolume
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0)
-            }
-            minSwipeY = 0f
-        }
-        return true
-    }
-
-    override fun onLongPress(p0: MotionEvent) {
-        return
-    }
-
-    override fun onFling(p0: MotionEvent, p1: MotionEvent, p2: Float, p3: Float): Boolean {
-        return false
-    }
-
-    @SuppressLint("ClickableViewAccessibility")
-    private fun initializeSwipeControl() {
-        playerView?.setOnTouchListener { _, motionEvent ->
-            if (playerLocked) return@setOnTouchListener false
-            gestureDetector?.onTouchEvent(motionEvent)
-            gestureDetectorCompat.onTouchEvent(motionEvent)
-            if (motionEvent.action == MotionEvent.ACTION_UP) {
-                binding.brightnessControl.hideView()
-                binding.volumeControl.hideView()
-            }
-            false
-        }
-    }
-
     private fun setScreenBrightness(value: Int) {
         val brightnessIconSrc: Int
         val brightnessConstant = 1.0f / 30
@@ -1267,11 +1190,21 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
         aspectRatioText.showView()
     }
 
-    private fun enableDoubleTap() {
+    private fun enableGesture() {
         val seekInterval = 10000L
 
         gestureDetector =
             GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
+                override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+                    if (playerView?.isControllerFullyVisible == true) {
+                        playerView?.hideController()
+                    } else {
+                        playerView?.useController = true
+                        playerView?.showController()
+                    }
+                    return true
+                }
+
                 override fun onDoubleTap(e: MotionEvent): Boolean {
                     if (player != null && playerView != null) {
                         val x = e.x
@@ -1289,6 +1222,61 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
                             aspectRatioText.showView()
                             player?.seekTo(currentMediaItemIndex, currentPosition - seekInterval)
                         }
+                    }
+                    return true
+                }
+
+                override fun onDown(e: MotionEvent): Boolean {
+                    minSwipeY = 0f
+                    return super.onDown(e)
+                }
+
+                override fun onScroll(
+                    event1: MotionEvent,
+                    event2: MotionEvent,
+                    distanceX: Float,
+                    distanceY: Float
+                ): Boolean {
+                    if (playerLocked) return false
+                    val screenWidth = Resources.getSystem().displayMetrics.widthPixels
+                    val screenHeight = Resources.getSystem().displayMetrics.heightPixels
+                    val border = 20 * Resources.getSystem().displayMetrics.density.toInt()
+                    if (event1.x < border || event1.y < border || event1.x > screenWidth - border || event1.y > screenHeight - border) return false
+
+                    minSwipeY += distanceY
+
+                    if (abs(distanceX) < abs(distanceY) && abs(minSwipeY) > 50) {
+                        if (event1.x < screenWidth / 2) {
+                            // Brightness
+                            binding.volumeControl.hideView()
+                            val increase = distanceY > 0
+                            val newValue = if (increase) brightness + 1 else brightness - 1
+                            if (newValue in 0..30) brightness = newValue
+                            setScreenBrightness(brightness)
+                            binding.brightnessControl.showView()
+                        } else {
+                            // Volume
+                            binding.brightnessControl.hideView()
+                            val deviceVolume: Int
+                            val increase = distanceY > 0
+                            val volumeIconSrc = if (increase) {
+                                player?.increaseDeviceVolume()
+                                deviceVolume = player?.deviceVolume ?: 0
+                                R.drawable.ic_baseline_volume_up_24
+                            } else {
+                                player?.decreaseDeviceVolume()
+                                deviceVolume = player?.deviceVolume ?: 0
+                                if (deviceVolume > 0) {
+                                    R.drawable.ic_baseline_volume_down_24
+                                } else {
+                                    R.drawable.ic_baseline_volume_mute_24
+                                }
+                            }
+                            binding.volumeIcon.setImageResource(volumeIconSrc)
+                            binding.volumeProgress.progress = (deviceVolume * 100) / maxVolume
+                            binding.volumeControl.showView()
+                        }
+                        minSwipeY = 0f
                     }
                     return true
                 }
