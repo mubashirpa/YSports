@@ -21,8 +21,6 @@ import android.os.*
 import android.provider.MediaStore
 import android.util.Log
 import android.view.View
-import android.view.WindowInsets
-import android.view.WindowInsetsController
 import android.webkit.*
 import android.webkit.WebView.RENDERER_PRIORITY_BOUND
 import android.widget.Button
@@ -37,6 +35,9 @@ import androidx.annotation.UiThread
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
 import androidx.webkit.*
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -330,10 +331,8 @@ class WebActivity : AppCompatActivity() {
 
     inner class ChromeClient : WebChromeClient() {
 
-        private var hasShownCustomView: Boolean = false
         private var customView: View? = null
         private var defaultOrientation = 0
-        private var defaultSystemUiVisibility = 0
         private var customViewCallback: CustomViewCallback? = null
         private var pathCallback: ValueCallback<Array<Uri>>? = null
 
@@ -457,25 +456,22 @@ class WebActivity : AppCompatActivity() {
         }
 
         override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
-            hasShownCustomView = true
             if (customView != null) {
                 onHideCustomView()
                 return
             }
             view?.setBackgroundColor(ContextCompat.getColor(context, R.color.black))
             customView = view
-            defaultSystemUiVisibility = getDefaultSystemUiVisibility()
             defaultOrientation = requestedOrientation
             customViewCallback = callback
             (window.decorView as FrameLayout).addView(customView, FrameLayout.LayoutParams(-1, -1))
-            hideSystemUi()
+            controlSystemUi(true)
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         }
 
         override fun onHideCustomView() {
-            hasShownCustomView = false
             (window.decorView as FrameLayout).removeView(customView)
-            showSystemUi(defaultSystemUiVisibility)
+            controlSystemUi(false)
             requestedOrientation = defaultOrientation
             customViewCallback?.onCustomViewHidden()
             customView = null
@@ -525,60 +521,16 @@ class WebActivity : AppCompatActivity() {
 
         // User defined functions
 
-        private fun getDefaultSystemUiVisibility(): Int {
-            val defaultSystemUiVisibility: Int? =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    val insetsController = window.insetsController
-                    insetsController?.systemBarsBehavior
+        private fun controlSystemUi(hide: Boolean) {
+            WindowCompat.setDecorFitsSystemWindows(window, false)
+            WindowInsetsControllerCompat(window, webView).let { controller ->
+                controller.systemBarsBehavior =
+                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                if (hide) {
+                    controller.hide(WindowInsetsCompat.Type.systemBars())
                 } else {
-
-                    // Deprecated in Api level 30
-                    window.decorView.systemUiVisibility
-
+                    controller.show(WindowInsetsCompat.Type.systemBars())
                 }
-            return defaultSystemUiVisibility!!
-        }
-
-        private fun hideSystemUi() {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                controlWindowInsets(true)
-            } else {
-
-                // Deprecated in Api level 30
-                window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                        // Set the content to appear under the system bars so that the
-                        // content doesn't resize when the system bars hide and show.
-                        or View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        // Hide the nav bar and status bar
-                        or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN)
-
-            }
-        }
-
-        private fun showSystemUi(defaultSystemUiVisibility: Int) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                controlWindowInsets(false)
-            } else {
-
-                //Deprecated in Api level 30
-                window.decorView.systemUiVisibility = defaultSystemUiVisibility
-
-            }
-        }
-
-        @RequiresApi(30)
-        private fun controlWindowInsets(hide: Boolean) {
-            // WindowInsetsController can hide or show specified system bars.
-            val insetsController = window.decorView.windowInsetsController ?: return
-            // The behaviour of the immersive mode.
-            val behavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            // The type of system bars to hide or show.
-            val type = WindowInsets.Type.systemBars()
-            insetsController.systemBarsBehavior = behavior
-            if (hide) {
-                insetsController.hide(type)
-            } else {
-                insetsController.show(type)
             }
         }
 
