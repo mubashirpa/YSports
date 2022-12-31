@@ -57,8 +57,7 @@ import com.google.android.exoplayer2.ext.ima.ImaServerSideAdInsertionMediaSource
 import com.google.android.exoplayer2.mediacodec.MediaCodecRenderer.DecoderInitializationException
 import com.google.android.exoplayer2.mediacodec.MediaCodecUtil.DecoderQueryException
 import com.google.android.exoplayer2.offline.DownloadRequest
-import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
-import com.google.android.exoplayer2.source.MediaSource
+import com.google.android.exoplayer2.source.*
 import com.google.android.exoplayer2.source.ads.AdsLoader
 import com.google.android.exoplayer2.trackselection.TrackSelectionParameters
 import com.google.android.exoplayer2.ui.AspectRatioFrameLayout
@@ -148,6 +147,7 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
     private var unlockButtonHandler: Handler? = null
     private var unlockButtonRunnable: Runnable? = null
     private var gestureDetector: GestureDetector? = null
+    private var subtitle: String? = null
 
     // Activity lifecycle.
 
@@ -182,6 +182,8 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
         }
 
         /* END */
+
+        hideSystemUi()
 
         exoUnlock = findViewById(R.id.exo_unlock)
         navigationButton = findViewById(R.id.exo_navigation)
@@ -351,6 +353,8 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
             navigationButton -> onBackPressedCallback.handleOnBackPressed()
             exoPIP -> enterPictureInPicture(true)
             changeAspectRatioButton -> {
+                updateStartPosition()
+                loadPlayer("https://storage.googleapis.com/exoplayer-test-media-1/webvtt/japanese.vtt")
                 when (playerView?.resizeMode) {
                     AspectRatioFrameLayout.RESIZE_MODE_FIT -> setVideoZoom(1)
                     AspectRatioFrameLayout.RESIZE_MODE_FILL -> setVideoZoom(2)
@@ -455,6 +459,16 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
             debugViewHelper = DebugTextViewHelper(player!!, debugTextView!!)
             debugViewHelper?.start()
         }
+
+        if (subtitle == null) {
+            loadPlayer()
+        } else {
+            loadPlayer(subtitle!!)
+        }
+        return true
+    }
+
+    private fun loadPlayer() {
         val haveStartPosition = startItemIndex != C.INDEX_UNSET
         if (haveStartPosition) {
             player?.seekTo(startItemIndex, startPosition)
@@ -464,6 +478,45 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
         updateButtonVisibility()
 
         /* END */
+
+        if (playerNotificationManager == null) {
+            playerNotificationManager = initializeNotification()
+        }
+        playerNotificationManager?.setPlayer(player)
+    }
+
+    private fun loadPlayer(subtitle: String): Boolean {
+        // Also call updateStartPosition() function before on selecting subtitle
+        this.subtitle = subtitle
+        val subtitleUri =
+            Uri.parse(subtitle)
+        val subtitleConfiguration =
+            MediaItem.SubtitleConfiguration.Builder(subtitleUri)
+                .setMimeType(SubtitleUtil().getSubtitleMimeType(subtitleUri))
+                .build()
+        val subtitleSource = SingleSampleMediaSource.Factory(dataSourceFactory!!)
+            .createMediaSource(subtitleConfiguration, C.TIME_UNSET)
+
+        val concatenatingMediaSource = ConcatenatingMediaSource()
+        for (i in mediaItems?.indices!!) {
+            val mediaSource = ProgressiveMediaSource.Factory(dataSourceFactory!!)
+                .createMediaSource(mediaItems!![i])
+            val mergingMediaSource = MergingMediaSource(mediaSource, subtitleSource)
+
+            if (i == startItemIndex) {
+                concatenatingMediaSource.addMediaSource(mergingMediaSource)
+            } else {
+                concatenatingMediaSource.addMediaSource(mediaSource)
+            }
+        }
+
+        val haveStartPosition = startItemIndex != C.INDEX_UNSET
+        player?.setMediaSource(concatenatingMediaSource, !haveStartPosition)
+        player?.prepare()
+        if (haveStartPosition) {
+            player?.seekTo(startItemIndex, startPosition)
+        }
+        updateButtonVisibility()
 
         if (playerNotificationManager == null) {
             playerNotificationManager = initializeNotification()
@@ -486,12 +539,14 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
         val imaServerSideAdInsertionMediaSourceFactory =
             ImaServerSideAdInsertionMediaSource.Factory(
                 serverSideAdsLoader!!,
-                DefaultMediaSourceFactory(context).setDataSourceFactory(dataSourceFactory!!)
+                DefaultMediaSourceFactory(context)
+                    .setDataSourceFactory(dataSourceFactory!!)
             )
-        return DefaultMediaSourceFactory(context).setDataSourceFactory(dataSourceFactory!!)
-            .setDrmSessionManagerProvider(drmSessionManagerProvider).setLocalAdInsertionComponents(
-                this::getClientSideAdsLoader, playerView!!
-            ).setServerSideAdInsertionMediaSourceFactory(imaServerSideAdInsertionMediaSourceFactory)
+        return DefaultMediaSourceFactory(context)
+            .setDataSourceFactory(dataSourceFactory!!)
+            .setDrmSessionManagerProvider(drmSessionManagerProvider)
+            .setLocalAdInsertionComponents(this::getClientSideAdsLoader, playerView!!)
+            .setServerSideAdInsertionMediaSourceFactory(imaServerSideAdInsertionMediaSourceFactory)
     }
 
     private fun setRenderersFactory(
@@ -611,9 +666,9 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
 
     private fun updateStartPosition() {
         if (player != null) {
-            startAutoPlay = player?.playWhenReady == true
-            startItemIndex = player?.currentMediaItemIndex!!
-            startPosition = max(0, player?.contentPosition!!)
+            startAutoPlay = player!!.playWhenReady
+            startItemIndex = player!!.currentMediaItemIndex
+            startPosition = max(0, player!!.contentPosition)
         }
     }
 
@@ -884,56 +939,14 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
         return pictureInPictureParams
     }
 
-    override fun onWindowFocusChanged(hasFocus: Boolean) {
-        super.onWindowFocusChanged(hasFocus)
-        if (hasFocus) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                hideWindowInsets()
-            } else {
-                controlSystemUI(true)
-            }
-        }
-    }
-
-    @Deprecated("Deprecated in Api level 30")
-    private fun controlSystemUI(hide: Boolean) {
-        // Enables regular immersive mode.
-        // For "lean back" mode, remove SYSTEM_UI_FLAG_IMMERSIVE.
-        // Or for "default immersive", replace it with SYSTEM_UI_FLAG_IMMERSIVE
-        val hideBehavior = (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                // Set the content to appear under the system bars so that the
-                // content doesn't resize when the system bars hide and show.
-                or View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                // Hide the nav bar and status bar
-                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_FULLSCREEN)
-
-        // Shows the system bars by removing all the flags
-        // except for the ones that make the content appear under the system bars.
-        val showBehavior =
-            (View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
-        if (hide) {
-            window.decorView.systemUiVisibility = hideBehavior
-        } else {
-            window.decorView.systemUiVisibility = showBehavior
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.R)
-    private fun hideWindowInsets() {
+    private fun hideSystemUi() {
         val windowInsetsController =
             WindowCompat.getInsetsController(window, window.decorView)
         windowInsetsController.systemBarsBehavior =
             WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
 
         window.decorView.setOnApplyWindowInsetsListener { view, windowInsets ->
-
-            val ins = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars())
-
-            if (windowInsets.isVisible(WindowInsetsCompat.Type.navigationBars())
-                || windowInsets.isVisible(WindowInsetsCompat.Type.statusBars())
-            ) {
-                windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
-            }
+            windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
             view.onApplyWindowInsets(windowInsets)
         }
     }
@@ -1281,9 +1294,5 @@ class PlayerActivity : AppCompatActivity(), OnClickListener,
                     return true
                 }
             })
-    }
-
-    private fun loadSubtitle() {
-        // TODO("Load external subtitle")
     }
 }
